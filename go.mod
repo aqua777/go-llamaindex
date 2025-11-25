@@ -4,7 +4,9 @@ go 1.24
 
 require (
 	github.com/neurosnap/sentences v1.1.2
+	github.com/philippgille/chromem-go v0.7.0
 	github.com/pkoukk/tiktoken-go v0.1.8
+	github.com/sashabaranov/go-openai v1.41.2
 	github.com/stretchr/testify v1.11.1
 )
 

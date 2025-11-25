@@ -14,12 +14,20 @@ github.com/google/uuid
 # github.com/neurosnap/sentences v1.1.2
 ## explicit; go 1.18
 github.com/neurosnap/sentences
+# github.com/philippgille/chromem-go v0.7.0
+## explicit; go 1.21
+github.com/philippgille/chromem-go
 # github.com/pkoukk/tiktoken-go v0.1.8
 ## explicit; go 1.19
 github.com/pkoukk/tiktoken-go
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/sashabaranov/go-openai v1.41.2
+## explicit; go 1.18
+github.com/sashabaranov/go-openai
+github.com/sashabaranov/go-openai/internal
+github.com/sashabaranov/go-openai/jsonschema
 # github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
