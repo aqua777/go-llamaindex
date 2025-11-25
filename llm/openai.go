@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	OpenAIAPIURLv1 = "https://api.openai.com/v1"
+	OpenAI_API_URL_v1 = "https://api.openai.com/v1"
 )
 
 type OpenAILLM struct {
@@ -28,7 +28,7 @@ func NewOpenAILLM(baseUrl, model, apiKey string) *OpenAILLM {
 	if baseUrl == "" {
 		baseUrl = os.Getenv("OPENAI_URL")
 		if baseUrl == "" {
-			baseUrl = OpenAIAPIURLv1
+			baseUrl = OpenAI_API_URL_v1
 		}
 	}
 
