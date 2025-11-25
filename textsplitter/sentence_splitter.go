@@ -1,6 +1,7 @@
 package textsplitter
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -117,17 +118,13 @@ func (s *SentenceSplitter) SplitText(text string) []string {
 
 // SplitTextMetadataAware splits text into chunks, accounting for metadata length.
 // This is useful for RAG applications where metadata consumes context window.
-func (s *SentenceSplitter) SplitTextMetadataAware(text string, metadata string) []string {
+func (s *SentenceSplitter) SplitTextMetadataAware(text string, metadata string) ([]string, error) {
 	metadataLength := s.getTokenSize(metadata)
 	effectiveChunkSize := s.ChunkSize - metadataLength
-	if effectiveChunkSize <= 0 {
-		// In TS this throws an error. Here we return empty or full text?
-		// We'll default to a small chunk size of 1 if effective size is invalid to avoid issues,
-		// or just return the text split by minimal logic.
-		// For safety, let's set a minimum effective size.
-		effectiveChunkSize = 1
+	if effectiveChunkSize < 50 {
+		return nil, fmt.Errorf("metadata length (%d) is too large for chunk size (%d), resulting in insufficient content window (< 50)", metadataLength, s.ChunkSize)
 	}
-	return s.splitText(text, effectiveChunkSize)
+	return s.splitText(text, effectiveChunkSize), nil
 }
 
 func (s *SentenceSplitter) splitText(text string, chunkSize int) []string {
