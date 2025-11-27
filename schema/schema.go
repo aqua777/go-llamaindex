@@ -24,6 +24,13 @@ type Node struct {
 	Embedding []float64              `json:"embedding,omitempty"`
 }
 
+// Document represents a document.
+type Document struct {
+	ID       string                 `json:"id"`
+	Text     string                 `json:"text"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+}
+
 // NodeWithScore represents a node with a similarity score.
 type NodeWithScore struct {
 	Node  Node    `json:"node"`

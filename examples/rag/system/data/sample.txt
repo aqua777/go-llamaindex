@@ -1,0 +1,5 @@
+This is a test file for the RAG system demo.
+It contains some information about Go (Golang).
+Go is an open source programming language that makes it easy to build simple, reliable, and efficient software.
+Conceived at Google in 2007, Go was designed by Robert Griesemer, Rob Pike, and Ken Thompson.
+
