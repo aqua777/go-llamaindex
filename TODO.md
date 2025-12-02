@@ -53,35 +53,31 @@ Foundation types that all other components depend on.
 
 ## Phase 2: LLM & Embedding Interfaces
 
-### 2.1 LLM Interface Enhancement 🔄
+### 2.1 LLM Interface Enhancement ✅
 
-**Current State:** Basic `LLM` interface in `llm/interface.go`
+**Current State:** Fully implemented in `llm/` package
 
-**Required Enhancements:**
+**Implemented:**
 
-- [ ] **LLMMetadata** - Model capability information
+- [x] **LLMMetadata** - `llm/types.go`
   - `ContextWindow`, `NumOutputTokens`, `IsChat`, `IsFunctionCalling`
-  - `ModelName`, `SupportsFunctionCalling`
-  - Python: `base/llms/types.py`
-  - TypeScript: `llms/type.ts:LLMMetadata`
+  - `ModelName`, `IsMultiModal`, `SystemRole`
+  - Pre-defined metadata for GPT-3.5, GPT-4, GPT-4-Turbo, GPT-4o
 
-- [ ] **ChatMessage Types** - Structured message format
-  - Roles: `system`, `user`, `assistant`, `tool`
-  - Content blocks: `TextBlock`, `ImageBlock`, `ToolCallBlock`
-  - Python: `base/llms/types.py:ChatMessage`
-  - TypeScript: `llms/type.ts:ChatMessage`
+- [x] **ChatMessage Types** - `llm/types.go`
+  - `MessageRole`: `system`, `user`, `assistant`, `tool`
+  - `ContentBlock`: `TextBlock`, `ImageBlock`, `ToolCallBlock`, `ToolResultBlock`
+  - Multi-modal message support with `NewMultiModalMessage()`
 
-- [ ] **Tool Calling Support** - Function calling interface
-  - `ToolCall`, `ToolResult` types
-  - `SupportToolCall` capability flag
-  - Python: `llms/function_calling.py`
-  - TypeScript: `llms/tool-call.ts`
+- [x] **Tool Calling Support** - `llm/tool_types.go`
+  - `ToolCall`, `ToolResult`, `ToolMetadata` types
+  - `LLMWithToolCalling` interface with `ChatWithTools()`, `SupportsToolCalling()`
+  - `ToolChoice` enum: `auto`, `none`, `required`
+  - `ChatCompletionOptions` for fine-grained control
 
-- [ ] **Structured Output** - JSON schema-based responses
-  - Response format specification
-  - Validation against schema
-  - Python: `llms/structured_llm.py`
-  - TypeScript: `llms/base.ts:exec()`
+- [x] **Structured Output** - `llm/tool_types.go`
+  - `ResponseFormat` with `json_object` and `json_schema` types
+  - `LLMWithStructuredOutput` interface with `ChatWithFormat()`
 
 ### 2.2 Embedding Interface Enhancement 🔄
 
