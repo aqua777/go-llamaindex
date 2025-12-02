@@ -835,3 +835,242 @@ func TestMediaResourceJSONRoundTrip(t *testing.T) {
 	assert.Equal(t, mr.Text, restored.Text)
 	assert.Equal(t, mr.MimeType, restored.MimeType)
 }
+
+// Tests for VectorStoreQueryMode
+func TestVectorStoreQueryMode(t *testing.T) {
+	assert.Equal(t, VectorStoreQueryMode("default"), QueryModeDefault)
+	assert.Equal(t, VectorStoreQueryMode("sparse"), QueryModeSparse)
+	assert.Equal(t, VectorStoreQueryMode("hybrid"), QueryModeHybrid)
+	assert.Equal(t, VectorStoreQueryMode("mmr"), QueryModeMMR)
+	assert.Equal(t, VectorStoreQueryMode("text_search"), QueryModeTextSearch)
+}
+
+// Tests for FilterOperator
+func TestFilterOperators(t *testing.T) {
+	// Basic operators
+	assert.Equal(t, FilterOperator("=="), FilterOperatorEq)
+	assert.Equal(t, FilterOperator(">"), FilterOperatorGt)
+	assert.Equal(t, FilterOperator("<"), FilterOperatorLt)
+	assert.Equal(t, FilterOperator("!="), FilterOperatorNe)
+	assert.Equal(t, FilterOperator(">="), FilterOperatorGte)
+	assert.Equal(t, FilterOperator("<="), FilterOperatorLte)
+
+	// Array operators
+	assert.Equal(t, FilterOperator("in"), FilterOperatorIn)
+	assert.Equal(t, FilterOperator("nin"), FilterOperatorNin)
+	assert.Equal(t, FilterOperator("any"), FilterOperatorAny)
+	assert.Equal(t, FilterOperator("all"), FilterOperatorAll)
+
+	// Text operators
+	assert.Equal(t, FilterOperator("text_match"), FilterOperatorTextMatch)
+	assert.Equal(t, FilterOperator("text_match_insensitive"), FilterOperatorTextMatchInsensitive)
+
+	// Special operators
+	assert.Equal(t, FilterOperator("contains"), FilterOperatorContains)
+	assert.Equal(t, FilterOperator("is_empty"), FilterOperatorIsEmpty)
+}
+
+// Tests for FilterCondition
+func TestFilterCondition(t *testing.T) {
+	assert.Equal(t, FilterCondition("and"), FilterConditionAnd)
+	assert.Equal(t, FilterCondition("or"), FilterConditionOr)
+	assert.Equal(t, FilterCondition("not"), FilterConditionNot)
+}
+
+// Tests for MetadataFilter
+func TestNewMetadataFilter(t *testing.T) {
+	filter := NewMetadataFilter("category", "tech")
+	assert.Equal(t, "category", filter.Key)
+	assert.Equal(t, "tech", filter.Value)
+	assert.Equal(t, FilterOperatorEq, filter.Operator)
+}
+
+func TestNewMetadataFilterWithOp(t *testing.T) {
+	filter := NewMetadataFilterWithOp("price", 100, FilterOperatorGt)
+	assert.Equal(t, "price", filter.Key)
+	assert.Equal(t, 100, filter.Value)
+	assert.Equal(t, FilterOperatorGt, filter.Operator)
+}
+
+// Tests for MetadataFilters
+func TestNewMetadataFilters(t *testing.T) {
+	filters := NewMetadataFilters(
+		NewMetadataFilter("category", "tech"),
+		NewMetadataFilter("status", "active"),
+	)
+
+	assert.Equal(t, 2, len(filters.Filters))
+	assert.Equal(t, FilterConditionAnd, filters.Condition)
+}
+
+func TestMetadataFiltersWithCondition(t *testing.T) {
+	filters := NewMetadataFiltersWithCondition(FilterConditionOr,
+		NewMetadataFilter("category", "tech"),
+		NewMetadataFilter("category", "science"),
+	)
+
+	assert.Equal(t, 2, len(filters.Filters))
+	assert.Equal(t, FilterConditionOr, filters.Condition)
+}
+
+func TestMetadataFiltersAnd(t *testing.T) {
+	filters := NewMetadataFilters().
+		And(NewMetadataFilter("category", "tech")).
+		And(NewMetadataFilter("status", "active"))
+
+	assert.Equal(t, 2, len(filters.Filters))
+	assert.Equal(t, FilterConditionAnd, filters.Condition)
+}
+
+func TestMetadataFiltersOr(t *testing.T) {
+	filters := NewMetadataFilters(NewMetadataFilter("category", "tech")).
+		Or(NewMetadataFilter("category", "science"))
+
+	assert.Equal(t, 1, len(filters.Filters))
+	assert.Equal(t, 1, len(filters.Nested))
+	assert.Equal(t, FilterConditionOr, filters.Nested[0].Condition)
+}
+
+func TestMetadataFiltersNested(t *testing.T) {
+	// Create complex nested filter: (category == "tech" AND status == "active") OR (price > 100)
+	mainFilters := NewMetadataFilters(
+		NewMetadataFilter("category", "tech"),
+		NewMetadataFilter("status", "active"),
+	)
+
+	nestedOr := NewMetadataFiltersWithCondition(FilterConditionOr,
+		NewMetadataFilterWithOp("price", 100, FilterOperatorGt),
+	)
+
+	mainFilters.AddNested(nestedOr)
+
+	assert.Equal(t, 2, len(mainFilters.Filters))
+	assert.Equal(t, 1, len(mainFilters.Nested))
+}
+
+// Tests for VectorStoreQuery
+func TestNewVectorStoreQuery(t *testing.T) {
+	embedding := []float64{0.1, 0.2, 0.3}
+	query := NewVectorStoreQuery(embedding, 10)
+
+	assert.Equal(t, embedding, query.QueryEmbedding)
+	assert.Equal(t, embedding, query.Embedding)
+	assert.Equal(t, 10, query.SimilarityTopK)
+	assert.Equal(t, 10, query.TopK)
+	assert.Equal(t, QueryModeDefault, query.Mode)
+}
+
+func TestVectorStoreQueryWithMode(t *testing.T) {
+	query := NewVectorStoreQuery([]float64{0.1}, 5).
+		WithMode(QueryModeMMR)
+
+	assert.Equal(t, QueryModeMMR, query.Mode)
+}
+
+func TestVectorStoreQueryWithFilters(t *testing.T) {
+	filters := NewMetadataFilters(NewMetadataFilter("category", "tech"))
+	query := NewVectorStoreQuery([]float64{0.1}, 5).
+		WithFilters(filters)
+
+	assert.NotNil(t, query.Filters)
+	assert.Equal(t, 1, len(query.Filters.Filters))
+}
+
+func TestVectorStoreQueryWithAlpha(t *testing.T) {
+	query := NewVectorStoreQuery([]float64{0.1}, 5).
+		WithMode(QueryModeHybrid).
+		WithAlpha(0.7)
+
+	assert.NotNil(t, query.Alpha)
+	assert.Equal(t, 0.7, *query.Alpha)
+}
+
+func TestVectorStoreQueryWithMMRThreshold(t *testing.T) {
+	query := NewVectorStoreQuery([]float64{0.1}, 5).
+		WithMode(QueryModeMMR).
+		WithMMRThreshold(0.5)
+
+	assert.NotNil(t, query.MMRThreshold)
+	assert.Equal(t, 0.5, *query.MMRThreshold)
+}
+
+func TestVectorStoreQueryGetEmbedding(t *testing.T) {
+	// Test with QueryEmbedding set
+	query := &VectorStoreQuery{
+		QueryEmbedding: []float64{0.1, 0.2},
+		Embedding:      []float64{0.3, 0.4},
+	}
+	assert.Equal(t, []float64{0.1, 0.2}, query.GetEmbedding())
+
+	// Test with only Embedding set
+	query2 := &VectorStoreQuery{
+		Embedding: []float64{0.3, 0.4},
+	}
+	assert.Equal(t, []float64{0.3, 0.4}, query2.GetEmbedding())
+}
+
+func TestVectorStoreQueryGetTopK(t *testing.T) {
+	// Test with SimilarityTopK set
+	query := &VectorStoreQuery{
+		SimilarityTopK: 15,
+		TopK:           10,
+	}
+	assert.Equal(t, 15, query.GetTopK())
+
+	// Test with only TopK set
+	query2 := &VectorStoreQuery{
+		TopK: 10,
+	}
+	assert.Equal(t, 10, query2.GetTopK())
+
+	// Test default
+	query3 := &VectorStoreQuery{}
+	assert.Equal(t, 10, query3.GetTopK())
+}
+
+func TestVectorStoreQueryJSONRoundTrip(t *testing.T) {
+	alpha := 0.7
+	query := &VectorStoreQuery{
+		QueryEmbedding: []float64{0.1, 0.2, 0.3},
+		SimilarityTopK: 10,
+		QueryStr:       "test query",
+		Mode:           QueryModeHybrid,
+		Alpha:          &alpha,
+		Filters: NewMetadataFilters(
+			NewMetadataFilter("category", "tech"),
+		),
+	}
+
+	data, err := json.Marshal(query)
+	require.NoError(t, err)
+
+	var restored VectorStoreQuery
+	err = json.Unmarshal(data, &restored)
+	require.NoError(t, err)
+
+	assert.Equal(t, query.QueryEmbedding, restored.QueryEmbedding)
+	assert.Equal(t, query.SimilarityTopK, restored.SimilarityTopK)
+	assert.Equal(t, query.QueryStr, restored.QueryStr)
+	assert.Equal(t, query.Mode, restored.Mode)
+	assert.Equal(t, *query.Alpha, *restored.Alpha)
+	assert.Equal(t, len(query.Filters.Filters), len(restored.Filters.Filters))
+}
+
+func TestMetadataFiltersJSONRoundTrip(t *testing.T) {
+	filters := NewMetadataFilters(
+		NewMetadataFilter("category", "tech"),
+		NewMetadataFilterWithOp("price", 100.0, FilterOperatorGt),
+	)
+	filters.Or(NewMetadataFilter("status", "featured"))
+
+	data, err := json.Marshal(filters)
+	require.NoError(t, err)
+
+	var restored MetadataFilters
+	err = json.Unmarshal(data, &restored)
+	require.NoError(t, err)
+
+	assert.Equal(t, len(filters.Filters), len(restored.Filters))
+	assert.Equal(t, filters.Condition, restored.Condition)
+	assert.Equal(t, len(filters.Nested), len(restored.Nested))
+}

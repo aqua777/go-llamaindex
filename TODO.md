@@ -205,110 +205,138 @@ Foundation types that all other components depend on.
 
 ## Phase 4: Storage Layer
 
-### 4.1 Key-Value Store ❌
+### 4.1 Key-Value Store ✅
 
-- [ ] **KVStore Interface**
-  - `Put(key string, value interface{}) error`
-  - `Get(key string) (interface{}, error)`
-  - `Delete(key string) error`
-  - `GetAll() (map[string]interface{}, error)`
-  - Python: `storage/kvstore/`
-  - TypeScript: `storage/kv-store/`
+- [x] **KVStore Interface** - `storage/kvstore/interface.go`
+  - `Put(ctx, key, val, collection) error`
+  - `Get(ctx, key, collection) (StoredValue, error)`
+  - `Delete(ctx, key, collection) (bool, error)`
+  - `GetAll(ctx, collection) (map[string]StoredValue, error)`
+  - `PersistableKVStore` extends with `Persist(ctx, path) error`
 
-- [ ] **SimpleKVStore** - In-memory implementation
-- [ ] **FileKVStore** - File-based persistence
+- [x] **SimpleKVStore** - In-memory implementation with optional persistence
+- [x] **FileKVStore** - File-based persistence (auto-persists on write)
 
-### 4.2 Document Store ❌
+### 4.2 Document Store ✅
 
-- [ ] **DocStore Interface**
-  - `AddDocuments(docs []Document) error`
-  - `GetDocument(docID string) (*Document, error)`
-  - `DeleteDocument(docID string) error`
-  - `DocumentExists(docID string) bool`
-  - `GetRefDocInfo(refDocID string) (*RefDocInfo, error)`
-  - Python: `storage/docstore/`
-  - TypeScript: `storage/doc-store/`
+- [x] **DocStore Interface** - `storage/docstore/interface.go`
+  - `Docs(ctx) (map[string]BaseNode, error)`
+  - `AddDocuments(ctx, docs, allowUpdate) error`
+  - `GetDocument(ctx, docID, raiseError) (BaseNode, error)`
+  - `DeleteDocument(ctx, docID, raiseError) error`
+  - `DocumentExists(ctx, docID) (bool, error)`
+  - `GetRefDocInfo(ctx, refDocID) (*RefDocInfo, error)`
+  - `GetAllRefDocInfo(ctx) (map[string]*RefDocInfo, error)`
+  - `DeleteRefDoc(ctx, refDocID, raiseError) error`
+  - Hash methods: `SetDocumentHash`, `GetDocumentHash`, `GetAllDocumentHashes`
 
-- [ ] **SimpleDocumentStore** - KVStore-backed implementation
-- [ ] **RefDocInfo** - Reference document tracking
+- [x] **KVDocumentStore** - KVStore-backed implementation (`storage/docstore/kv_docstore.go`)
+- [x] **SimpleDocumentStore** - In-memory with persistence (`storage/docstore/simple_docstore.go`)
+- [x] **RefDocInfo** - Reference document tracking with NodeIDs and Metadata
 
-### 4.3 Index Store ❌
+### 4.3 Index Store ✅
 
-- [ ] **IndexStore Interface**
-  - `AddIndexStruct(indexStruct IndexStruct) error`
-  - `GetIndexStruct(structID string) (*IndexStruct, error)`
-  - `DeleteIndexStruct(structID string) error`
-  - Python: `storage/index_store/`
-  - TypeScript: `storage/index-store/`
+- [x] **IndexStore Interface** - `storage/indexstore/interface.go`
+  - `IndexStructs(ctx) ([]*IndexStruct, error)`
+  - `AddIndexStruct(ctx, indexStruct) error`
+  - `GetIndexStruct(ctx, structID) (*IndexStruct, error)`
+  - `DeleteIndexStruct(ctx, key) error`
 
-### 4.4 Chat Store ❌
+- [x] **IndexStruct** - Supports multiple index types (VectorStore, List, KeywordTable, Tree, KG)
+- [x] **KVIndexStore** - KVStore-backed implementation (`storage/indexstore/kv_indexstore.go`)
+- [x] **SimpleIndexStore** - In-memory with persistence (`storage/indexstore/simple_indexstore.go`)
 
-- [ ] **ChatStore Interface**
-  - `SetMessages(key string, messages []ChatMessage) error`
-  - `GetMessages(key string) ([]ChatMessage, error)`
-  - `AddMessage(key string, message ChatMessage) error`
-  - `DeleteMessages(key string) error`
-  - Python: `storage/chat_store/`
-  - TypeScript: `storage/chat-store/`
+### 4.4 Chat Store ✅
 
-### 4.5 Vector Store Enhancement 🔄
+- [x] **ChatStore Interface** - `storage/chatstore/interface.go`
+  - `SetMessages(ctx, key, messages) error`
+  - `GetMessages(ctx, key) ([]ChatMessage, error)`
+  - `AddMessage(ctx, key, message, idx) error`
+  - `DeleteMessages(ctx, key) ([]ChatMessage, error)`
+  - `DeleteMessage(ctx, key, idx) (*ChatMessage, error)`
+  - `DeleteLastMessage(ctx, key) (*ChatMessage, error)`
+  - `GetKeys(ctx) ([]string, error)`
 
-**Current State:** `VectorStore` interface and `SimpleVectorStore`, `ChromemStore` exist
+- [x] **SimpleChatStore** - In-memory with persistence (`storage/chatstore/simple_chatstore.go`)
+- [x] Uses existing `llm.ChatMessage` type from `llm/types.go`
 
-**Required Enhancements:**
+### 4.5 Vector Store Enhancement ✅
 
-- [ ] **VectorStoreQueryMode** - Query mode support
-  - `DEFAULT`, `SPARSE`, `HYBRID`, `MMR`
-  - Python: `vector_stores/types.py:45-60`
-  - TypeScript: `vector-store/index.ts:26-39`
+**Enhanced in `schema/schema.go`:**
 
-- [ ] **Enhanced Filtering** - Additional filter operators
-  - `TEXT_MATCH`, `CONTAINS`, `IS_EMPTY`, `ANY`, `ALL`
-  - Nested filter conditions (`AND`, `OR`, `NOT`)
-  - Python: `vector_stores/types.py:63-91`
-  - TypeScript: `vector-store/index.ts:41-73`
+- [x] **VectorStoreQueryMode** - Query mode support
+  - `QueryModeDefault`, `QueryModeSparse`, `QueryModeHybrid`, `QueryModeMMR`
+  - `QueryModeTextSearch`, `QueryModeSemanticHybrid`, `QueryModeSVM`
 
-### 4.6 Storage Context ❌
+- [x] **Enhanced FilterOperator** - Additional filter operators
+  - Basic: `EQ`, `GT`, `LT`, `NE`, `GTE`, `LTE`
+  - Array: `IN`, `NIN`, `ANY`, `ALL`
+  - Text: `TEXT_MATCH`, `TEXT_MATCH_INSENSITIVE`
+  - Special: `CONTAINS`, `IS_EMPTY`
 
-- [ ] **StorageContext** - Unified storage management
-  - Combines DocStore, IndexStore, VectorStore
-  - Persistence/loading utilities
-  - Python: `storage/storage_context.py`
+- [x] **FilterCondition** - Nested filter conditions
+  - `FilterConditionAnd`, `FilterConditionOr`, `FilterConditionNot`
+  - `MetadataFilters.Nested` for complex filter trees
+
+- [x] **Enhanced VectorStoreQuery** - Extended query options
+  - `Mode`, `Alpha` (hybrid), `MMRThreshold`
+  - `DocIDs`, `NodeIDs`, `SparseTopK`, `HybridTopK`
+  - Builder methods: `WithMode()`, `WithFilters()`, `WithAlpha()`, `WithMMRThreshold()`
+
+- [x] **VectorStoreQueryResult** - Structured query results
+
+### 4.6 Storage Context ✅
+
+- [x] **StorageContext** - Unified storage management (`storage/context.go`)
+  - Combines `DocStore`, `IndexStore`, `VectorStores` (map by namespace)
+  - `NewStorageContext()` - Create with defaults
+  - `NewStorageContextFromOptions()` - Create with custom stores
+  - `StorageContextFromPersistDir()` - Load from disk
+  - `Persist()` - Save to disk
+  - `ToDict()` / `StorageContextFromDict()` - Dictionary serialization
+  - `ToJSON()` / `StorageContextFromJSON()` - JSON serialization
+  - `VectorStore()` / `SetVectorStore()` / `AddVectorStore()` / `GetVectorStore()` - Vector store management
 
 ---
 
-## Phase 5: Prompt System
+## Phase 5: Prompt System ✅
 
-### 5.1 Prompt Templates ❌
+### 5.1 Prompt Templates ✅
 
-- [ ] **PromptTemplate** - Basic template with variable substitution
+- [x] **PromptTemplate** - Basic template with variable substitution (`prompts/template.go`)
   - Template string with `{variable}` placeholders
-  - Partial formatting support
-  - Python: `prompts/base.py`
-  - TypeScript: `prompts/prompt.ts`
+  - `Format()`, `FormatMessages()`, `PartialFormat()`
+  - `GetTemplate()`, `GetTemplateVars()`, `GetPromptType()`, `GetMetadata()`
 
-- [ ] **ChatPromptTemplate** - Message-based prompts
+- [x] **ChatPromptTemplate** - Message-based prompts (`prompts/template.go`)
   - System, user, assistant message templates
-  - Python: `prompts/chat_prompts.py`
+  - `FormatMessages()` returns `[]llm.ChatMessage`
+  - `NewChatPromptTemplate()`, `ChatPromptTemplateFromMessages()`
 
-- [ ] **PromptType Enum** - Standard prompt categories
-  - `SUMMARY`, `TREE_SUMMARIZE`, `QUESTION_ANSWER`, `REFINE`, etc.
-  - Python: `prompts/prompt_type.py`
-  - TypeScript: `prompts/prompt-type.ts`
+- [x] **PromptType Enum** - Standard prompt categories (`prompts/prompt_type.go`)
+  - `PromptTypeSummary`, `PromptTypeQuestionAnswer`, `PromptTypeRefine`
+  - `PromptTypeTreeInsert`, `PromptTypeTreeSelect`, `PromptTypeKeywordExtract`
+  - `PromptTypeKnowledgeTripletExtract`, `PromptTypeChoiceSelect`, `PromptTypeCustom`, etc.
 
-### 5.2 Prompt Mixin ❌
+### 5.2 Prompt Mixin ✅
 
-- [ ] **PromptMixin Interface** - Prompt management for components
-  - `GetPrompts() map[string]PromptTemplate`
-  - `UpdatePrompts(prompts map[string]PromptTemplate)`
-  - Python: `prompts/mixin.py`
-  - TypeScript: `prompts/mixin.ts`
+- [x] **PromptMixin Interface** - Prompt management for components (`prompts/mixin.go`)
+  - `GetPrompts() PromptDictType`
+  - `UpdatePrompts(prompts PromptDictType)`
+  - Supports nested modules with "module:prompt" naming
 
-### 5.3 Default Prompts ❌
+- [x] **BasePromptMixin** - Base implementation
+  - `SetPrompt()`, `GetPrompt()`, `AddModule()`
 
-- [ ] **Default Prompt Library**
-  - QA prompts, summarization prompts, refinement prompts
-  - Python: `prompts/default_prompts.py`
+### 5.3 Default Prompts ✅
+
+- [x] **Default Prompt Library** (`prompts/default_prompts.go`)
+  - `DefaultSummaryPrompt`, `DefaultTreeSummarizePrompt`
+  - `DefaultTextQAPrompt`, `DefaultRefinePrompt`
+  - `DefaultInsertPrompt`, `DefaultQueryPrompt`
+  - `DefaultKeywordExtractPrompt`, `DefaultKGTripletExtractPrompt`
+  - `DefaultChoiceSelectPrompt`, `DefaultRankGPTRerankPrompt`
+  - `GetDefaultPrompt(promptType)` helper function
 
 ---
 
