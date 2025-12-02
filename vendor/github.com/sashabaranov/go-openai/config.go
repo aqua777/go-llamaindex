@@ -96,23 +96,6 @@ func DefaultAnthropicConfig(apiKey, baseURL string) ClientConfig {
 	}
 }
 
-func CustomConfig(apiKey, baseURL string) ClientConfig {
-	if baseURL == "" {
-		baseURL = "http://host.docker.internal:11434/v1"
-	}
-	return ClientConfig{
-		authToken:  apiKey,
-		BaseURL:    baseURL,
-		OrgID:      "",
-		APIType:    APITypeOpenAI,
-		APIVersion: "2023-05-15",
-
-		HTTPClient: &http.Client{},
-
-		EmptyMessagesLimit: defaultEmptyMessagesLimit,
-	}
-}
-
 func (ClientConfig) String() string {
 	return "<OpenAI API ClientConfig>"
 }
