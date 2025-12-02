@@ -3,6 +3,8 @@ package textsplitter
 import (
 	"fmt"
 	"strings"
+
+	"github.com/aqua777/go-llamaindex/validation"
 )
 
 const (
@@ -74,6 +76,9 @@ func NewSentenceSplitter(
 		splitterStrategy = NewRegexSplitterStrategy(DefaultChunkingRegex)
 	}
 
+	// Note: We don't return error here for backward compatibility.
+	// Use NewSentenceSplitterWithValidation for strict validation.
+
 	s := &SentenceSplitter{
 		ChunkSize:              chunkSize,
 		ChunkOverlap:           chunkOverlap,
@@ -88,6 +93,54 @@ func NewSentenceSplitter(
 
 	s.initSplitFns()
 	return s
+}
+
+// NewSentenceSplitterWithValidation creates a new SentenceSplitter with input validation.
+// Returns an error if parameters are invalid.
+func NewSentenceSplitterWithValidation(
+	chunkSize int,
+	chunkOverlap int,
+	tokenizer Tokenizer,
+	splitterStrategy SentenceSplitterStrategy,
+) (*SentenceSplitter, error) {
+	// Validate parameters
+	if err := validation.ValidateChunkParams(chunkSize, chunkOverlap); err != nil {
+		return nil, fmt.Errorf("invalid sentence splitter config: %w", err)
+	}
+
+	if tokenizer == nil {
+		tokenizer = NewSimpleTokenizer()
+	}
+
+	if splitterStrategy == nil {
+		splitterStrategy = NewRegexSplitterStrategy(DefaultChunkingRegex)
+	}
+
+	s := &SentenceSplitter{
+		ChunkSize:              chunkSize,
+		ChunkOverlap:           chunkOverlap,
+		Separator:              DefaultSeparator,
+		ParagraphSeparator:     DefaultParagraphSep,
+		SecondaryChunkingRegex: DefaultChunkingRegex,
+		Tokenizer:              tokenizer,
+		SplitterStrategy:       splitterStrategy,
+		onChunkingStart:        func(text []string) {},
+		onChunkingEnd:          func(chunks []string) {},
+	}
+
+	s.initSplitFns()
+	return s, nil
+}
+
+// Validate validates the current splitter configuration.
+func (s *SentenceSplitter) Validate() error {
+	return validation.ValidateSentenceSplitterConfig(validation.SentenceSplitterConfig{
+		ChunkSize:              s.ChunkSize,
+		ChunkOverlap:           s.ChunkOverlap,
+		Separator:              s.Separator,
+		ParagraphSeparator:     s.ParagraphSeparator,
+		SecondaryChunkingRegex: s.SecondaryChunkingRegex,
+	})
 }
 
 func (s *SentenceSplitter) initSplitFns() {

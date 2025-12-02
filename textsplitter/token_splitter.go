@@ -1,7 +1,10 @@
 package textsplitter
 
 import (
+	"fmt"
 	"strings"
+
+	"github.com/aqua777/go-llamaindex/validation"
 )
 
 // TokenTextSplitter splits text based on token count rather than character count.
@@ -60,6 +63,35 @@ func (s *TokenTextSplitter) WithSeparator(sep string) *TokenTextSplitter {
 func (s *TokenTextSplitter) WithKeepSeparator(keep bool) *TokenTextSplitter {
 	s.KeepSeparator = keep
 	return s
+}
+
+// NewTokenTextSplitterWithValidation creates a TokenTextSplitter with input validation.
+// Returns an error if parameters are invalid.
+func NewTokenTextSplitterWithValidation(chunkSize, chunkOverlap int, tokenizer Tokenizer) (*TokenTextSplitter, error) {
+	if err := validation.ValidateChunkParams(chunkSize, chunkOverlap); err != nil {
+		return nil, fmt.Errorf("invalid token splitter config: %w", err)
+	}
+
+	if tokenizer == nil {
+		tokenizer = NewSimpleTokenizer()
+	}
+
+	return &TokenTextSplitter{
+		ChunkSize:     chunkSize,
+		ChunkOverlap:  chunkOverlap,
+		Tokenizer:     tokenizer,
+		Separator:     " ",
+		KeepSeparator: false,
+	}, nil
+}
+
+// Validate validates the current splitter configuration.
+func (s *TokenTextSplitter) Validate() error {
+	return validation.ValidateTokenSplitterConfig(validation.TokenSplitterConfig{
+		ChunkSize:    s.ChunkSize,
+		ChunkOverlap: s.ChunkOverlap,
+		Separator:    s.Separator,
+	})
 }
 
 // SplitText splits text into chunks based on token count.

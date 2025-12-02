@@ -159,6 +159,48 @@ Foundation types that all other components depend on.
   - `TokenTextSplitter.SplitTextMetadataAware()`
   - `MarkdownSplitter.SplitTextMetadataAware()`
 
+### 3.3 Tokenization ✅
+
+**Current State:** Full TikToken integration in `textsplitter/` package
+
+**Implemented:**
+
+- [x] **TikToken Integration** - `textsplitter/tokenizer_tiktoken.go`
+  - `TikTokenTokenizer` using `tiktoken-go` library
+  - `TikTokenTokenizerByEncoding` for specific encodings
+  - Encoding constants: `cl100k_base`, `p50k_base`, `r50k_base`, `o200k_base`
+  - `GetEncodingForModel()` maps models to encodings
+  - `DefaultTokenizer()` singleton for shared usage
+  - `CountTokens()`, `EncodeToIDs()`, `Decode()` methods
+
+- [x] **Model Encoding Map** - Supports GPT-4o, GPT-4, GPT-3.5, embedding models
+
+### 3.4 Input Validation ✅
+
+**Current State:** Validation package in `validation/`
+
+**Implemented:**
+
+- [x] **Validation Package** - `validation/validation.go`
+  - `Validator` type for collecting errors
+  - `ValidationError` and `ValidationErrors` types
+  - `RequirePositive()`, `RequireNonNegative()`, `RequireNotEmpty()`
+  - `RequireLessThan()`, `RequireLessOrEqual()`, `RequireNotNil()`
+  - `ValidateChunkParams()` for chunk_size/chunk_overlap validation
+
+- [x] **Splitter Validation** - `validation/splitter_validation.go`
+  - `ValidateSentenceSplitterConfig()`
+  - `ValidateTokenSplitterConfig()`
+  - `ValidateMarkdownSplitterConfig()`
+  - `ValidateSentenceWindowSplitterConfig()`
+  - `ValidateMetadataAwareSplit()` for metadata size checks
+  - `GetEffectiveChunkSize()` helper
+
+- [x] **Validated Constructors** - In splitter files
+  - `NewSentenceSplitterWithValidation()`
+  - `NewTokenTextSplitterWithValidation()`
+  - `Validate()` methods on splitter instances
+
 ---
 
 ## Phase 4: Storage Layer
@@ -518,25 +560,49 @@ Foundation types that all other components depend on.
 
 ## Phase 14: Document Readers
 
-### 14.1 Reader Interface ❌
+### 14.1 Reader Interface ✅
 
-- [ ] **BaseReader Interface**
-  - `LoadData() ([]Document, error)`
-  - `LazyLoadData() <-chan Document`
-  - Python: `readers/base.py`
+- [x] **Reader Interface** - `rag/reader/interface.go`
+  - `LoadData() ([]Node, error)`
+  - `LazyReader` with `LazyLoadData() (<-chan Node, <-chan error)`
+  - `FileReader` with `LoadFromFile(path string)`
+  - `ReaderWithContext` for cancellation support
+  - `ReaderMetadata` for reader information
+  - `ReaderOptions` for common configuration
+  - `ReaderError` for structured error handling
 
-### 14.2 Reader Implementations 🔄
+### 14.2 Reader Implementations ✅
 
-**Current State:** `SimpleDirectoryReader` exists
+**Current State:** Multiple readers implemented
+
+**Implemented:**
+
+- [x] **SimpleDirectoryReader** - `rag/reader/simple_directory_reader.go`
+  - Recursive directory traversal
+  - Extension filtering
+
+- [x] **JSONReader** - `rag/reader/json_reader.go`
+  - Single JSON object and array support
+  - JSON Lines (JSONL) format support
+  - Configurable text content key
+  - Metadata key extraction
+
+- [x] **HTMLReader** - `rag/reader/html_reader.go`
+  - Script/style tag removal
+  - HTML entity decoding
+  - Metadata extraction (title, description, language)
+  - Tag-specific content extraction
+  - Whitespace normalization
+
+- [x] **MarkdownReader** - `rag/reader/markdown_reader.go`
+  - YAML frontmatter extraction
+  - Header-based document splitting
+  - Hyperlink/image removal options
+  - Multiple markdown extensions support
 
 **Additional Readers Needed:**
 
-- [ ] **JSONReader** - JSON file parsing
-  - Python: `readers/json.py`
-
-- [ ] **PDFReader** - PDF document extraction
-- [ ] **HTMLReader** - HTML content extraction
-- [ ] **MarkdownReader** - Markdown parsing
+- [ ] **PDFReader** - PDF document extraction (requires external library)
 
 ---
 
