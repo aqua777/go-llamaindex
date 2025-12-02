@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("Vector store initialized at", persistPath)
 
 	// 3. Load Data
-	inputDir := "./data"
+	inputDir := "./.data"
 	fmt.Println("Loading documents from", inputDir)
 	reader := reader.NewSimpleDirectoryReader(inputDir, ".not-txt", ".not-md")
 	docs, err := reader.LoadData()

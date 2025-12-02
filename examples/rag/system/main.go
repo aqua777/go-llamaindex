@@ -48,7 +48,7 @@ func main() {
 	// 5. Ingest Data
 	// Ingest a directory
 	fmt.Println("Ingesting directory...")
-	err = sys.IngestDirectory(ctx, "./data")
+	err = sys.IngestDirectory(ctx, "./.data")
 	if err != nil {
 		log.Fatalf("Failed to ingest directory: %v", err)
 	}
