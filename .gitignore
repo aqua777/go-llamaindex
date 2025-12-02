@@ -1,4 +1,4 @@
 **/*.not-*
 .DS_Store
 
-**/chromem-db
+**/.chromem-db

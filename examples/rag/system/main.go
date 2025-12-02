@@ -32,7 +32,7 @@ func main() {
 	config := rag.RAGConfig{
 		ChunkSize:      512,
 		ChunkOverlap:   50,
-		PersistPath:    "./chromem-db-demo",
+		PersistPath:    "./.chromem-db",
 		CollectionName: "demo-docs",
 	}
 
