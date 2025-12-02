@@ -72,7 +72,8 @@ func main() {
 	// 5. Generate Embeddings
 	fmt.Println("Generating embeddings...")
 	// Custom embed model with Ollama endpoint
-	config := openai.CustomConfig("", "http://host.docker.internal:11434/v1")
+	config := openai.DefaultConfig("not-needed")
+	config.BaseURL = "http://host.docker.internal:11434/v1"
 	client := openai.NewClientWithConfig(config)
 	embedModel := embedding.NewOpenAIEmbeddingWithClient(client, "mxbai-embed-large") // "bge-large") // "all-minilm:22m")
 	ctx := context.Background()
