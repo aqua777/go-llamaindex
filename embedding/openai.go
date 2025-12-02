@@ -92,3 +92,89 @@ func (o *OpenAIEmbedding) getEmbedding(ctx context.Context, input string, typeLa
 	return embedding64, nil
 }
 
+// Info returns information about the model's capabilities.
+func (o *OpenAIEmbedding) Info() EmbeddingInfo {
+	return getModelInfo(string(o.model))
+}
+
+// GetTextEmbeddingsBatch generates embeddings for multiple texts.
+func (o *OpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float64, error) {
+	if len(texts) == 0 {
+		return nil, nil
+	}
+
+	o.logger.Info("GetTextEmbeddingsBatch called", "model", o.model, "count", len(texts))
+
+	// OpenAI supports batch embedding natively
+	// Process in chunks of 2048 (OpenAI's limit)
+	const batchSize = 2048
+	results := make([][]float64, len(texts))
+	processed := 0
+
+	for i := 0; i < len(texts); i += batchSize {
+		end := i + batchSize
+		if end > len(texts) {
+			end = len(texts)
+		}
+		batch := texts[i:end]
+
+		resp, err := o.client.CreateEmbeddings(
+			ctx,
+			openai.EmbeddingRequest{
+				Input: batch,
+				Model: o.model,
+			},
+		)
+
+		if err != nil {
+			o.logger.Error("GetTextEmbeddingsBatch failed", "error", err)
+			return nil, fmt.Errorf("openai batch embedding failed: %w", err)
+		}
+
+		// Process results
+		for j, data := range resp.Data {
+			embedding64 := make([]float64, len(data.Embedding))
+			for k, v := range data.Embedding {
+				embedding64[k] = float64(v)
+			}
+			results[i+j] = embedding64
+		}
+
+		processed += len(batch)
+		if callback != nil {
+			callback(processed, len(texts))
+		}
+	}
+
+	return results, nil
+}
+
+// SupportsMultiModal returns false as standard OpenAI embeddings don't support images.
+func (o *OpenAIEmbedding) SupportsMultiModal() bool {
+	return false
+}
+
+// GetImageEmbedding is not supported by standard OpenAI embedding models.
+func (o *OpenAIEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float64, error) {
+	return nil, fmt.Errorf("image embedding not supported by model %s", o.model)
+}
+
+// getModelInfo returns embedding info for known models.
+func getModelInfo(model string) EmbeddingInfo {
+	switch model {
+	case "text-embedding-3-small":
+		return OpenAISmallEmbedding3Info()
+	case "text-embedding-3-large":
+		return OpenAILargeEmbedding3Info()
+	case "text-embedding-ada-002":
+		return OpenAIAdaEmbeddingInfo()
+	case "mxbai-embed-large":
+		return MxbaiEmbedLargeInfo()
+	case "all-minilm", "all-minilm:22m", "all-minilm:33m":
+		return AllMiniLMInfo()
+	case "nomic-embed-text":
+		return NomicEmbedTextInfo()
+	default:
+		return DefaultEmbeddingInfo(model)
+	}
+}
