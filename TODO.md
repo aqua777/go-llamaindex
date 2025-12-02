@@ -131,27 +131,33 @@ Foundation types that all other components depend on.
   - `SimpleNodeParser` creates one node per document (no splitting)
   - Event callbacks for progress tracking
 
-### 3.2 Text Splitters 🔄
+### 3.2 Text Splitters ✅
 
-**Current State:** `SentenceSplitter` exists
+**Current State:** Fully implemented in `textsplitter/` package
 
-**Additional Splitters Needed:**
+**Implemented:**
 
-- [ ] **TokenTextSplitter** - Token-based splitting
-  - Respects token limits
-  - TypeScript: `node-parser/token-text-splitter.ts`
+- [x] **TokenTextSplitter** - `textsplitter/token_splitter.go`
+  - Token-based splitting with configurable chunk size and overlap
+  - Custom tokenizer support (SimpleTokenizer, TikToken)
+  - `SplitTextMetadataAware()` for metadata-conscious splitting
 
-- [ ] **MarkdownSplitter** - Markdown-aware splitting
-  - Preserves headers, code blocks
-  - TypeScript: `node-parser/markdown.ts`
+- [x] **MarkdownSplitter** - `textsplitter/markdown_splitter.go`
+  - Preserves code blocks (``` and ~~~)
+  - Splits by headers while maintaining structure
+  - Handles large code blocks gracefully
+  - `SplitTextMetadataAware()` support
 
-- [ ] **SentenceWindowSplitter** - Context window around sentences
-  - Configurable window size
-  - TypeScript: `node-parser/sentence-window.ts`
+- [x] **SentenceWindowSplitter** - `textsplitter/sentence_window_splitter.go`
+  - Configurable window size for context around sentences
+  - `SplitTextWithWindows()` returns sentences with context
+  - `SplitTextForNodes()` returns data with metadata for node creation
+  - Custom metadata keys support
 
-- [ ] **MetadataAwareTextSplitter** - Metadata-conscious splitting
-  - Accounts for metadata in chunk size
-  - TypeScript: `node-parser/base.ts:139-171`
+- [x] **MetadataAwareTextSplitter** - All splitters support this
+  - `SentenceSplitter.SplitTextMetadataAware()` (existing)
+  - `TokenTextSplitter.SplitTextMetadataAware()`
+  - `MarkdownSplitter.SplitTextMetadataAware()`
 
 ---
 
