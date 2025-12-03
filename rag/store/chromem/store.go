@@ -154,3 +154,8 @@ func (s *ChromemStore) Query(ctx context.Context, query schema.VectorStoreQuery)
 
 	return nodes, nil
 }
+
+// Delete removes a document from the store by ID.
+func (s *ChromemStore) Delete(ctx context.Context, refDocID string) error {
+	return s.collection.Delete(ctx, nil, nil, refDocID)
+}

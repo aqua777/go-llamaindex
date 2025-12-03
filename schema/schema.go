@@ -329,6 +329,14 @@ type Document struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
+// GetHash returns a hash of the document content.
+func (d *Document) GetHash() string {
+	h := sha256.New()
+	h.Write([]byte(d.ID))
+	h.Write([]byte(d.Text))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 // NodeWithScore represents a node with a similarity score.
 type NodeWithScore struct {
 	Node  Node    `json:"node"`

@@ -340,249 +340,500 @@ Foundation types that all other components depend on.
 
 ---
 
-## Phase 6: Retrieval System
+## Phase 6: Retrieval System ✅
 
-### 6.1 Retriever Enhancement 🔄
+### 6.1 Retriever Enhancement ✅
 
-**Current State:** Basic `Retriever` interface and `VectorStoreRetriever` exist
+- [x] **Retriever Interface** (`rag/retriever/interface.go`)
+  - `Retrieve(ctx, query) ([]NodeWithScore, error)`
 
-**Required Enhancements:**
+- [x] **BaseRetriever** - Full base implementation
+  - `ObjectMap` for recursive retrieval
+  - `HandleRecursiveRetrieval()` for IndexNode references
+  - `AddObject()`, `GetObject()` for object management
+  - `BasePromptMixin` integration
 
-- [ ] **BaseRetriever** - Full base implementation
-  - Object map for recursive retrieval
-  - Callback manager integration
-  - Python: `base/base_retriever.py`
-  - TypeScript: `retriever/index.ts`
+- [x] **VectorRetriever** (`rag/retriever/vector.go`)
+  - Queries vector store with embeddings
+  - Supports query modes (default, hybrid, MMR, etc.)
+  - `WithTopK()`, `WithQueryMode()` options
 
-- [ ] **Recursive Retrieval** - Handle IndexNode references
-  - Retrieve from nested indices/retrievers
-  - Python: `base/base_retriever.py:116-146`
-  - TypeScript: `retriever/index.ts:58-79`
+### 6.2 Advanced Retrievers ✅
 
-### 6.2 Advanced Retrievers ❌
+- [x] **FusionRetriever** (`rag/retriever/fusion.go`)
+  - Combines multiple retrievers
+  - Fusion modes:
+    - `FusionModeReciprocalRank` - Reciprocal Rank Fusion (RRF)
+    - `FusionModeRelativeScore` - Relative score normalization
+    - `FusionModeDistBasedScore` - Distance-based score fusion
+    - `FusionModeSimple` - Max score for duplicates
+  - `WithRetrieverWeights()` for weighted fusion
 
-- [ ] **FusionRetriever** - Combine multiple retrievers
-  - Reciprocal Rank Fusion
-  - Python: `retrievers/fusion_retriever.py`
+- [x] **AutoMergingRetriever** (`rag/retriever/auto_merging.go`)
+  - Merges child nodes into parent nodes
+  - `SimpleRatioThresh` controls merge threshold
+  - Fills gaps between consecutive nodes
+  - Uses `StorageContext.DocStore` for parent lookup
 
-- [ ] **AutoMergingRetriever** - Hierarchical node merging
-  - Python: `retrievers/auto_merging_retriever.py`
-
-- [ ] **RouterRetriever** - Route queries to appropriate retriever
-  - Python: `retrievers/router_retriever.py`
-
----
-
-## Phase 7: Response Synthesis
-
-### 7.1 Synthesizer Enhancement 🔄
-
-**Current State:** Basic `Synthesizer` interface and `SimpleSynthesizer` exist
-
-**Required Enhancements:**
-
-- [ ] **BaseSynthesizer** - Full base implementation
-  - PromptHelper integration
-  - Streaming support
-  - Python: `response_synthesizers/base.py`
-  - TypeScript: `response-synthesizers/base-synthesizer.ts`
-
-### 7.2 Response Synthesizer Strategies ❌
-
-- [ ] **CompactAndRefine** - Compact context, then refine
-  - Python: `response_synthesizers/compact_and_refine.py`
-
-- [ ] **TreeSummarize** - Hierarchical summarization
-  - Python: `response_synthesizers/tree_summarize.py`
-
-- [ ] **Accumulate** - Accumulate responses from each chunk
-  - Python: `response_synthesizers/accumulate.py`
-
-- [ ] **SimpleSummarize** - Single-pass summarization
-  - Python: `response_synthesizers/simple_summarize.py`
-
-- [ ] **ResponseMode Enum**
-  - `REFINE`, `COMPACT`, `TREE_SUMMARIZE`, `SIMPLE_SUMMARIZE`, `ACCUMULATE`
-  - Python: `response_synthesizers/type.py`
-
-### 7.3 Response Types ❌
-
-- [ ] **Response** - Standard response with metadata
-  - `Response`, `SourceNodes`, `Metadata`
-  - Python: `base/response/schema.py`
-
-- [ ] **StreamingResponse** - Async streaming response
-  - Response generator/channel
-  - Python: `base/response/schema.py`
+- [x] **RouterRetriever** (`rag/retriever/router.go`)
+  - Routes queries to appropriate retrievers
+  - `RetrieverTool` wraps retrievers with metadata
+  - `Selector` interface for routing decisions
+  - `SimpleSelector` (all), `SingleSelector` (first)
 
 ---
 
-## Phase 8: Query Engine
+## Phase 7: Response Synthesis ✅
 
-### 8.1 Query Engine Enhancement 🔄
+### 7.1 Synthesizer Enhancement ✅
 
-**Current State:** Basic `QueryEngine` interface and `RetrieverQueryEngine` exist
+- [x] **Synthesizer Interface** (`rag/synthesizer/interface.go`)
+  - `Synthesize(ctx, query, nodes) (*Response, error)`
+  - `GetResponse(ctx, query, textChunks) (string, error)`
 
-**Required Enhancements:**
+- [x] **BaseSynthesizer** - Full base implementation
+  - `LLM`, `Streaming`, `Verbose` fields
+  - `GetMetadataForResponse()`, `PrepareResponseOutput()`
+  - `BasePromptMixin` integration
+  - `WithStreaming()`, `WithSynthesizerVerbose()` options
 
-- [ ] **BaseQueryEngine** - Full base implementation
-  - `Retrieve()`, `Synthesize()` separate methods
-  - Callback integration
-  - Python: `base/base_query_engine.py`
-  - TypeScript: `query-engine/base.ts`
+### 7.2 Response Synthesizer Strategies ✅
 
-### 8.2 Advanced Query Engines ❌
+- [x] **SimpleSynthesizer** (`rag/synthesizer/simple.go`)
+  - Merges all chunks, single LLM call
+  - `WithTextQATemplate()` option
 
-- [ ] **SubQuestionQueryEngine** - Decompose complex queries
-  - Python: `query_engine/sub_question_query_engine.py`
+- [x] **RefineSynthesizer** (`rag/synthesizer/refine.go`)
+  - Iteratively refines response across chunks
+  - `WithRefineTextQATemplate()`, `WithRefineTemplate()` options
 
-- [ ] **RouterQueryEngine** - Route to appropriate engine
-  - Python: `query_engine/router_query_engine.py`
+- [x] **CompactAndRefineSynthesizer** (`rag/synthesizer/compact.go`)
+  - Compacts chunks before refining
+  - `WithMaxChunkSize()`, `WithChunkSeparator()` options
 
-- [ ] **RetryQueryEngine** - Retry on failure
-  - Python: `query_engine/retry_query_engine.py`
+- [x] **TreeSummarizeSynthesizer** (`rag/synthesizer/tree_summarize.go`)
+  - Recursive bottom-up summarization
+  - `WithSummaryTemplate()`, `WithTreeMaxChunkSize()` options
 
-- [ ] **TransformQueryEngine** - Transform queries before execution
-  - Python: `query_engine/transform_query_engine.py`
+- [x] **AccumulateSynthesizer** (`rag/synthesizer/accumulate.go`)
+  - Generates response per chunk, concatenates
+  - `WithAccumulateTextQATemplate()`, `WithAccumulateSeparator()` options
+
+- [x] **CompactAccumulateSynthesizer** (`rag/synthesizer/accumulate.go`)
+  - Compacts chunks before accumulating
+
+- [x] **ResponseMode Enum** (`rag/synthesizer/response_mode.go`)
+  - `ResponseModeRefine`, `ResponseModeCompact`, `ResponseModeSimpleSummarize`
+  - `ResponseModeTreeSummarize`, `ResponseModeAccumulate`, `ResponseModeCompactAccumulate`
+  - `ResponseModeGeneration`, `ResponseModeNoText`, `ResponseModeContextOnly`
+
+- [x] **GetSynthesizer Factory** (`rag/synthesizer/factory.go`)
+  - Returns synthesizer for given response mode
+
+### 7.3 Response Types ✅
+
+- [x] **Response** (`rag/synthesizer/response.go`)
+  - `Response`, `SourceNodes`, `Metadata` fields
+  - `String()`, `GetFormattedSources()` methods
+
+- [x] **StreamingResponse** (`rag/synthesizer/response.go`)
+  - `ResponseChan` for streaming tokens
+  - `String()`, `GetResponse()`, `GetFormattedSources()` methods
+
+- [x] **ResponseType Interface**
+  - Common interface for all response types
 
 ---
 
-## Phase 9: Index Abstractions
+## Phase 8: Query Engine ✅
 
-### 9.1 Base Index ❌
+### 8.1 Query Engine Enhancement ✅
 
-- [ ] **BaseIndex Interface**
+- [x] **QueryEngine Interface** (`rag/queryengine/interface.go`)
+  - `Query(ctx, query) (*Response, error)`
+
+- [x] **QueryEngineWithRetrieval Interface**
+  - `Retrieve(ctx, query) ([]NodeWithScore, error)`
+  - `Synthesize(ctx, query, nodes) (*Response, error)`
+
+- [x] **BaseQueryEngine** - Full base implementation
+  - `Verbose` field, `BasePromptMixin` integration
+  - `WithQueryEngineVerbose()` option
+
+- [x] **RetrieverQueryEngine** (`rag/queryengine/interface.go`)
+  - Combines retriever and synthesizer
+  - Implements `QueryEngineWithRetrieval`
+
+- [x] **QueryEngineTool** (`rag/queryengine/tool.go`)
+  - Wraps query engine with metadata for routing
+  - `ToolMetadata` struct
+
+### 8.2 Advanced Query Engines ✅
+
+- [x] **SubQuestionQueryEngine** (`rag/queryengine/sub_question.go`)
+  - Decomposes complex queries into sub-questions
+  - `QuestionGenerator` interface
+  - `LLMQuestionGenerator` implementation
+  - `SubQuestion`, `SubQuestionAnswerPair` types
+
+- [x] **RouterQueryEngine** (`rag/queryengine/router.go`)
+  - Routes queries to appropriate engines
+  - `QueryEngineSelector` interface
+  - `SingleSelector`, `MultiSelector` implementations
+  - `WithRouterSelector()`, `WithRouterSummarizer()` options
+
+- [x] **RetryQueryEngine** (`rag/queryengine/retry.go`)
+  - Retries queries on failure
+  - `WithMaxRetries()`, `WithRetryDelay()` options
+
+- [x] **TransformQueryEngine** (`rag/queryengine/transform.go`)
+  - Transforms queries before execution
+  - `QueryTransform` interface
+  - `IdentityTransform`, `HyDETransform` implementations
+
+---
+
+## Phase 9: Index Abstractions ✅
+
+### 9.1 Base Index ✅
+
+- [x] **BaseIndex Interface** - `index/interface.go`
   - `AsRetriever() Retriever`
   - `AsQueryEngine() QueryEngine`
-  - `Insert(nodes []Node) error`
-  - `Delete(nodeIDs []string) error`
-  - `Refresh(documents []Document) error`
+  - `InsertNodes(nodes []Node) error`
+  - `DeleteNodes(nodeIDs []string) error`
+  - `RefreshDocuments(documents []Document) error`
   - Python: `indices/base.py`
 
-### 9.2 Index Types ❌
+- [x] **Index Interface** - Core interface for all index types
+  - `IndexID() string`
+  - `IndexStruct() *IndexStruct`
+  - `StorageContext() *StorageContext`
 
-- [ ] **VectorStoreIndex** - Vector-based retrieval
+- [x] **RetrieverConfig/QueryEngineConfig** - Configuration options
+  - Functional options pattern for flexible configuration
+
+### 9.2 Index Types ✅
+
+- [x] **VectorStoreIndex** - Vector-based retrieval - `index/vector_store.go`
+  - Embedding generation and storage
+  - Batch insertion with configurable batch size
+  - Integration with VectorStore interface
+  - VectorIndexRetriever for similarity search
   - Python: `indices/vector_store/`
 
-- [ ] **SummaryIndex** (ListIndex) - Sequential document index
+- [x] **SummaryIndex** (ListIndex) - Sequential document index - `index/summary.go`
+  - Stores nodes in a list structure
+  - Multiple retriever modes: Default, Embedding, LLM
+  - SummaryIndexRetriever with mode selection
   - Python: `indices/list/`
 
-- [ ] **KeywordTableIndex** - Keyword-based retrieval
+- [x] **KeywordTableIndex** - Keyword-based retrieval - `index/keyword_table.go`
+  - SimpleKeywordExtractor with stop word removal
+  - Keyword-to-node mapping
+  - KeywordTableRetriever with keyword matching
   - Python: `indices/keyword_table/`
 
-- [ ] **TreeIndex** - Hierarchical summarization
+- [ ] **TreeIndex** - Hierarchical summarization (future)
   - Python: `indices/tree/`
 
+### 9.3 Tests ✅
+
+- [x] **Index Tests** - `index/index_test.go`
+  - MockEmbeddingModel for testing
+  - VectorStoreIndex tests (create, insert, delete, retrieve)
+  - SummaryIndex tests (create, insert, delete, retrieve)
+  - KeywordTableIndex tests (create, insert, delete, retrieve)
+  - SimpleKeywordExtractor tests
+  - Interface compliance tests
+
 ---
 
-## Phase 10: Tools & Function Calling
+## Phase 10: Tools & Function Calling ✅
 
-### 10.1 Tool System ❌
+### 10.1 Tool System ✅
 
-- [ ] **BaseTool Interface**
-  - `Call(input interface{}) (ToolOutput, error)`
-  - `Metadata() ToolMetadata`
+- [x] **Tool Interface** - `tools/types.go`
+  - `Call(ctx context.Context, input interface{}) (*ToolOutput, error)`
+  - `Metadata() *ToolMetadata`
   - Python: `tools/types.py`
-  - TypeScript: `llms/type.ts:BaseTool`
 
-- [ ] **ToolMetadata** - Tool description and schema
+- [x] **ToolMetadata** - Tool description and schema - `tools/types.go`
   - `Name`, `Description`, `Parameters` (JSON Schema)
-  - `ToOpenAITool()` conversion
+  - `ToOpenAITool()` conversion to OpenAI function calling format
+  - `ToOpenAIFunction()` legacy format
+  - `GetParametersJSON()` for schema serialization
   - Python: `tools/types.py:23-90`
-  - TypeScript: `llms/type.ts:ToolMetadata`
 
-- [ ] **ToolOutput** - Tool execution result
-  - `Content`, `ToolName`, `RawInput`, `RawOutput`, `IsError`
+- [x] **ToolOutput** - Tool execution result - `tools/types.go`
+  - `Content`, `ToolName`, `RawInput`, `RawOutput`, `IsError`, `Error`
+  - `NewToolOutput()`, `NewToolOutputWithInput()`, `NewErrorToolOutput()` constructors
   - Python: `tools/types.py:93-150`
 
-- [ ] **FunctionTool** - Wrap Go functions as tools
-  - Schema generation from function signature
-  - TypeScript: `tools/function-tool.ts`
+- [x] **BaseTool** - Base implementation for tools - `tools/types.go`
+  - Common metadata handling
+  - `ToolSpec` for declarative tool definition
 
-### 10.2 Specialized Tools ❌
+- [x] **FunctionTool** - Wrap Go functions as tools - `tools/function_tool.go`
+  - Automatic schema generation from function signature
+  - Support for context.Context parameter
+  - Type conversion for function arguments
+  - `typeToJSONSchema()` for Go type to JSON Schema conversion
+  - `structToJSONSchema()` for struct types
+  - Python: `tools/function_tool.py`
 
-- [ ] **QueryEngineTool** - Wrap query engine as tool
+### 10.2 Specialized Tools ✅
+
+- [x] **QueryEngineTool** - Wrap query engine as tool - `tools/query_engine_tool.go`
+  - Executes queries against a QueryEngine
+  - Configurable input resolution
+  - `NewQueryEngineTool()`, `NewQueryEngineToolFromDefaults()` constructors
   - Python: `tools/query_engine.py`
 
-- [ ] **RetrieverTool** - Wrap retriever as tool
+- [x] **RetrieverTool** - Wrap retriever as tool - `tools/retriever_tool.go`
+  - Retrieves documents from a Retriever
+  - Support for NodePostprocessors
+  - Formats retrieved content for LLM consumption
   - Python: `tools/retriever_tool.py`
 
+### 10.3 Tests ✅
+
+- [x] **Tool Tests** - `tools/tools_test.go`
+  - ToolMetadata tests (creation, JSON schema, OpenAI format)
+  - ToolOutput tests (creation, error handling)
+  - ToolSpec tests
+  - FunctionTool tests (simple functions, context, map input, errors)
+  - QueryEngineTool tests
+  - RetrieverTool tests
+  - Type conversion tests
+  - Interface compliance tests
+
 ---
 
-## Phase 11: Memory System
+## Phase 11: Memory System ✅
 
-### 11.1 Chat Memory ❌
+### 11.1 Chat Memory ✅
 
-- [ ] **BaseMemory Interface**
-  - `Get() []ChatMessage`
-  - `Put(message ChatMessage) error`
-  - `Reset() error`
+- [x] **Memory Interface** - `memory/types.go`
+  - `Get(ctx, input) ([]ChatMessage, error)` - Retrieve messages, optionally filtered
+  - `GetAll(ctx) ([]ChatMessage, error)` - Retrieve all messages
+  - `Put(ctx, message) error` - Add a message
+  - `PutMessages(ctx, messages) error` - Add multiple messages
+  - `Set(ctx, messages) error` - Replace all messages
+  - `Reset(ctx) error` - Clear all messages
   - Python: `memory/types.py`
-  - TypeScript: `memory/types.ts`
 
-- [ ] **ChatMemoryBuffer** - Fixed-size message buffer
+- [x] **BaseMemory** - Base implementation - `memory/types.go`
+  - Common functionality for chat store interaction
+  - Configurable chat store and key
+  - `TokenizerFunc` type for token counting
+  - `DefaultTokenizer` (~4 chars per token)
+
+- [x] **SimpleMemory** - Basic memory that stores all messages - `memory/types.go`
+  - Simple implementation that returns all messages on Get
+
+- [x] **ChatMemoryBuffer** - Fixed-size message buffer - `memory/chat_memory_buffer.go`
   - Token limit enforcement
+  - Trims older messages when limit exceeded
+  - Skips assistant/tool messages at start
+  - `GetWithInitialTokenCount` for accounting system prompts
+  - `NewChatMemoryBufferFromDefaults` with LLM context window support
   - Python: `memory/chat_memory_buffer.py`
 
-- [ ] **ChatSummaryMemoryBuffer** - Summarize old messages
+- [x] **ChatSummaryMemoryBuffer** - Summarize old messages - `memory/chat_summary_memory_buffer.go`
+  - Summarizes older messages using LLM
+  - Keeps recent messages in full text
+  - Configurable summarization prompt
+  - `countInitialTokens` option
+  - `NewChatSummaryMemoryBufferFromDefaults` constructor
   - Python: `memory/chat_summary_memory_buffer.py`
 
-### 11.2 Memory Blocks ❌
+### 11.2 Vector Memory ✅
 
-- [ ] **MemoryBlock Interface** - Composable memory components
-  - Python: `memory/memory_blocks/`
-  - TypeScript: `memory/block/`
-
-- [ ] **VectorMemory** - Vector-based memory retrieval
+- [x] **VectorMemory** - Vector-based memory retrieval - `memory/vector_memory.go`
+  - Stores messages in vector store for semantic retrieval
+  - `batchByUserMessage` groups user/assistant pairs
+  - Retrieves relevant messages based on query similarity
+  - `NewVectorMemoryFromDefaults` constructor
   - Python: `memory/vector_memory.py`
 
+### 11.3 Tests ✅
+
+- [x] **Memory Tests** - `memory/memory_test.go`
+  - SimpleMemory tests (put, get, set, reset)
+  - ChatMemoryBuffer tests (token limits, trimming)
+  - ChatSummaryMemoryBuffer tests (summarization)
+  - VectorMemory tests (put, get, batching)
+  - BaseMemory tests
+  - DefaultTokenizer tests
+  - Interface compliance tests
+
 ---
 
-## Phase 12: Chat Engine
+## Phase 12: Chat Engine ✅
 
-### 12.1 Chat Engine Interface ❌
+### 12.1 Chat Engine Interface ✅
 
-- [ ] **BaseChatEngine Interface**
-  - `Chat(message string) (Response, error)`
-  - `ChatStream(message string) (StreamingResponse, error)`
-  - `Reset() error`
+- [x] **ChatEngine Interface** - `chatengine/types.go`
+  - `Chat(ctx, message) (*ChatResponse, error)` - Send message and get response
+  - `ChatWithHistory(ctx, message, history) (*ChatResponse, error)` - Chat with explicit history
+  - `StreamChat(ctx, message) (*StreamingChatResponse, error)` - Streaming chat
+  - `Reset(ctx) error` - Clear conversation state
+  - `ChatHistory(ctx) ([]ChatMessage, error)` - Get chat history
   - Python: `chat_engine/types.py`
-  - TypeScript: `chat-engine/type.ts`
 
-### 12.2 Chat Engine Implementations ❌
+- [x] **ChatResponse** - Chat response struct - `chatengine/types.go`
+  - `Response` - Text response
+  - `SourceNodes` - Source nodes used for response
+  - `Sources` - Tool sources (retriever output)
+  - `Metadata` - Additional metadata
 
-- [ ] **SimpleChatEngine** - Direct LLM chat
+- [x] **StreamingChatResponse** - Streaming response - `chatengine/types.go`
+  - `ResponseChan` - Channel for streaming tokens
+  - `Consume()` - Read all tokens and return full response
+  - `IsDone()` - Check if streaming is complete
+
+- [x] **BaseChatEngine** - Base implementation - `chatengine/types.go`
+  - Common LLM and prefix messages handling
+  - `WithLLM`, `WithSystemPrompt`, `WithPrefixMessages` options
+
+- [x] **ChatMode** - Chat engine modes enum - `chatengine/types.go`
+  - `ChatModeSimple`, `ChatModeContext`, `ChatModeCondensePlusContext`
+
+### 12.2 Chat Engine Implementations ✅
+
+- [x] **SimpleChatEngine** - Direct LLM chat - `chatengine/simple.go`
+  - Chat with LLM without knowledge base
+  - Memory integration for conversation history
+  - Streaming support
+  - `NewSimpleChatEngineFromDefaults` constructor
   - Python: `chat_engine/simple.py`
-  - TypeScript: `chat-engine/simple-chat-engine.ts`
 
-- [ ] **ContextChatEngine** - RAG-enhanced chat
+- [x] **ContextChatEngine** - RAG-enhanced chat - `chatengine/context.go`
+  - Retrieves context from retriever
+  - Injects context into system prompt
+  - Returns source nodes with response
+  - Configurable context template
+  - `NewContextChatEngineFromDefaults` constructor
   - Python: `chat_engine/context.py`
-  - TypeScript: `chat-engine/context-chat-engine.ts`
 
-- [ ] **CondensePlusContextChatEngine** - Query condensation + context
+- [x] **CondensePlusContextChatEngine** - Query condensation + context - `chatengine/condense_plus_context.go`
+  - Condenses conversation history + latest message to standalone question
+  - Retrieves context using condensed question
+  - `skipCondense` option to bypass condensation
+  - `verbose` mode for debugging
+  - Configurable condense and context templates
+  - `NewCondensePlusContextChatEngineFromDefaults` constructor
   - Python: `chat_engine/condense_plus_context.py`
 
+### 12.3 Tests ✅
+
+- [x] **Chat Engine Tests** - `chatengine/chatengine_test.go`
+  - ChatResponse and StreamingChatResponse tests
+  - SimpleChatEngine tests (chat, streaming, reset, history)
+  - ContextChatEngine tests (chat with retriever, source nodes)
+  - CondensePlusContextChatEngine tests (condensing, skip condense)
+  - BaseChatEngine tests
+  - Interface compliance tests
+  - Custom memory integration tests
+
 ---
 
-## Phase 13: Callbacks & Instrumentation
+## Phase 13: Callbacks & Instrumentation ✅
 
-### 13.1 Callback System ❌
+### 13.1 Event Types ✅
 
-- [ ] **CallbackManager** - Event dispatch system
-  - Register/unregister handlers
-  - Event types: `LLM_START`, `LLM_END`, `RETRIEVE_START`, `RETRIEVE_END`, etc.
-  - Python: `callbacks/base.py`
-  - TypeScript: `global/settings/callback-manager.ts`
+- [x] **CBEventType Enum** - `callbacks/schema.go`
+  - `CBEventTypeChunking`, `CBEventTypeNodeParsing`, `CBEventTypeEmbedding`
+  - `CBEventTypeLLM`, `CBEventTypeQuery`, `CBEventTypeRetrieve`
+  - `CBEventTypeSynthesize`, `CBEventTypeTree`, `CBEventTypeSubQuestion`
+  - `CBEventTypeTemplating`, `CBEventTypeFunctionCall`, `CBEventTypeReranking`
+  - `CBEventTypeException`, `CBEventTypeAgentStep`
+  - `IsLeafEvent()` helper function
+  - Python: `callbacks/schema.py`
 
-- [ ] **BaseCallbackHandler** - Handler interface
-  - `OnEventStart()`, `OnEventEnd()`
+- [x] **EventPayload Enum** - `callbacks/schema.go`
+  - `EventPayloadDocuments`, `EventPayloadChunks`, `EventPayloadNodes`
+  - `EventPayloadPrompt`, `EventPayloadMessages`, `EventPayloadCompletion`
+  - `EventPayloadResponse`, `EventPayloadQueryStr`, `EventPayloadEmbeddings`
+  - `EventPayloadException`, etc.
+
+- [x] **CBEvent** - Event struct - `callbacks/schema.go`
+  - `EventType`, `Payload`, `Time`, `ID`
+  - `NewCBEvent()` constructor
+
+- [x] **EventStats** - Statistics struct - `callbacks/schema.go`
+  - `TotalSecs`, `AverageSecs`, `TotalCount`
+
+### 13.2 Callback Handler ✅
+
+- [x] **CallbackHandler Interface** - `callbacks/handler.go`
+  - `OnEventStart(eventType, payload, eventID, parentID) string`
+  - `OnEventEnd(eventType, payload, eventID)`
+  - `StartTrace(traceID)`, `EndTrace(traceID, traceMap)`
+  - `EventStartsToIgnore()`, `EventEndsToIgnore()`
   - Python: `callbacks/base_handler.py`
 
-### 13.2 Event Types ❌
+- [x] **BaseCallbackHandler** - Base implementation - `callbacks/handler.go`
+  - Default no-op implementations
+  - `ShouldIgnoreEventStart()`, `ShouldIgnoreEventEnd()` helpers
+  - Configurable event ignore lists
 
-- [ ] **CBEventType Enum**
-  - `CHUNKING`, `EMBEDDING`, `LLM`, `QUERY`, `RETRIEVE`, `SYNTHESIZE`, etc.
-  - Python: `callbacks/schema.py`
+### 13.3 Callback Manager ✅
+
+- [x] **CallbackManager** - Event dispatch system - `callbacks/manager.go`
+  - `OnEventStart()`, `OnEventEnd()` - Dispatch to handlers
+  - `AddHandler()`, `RemoveHandler()`, `SetHandlers()` - Handler management
+  - `StartTrace()`, `EndTrace()` - Trace management
+  - `TraceMap()` - Get event parent-child relationships
+  - Thread-safe with mutex
+  - Python: `callbacks/base.py`
+
+- [x] **EventContext** - Event wrapper - `callbacks/manager.go`
+  - `OnStart()`, `OnEnd()` - Trigger event start/end
+  - `EventID()`, `IsStarted()`, `IsFinished()` - State queries
+  - Prevents duplicate start/end calls
+
+- [x] **Helper Methods** - `callbacks/manager.go`
+  - `Event()` - Create EventContext
+  - `WithEvent()` - Execute function within event context
+  - `WithTrace()` - Execute function within trace context
+
+### 13.4 Handler Implementations ✅
+
+- [x] **LoggingHandler** - Logs events - `callbacks/handlers.go`
+  - Logs event start/end with timestamps
+  - Verbose mode with payload details
+  - Duration tracking
+  - Configurable writer
+
+- [x] **TokenCountingHandler** - Tracks token usage - `callbacks/handlers.go`
+  - `TotalLLMTokens()`, `PromptTokens()`, `CompletionTokens()`
+  - `TotalEmbedTokens()`
+  - `LLMEventCount()`, `EmbedEventCount()`
+  - `Reset()` to clear counters
+
+- [x] **EventCollectorHandler** - Collects events - `callbacks/handlers.go`
+  - `StartEvents()`, `EndEvents()` - Get collected events
+  - `GetEventsByType()` - Filter by event type
+  - `Clear()` - Clear collected events
+  - Useful for testing and debugging
+
+### 13.5 Tests ✅
+
+- [x] **Callback Tests** - `callbacks/callbacks_test.go`
+  - CBEventType and EventPayload tests
+  - CBEvent and EventStats tests
+  - BaseCallbackHandler tests
+  - CallbackManager tests (handlers, events, traces)
+  - EventContext tests
+  - LoggingHandler tests
+  - TokenCountingHandler tests
+  - EventCollectorHandler tests
+  - Event ignoring tests
+  - Trace stack tests
+  - Concurrent access tests
+  - Interface compliance tests
 
 ---
 
@@ -634,33 +885,88 @@ Foundation types that all other components depend on.
 
 ---
 
-## Phase 15: Ingestion Pipeline
+## Phase 15: Ingestion Pipeline ✅
 
-### 15.1 Pipeline Components ❌
+### 15.1 Pipeline Components ✅
 
-- [ ] **IngestionPipeline** - Document processing pipeline
-  - Chain of transformations
-  - Caching support
-  - Python: `ingestion/pipeline.py`
+- [x] **IngestionPipeline** - `ingestion/pipeline.go`
+  - Chain of transformations via `TransformComponent` interface
+  - Caching support with `IngestionCache`
+  - Document deduplication with docstore strategies
+  - Vector store integration
+  - Configurable via functional options pattern
+  - `DocstoreStrategy` enum: `UPSERTS`, `DUPLICATES_ONLY`, `UPSERTS_AND_DELETE`
+  - `Run()` method for synchronous execution
+  - `RunTransformations()` standalone function
 
-- [ ] **IngestionCache** - Deduplication cache
-  - Python: `ingestion/cache.py`
+- [x] **IngestionCache** - `ingestion/cache.go`
+  - In-memory cache with collection support
+  - `Put()` and `Get()` for node caching
+  - `Persist()` and `LoadFromPath()` for persistence
+  - `Clear()` and `HasKey()` utility methods
+  - Thread-safe with `sync.RWMutex`
+
+### 15.2 Tests ✅
+
+- [x] **Ingestion Tests** - `ingestion/ingestion_test.go`
+  - IngestionCache tests (put, get, clear, persist, load)
+  - IngestionPipeline tests (run with documents, nodes, transformations)
+  - Cache hit/miss tests
+  - Docstore deduplication tests
+  - Vector store integration tests
+  - Transformation hash tests
 
 ---
 
-## Phase 16: Postprocessors
+## Phase 16: Postprocessors ✅
 
-### 16.1 Node Postprocessors ❌
+### 16.1 Node Postprocessors ✅
 
-- [ ] **BaseNodePostprocessor Interface**
-  - `PostprocessNodes(nodes []NodeWithScore, query QueryBundle) []NodeWithScore`
-  - Python: `postprocessor/`
-  - TypeScript: `postprocessor/`
+- [x] **NodePostprocessor Interface** - `postprocessor/types.go`
+  - `PostprocessNodes(ctx, nodes []NodeWithScore, queryBundle) ([]NodeWithScore, error)`
+  - `Name() string`
 
-- [ ] **SimilarityPostprocessor** - Filter by similarity threshold
-- [ ] **KeywordNodePostprocessor** - Filter by keywords
-- [ ] **MetadataReplacementPostprocessor** - Replace node content with metadata
-- [ ] **LongContextReorder** - Reorder for long context models
+- [x] **BaseNodePostprocessor** - `postprocessor/types.go`
+  - Default no-op implementation
+  - Configurable via functional options
+
+- [x] **PostprocessorChain** - `postprocessor/types.go`
+  - Chain multiple postprocessors together
+  - Sequential execution
+
+- [x] **SimilarityPostprocessor** - `postprocessor/similarity.go`
+  - Filter nodes by similarity score threshold
+  - Configurable cutoff via `WithSimilarityCutoff()`
+
+- [x] **KeywordPostprocessor** - `postprocessor/keyword.go`
+  - Filter by required keywords (all must match)
+  - Filter by excluded keywords (any match excludes)
+  - Case-sensitive/insensitive matching
+
+- [x] **MetadataReplacementPostprocessor** - `postprocessor/metadata_replacement.go`
+  - Replace node content with metadata value
+  - Configurable target metadata key
+
+- [x] **LongContextReorder** - `postprocessor/long_context_reorder.go`
+  - Reorder nodes for long context models
+  - Based on paper: https://arxiv.org/abs/2307.03172
+  - Places higher-scored nodes at start and end
+
+- [x] **TopKPostprocessor** - `postprocessor/top_k.go`
+  - Limit number of returned nodes
+  - Sorts by score descending
+
+### 16.2 Tests ✅
+
+- [x] **Postprocessor Tests** - `postprocessor/postprocessor_test.go`
+  - BaseNodePostprocessor tests
+  - SimilarityPostprocessor tests (cutoff filtering)
+  - KeywordPostprocessor tests (required/excluded, case sensitivity)
+  - MetadataReplacementPostprocessor tests
+  - LongContextReorder tests
+  - TopKPostprocessor tests
+  - PostprocessorChain tests
+  - Interface compliance tests
 
 ---
 
@@ -743,6 +1049,25 @@ Each component should include:
 2. **CLAUDE.md Updates** - Document new patterns and conventions
 3. **README Updates** - Usage examples and feature list
 4. **Example Programs** - Runnable examples for each major feature
+
+---
+
+## Deferred Features
+
+The following features were deferred during initial implementation and should be completed:
+
+### TreeIndex (Phase 9.2)
+- **Priority**: Medium
+- **Complexity**: High
+- **Description**: Hierarchical summarization index that organizes nodes in a tree structure
+- **Requirements**:
+  - Tree building with recursive LLM-based summarization
+  - `TreeSelectLeafRetriever` - Select relevant leaf nodes via tree traversal
+  - `TreeAllLeafRetriever` - Return all leaf nodes
+  - `TreeRootRetriever` - Return root summary
+  - Support for different tree building strategies (top-down, bottom-up)
+- **Python Reference**: `indices/tree/`
+- **Depends On**: LLM integration for summarization
 
 ---
 

@@ -107,6 +107,15 @@ func (s *SimpleVectorStore) Query(ctx context.Context, query schema.VectorStoreQ
 	return result, nil
 }
 
+// Delete removes a node from the store by ID.
+func (s *SimpleVectorStore) Delete(ctx context.Context, refDocID string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	delete(s.nodes, refDocID)
+	return nil
+}
+
 func cosineSimilarity(a, b []float64) (float64, error) {
 	if len(a) != len(b) {
 		return 0, errors.New("vector lengths do not match")
