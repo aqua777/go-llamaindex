@@ -970,28 +970,99 @@ Foundation types that all other components depend on.
 
 ---
 
-## Phase 17: Advanced Features
+## Phase 17: Advanced Features ✅
 
-### 17.1 Selectors ❌
+### 17.1 Selectors ✅
 
-- [ ] **BaseSelector Interface** - Route queries to components
-  - Python: `selectors/`
+- [x] **Selector Interface** - `selector/types.go`
+  - `Select(ctx, choices []ToolMetadata, query string) (*SelectorResult, error)`
+  - `ToolMetadata` struct with Name and Description
+  - `SingleSelection` struct with Index and Reason
+  - `SelectorResult` with helper methods (Ind, Inds, Reason, Reasons)
+  - `BuildChoicesText()` helper function
 
-- [ ] **LLMSingleSelector** - LLM-based single selection
-- [ ] **LLMMultiSelector** - LLM-based multi selection
+- [x] **BaseSelector** - `selector/types.go`
+  - Default no-op implementation
+  - Configurable via functional options
 
-### 17.2 Question Generation ❌
+- [x] **LLMSingleSelector** - `selector/llm_selector.go`
+  - LLM-based single selection from choices
+  - Configurable prompt template
+  - SelectionOutputParser for JSON parsing
 
-- [ ] **BaseQuestionGenerator Interface**
-  - Generate sub-questions from complex queries
-  - Python: `question_gen/`
+- [x] **LLMMultiSelector** - `selector/llm_selector.go`
+  - LLM-based multi selection from choices
+  - Configurable max outputs
+  - Converts 1-indexed LLM output to 0-indexed
 
-### 17.3 Output Parsers ❌
+### 17.2 Question Generation ✅
 
-- [ ] **BaseOutputParser Interface**
-  - Parse and validate LLM outputs
-  - Python: `output_parsers/`
-  - TypeScript: `schema/type.ts`
+- [x] **QuestionGenerator Interface** - `questiongen/types.go`
+  - `Generate(ctx, tools []ToolMetadata, query string) ([]SubQuestion, error)`
+  - `SubQuestion` struct with SubQuestion and ToolName
+  - `SubQuestionList` wrapper for JSON parsing
+
+- [x] **BaseQuestionGenerator** - `questiongen/types.go`
+  - Default no-op implementation
+  - Configurable via functional options
+
+- [x] **LLMQuestionGenerator** - `questiongen/llm_generator.go`
+  - LLM-based sub-question generation
+  - Few-shot prompt template with examples
+  - SubQuestionOutputParser for JSON parsing
+  - `buildToolsText()` helper function
+
+### 17.3 Output Parsers ✅
+
+- [x] **OutputParser Interface** - `outputparser/types.go`
+  - `Parse(output string) (*StructuredOutput, error)`
+  - `Format(promptTemplate string) string`
+  - `StructuredOutput` with RawOutput and ParsedOutput
+  - `OutputParserError` for structured errors
+
+- [x] **BaseOutputParser** - `outputparser/types.go`
+  - Default pass-through implementation
+  - Configurable via functional options
+
+- [x] **JSONOutputParser** - `outputparser/json_parser.go`
+  - Parses JSON objects and arrays
+  - Extracts JSON from code blocks
+  - Handles surrounding text
+
+- [x] **ListOutputParser** - `outputparser/json_parser.go`
+  - Parses newline-separated lists
+  - Configurable separator
+  - Filters empty items
+
+- [x] **BooleanOutputParser** - `outputparser/json_parser.go`
+  - Parses boolean values from text
+  - Configurable true/false value sets
+  - Handles surrounding text
+
+### 17.4 Tests ✅
+
+- [x] **Selector Tests** - `selector/selector_test.go`
+  - ToolMetadata, SingleSelection, SelectorResult tests
+  - BaseSelector tests
+  - SelectionOutputParser tests
+  - LLMSingleSelector and LLMMultiSelector tests
+  - Interface compliance tests
+
+- [x] **Question Generator Tests** - `questiongen/questiongen_test.go`
+  - SubQuestion, SubQuestionList tests
+  - BaseQuestionGenerator tests
+  - SubQuestionOutputParser tests
+  - LLMQuestionGenerator tests
+  - Interface compliance tests
+
+- [x] **Output Parser Tests** - `outputparser/outputparser_test.go`
+  - StructuredOutput, OutputParserError tests
+  - BaseOutputParser tests
+  - JSONOutputParser tests
+  - ListOutputParser tests
+  - BooleanOutputParser tests
+  - extractJSON tests
+  - Interface compliance tests
 
 ---
 
