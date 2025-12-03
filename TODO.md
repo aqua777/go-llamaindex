@@ -1181,39 +1181,42 @@ The Go implementation covers ~70% of core LlamaIndex functionality and is **suit
 - **Python Reference**: `agent/react/`
 - **TypeScript Reference**: `packages/core/src/agent/`
 
-#### A.2 Evaluation Framework ❌ **CRITICAL**
+#### A.2 Evaluation Framework ✅ **CRITICAL**
 - **Priority**: P0
 - **Effort**: Medium (1 week)
 - **Description**: Implement RAG evaluation metrics
 - **Components**:
-  - [ ] `evaluation/types.go` - BaseEvaluator interface, EvaluationResult
-  - [ ] `evaluation/faithfulness.go` - Faithfulness evaluator
-  - [ ] `evaluation/relevancy.go` - Relevancy evaluator
-  - [ ] `evaluation/correctness.go` - Correctness evaluator
-  - [ ] `evaluation/semantic_similarity.go` - Semantic similarity evaluator
-  - [ ] `evaluation/batch_runner.go` - Batch evaluation runner
+  - [x] `evaluation/types.go` - Evaluator interface, EvaluationResult, EvaluateInput, EvaluatorRegistry
+  - [x] `evaluation/faithfulness.go` - FaithfulnessEvaluator (checks if response is supported by context)
+  - [x] `evaluation/relevancy.go` - RelevancyEvaluator, ContextRelevancyEvaluator, AnswerRelevancyEvaluator
+  - [x] `evaluation/correctness.go` - CorrectnessEvaluator (scores 1-5 with reference comparison)
+  - [x] `evaluation/semantic_similarity.go` - SemanticSimilarityEvaluator (cosine, dot product, euclidean)
+  - [x] `evaluation/batch_runner.go` - BatchEvalRunner with concurrent evaluation support
+  - [x] `evaluation/evaluation_test.go` - Comprehensive tests for all evaluators
 - **Python Reference**: `evaluation/`
 - **TypeScript Reference**: `packages/llamaindex/src/evaluation/`
 
-#### A.3 LLM Reranker ❌ **CRITICAL**
+#### A.3 LLM Reranker ✅ **CRITICAL**
 - **Priority**: P0
 - **Effort**: Low (3 days)
 - **Description**: Implement LLM-based reranking postprocessor
 - **Components**:
-  - [ ] `postprocessor/llm_rerank.go` - LLM-based reranker
-  - [ ] `postprocessor/rankgpt_rerank.go` - RankGPT reranker
+  - [x] `postprocessor/llm_rerank.go` - LLMRerank with choice-select prompt, batch processing, relevance scoring
+  - [x] `postprocessor/rankgpt_rerank.go` - RankGPTRerank with conversational ranking, SlidingWindowRankGPT, CohereRerank placeholder
+  - [x] Tests added to `postprocessor/postprocessor_test.go`
 - **Python Reference**: `postprocessor/llm_rerank.py`, `postprocessor/rankGPT_rerank.py`
 
-#### A.4 Metadata Extractors ❌ **CRITICAL**
+#### A.4 Metadata Extractors ✅ **CRITICAL**
 - **Priority**: P0
 - **Effort**: Medium (1 week)
 - **Description**: Auto-extract metadata from documents
 - **Components**:
-  - [ ] `extractors/types.go` - BaseExtractor interface
-  - [ ] `extractors/title.go` - TitleExtractor
-  - [ ] `extractors/summary.go` - SummaryExtractor
-  - [ ] `extractors/keywords.go` - KeywordsExtractor
-  - [ ] `extractors/questions.go` - QuestionsAnsweredExtractor
+  - [x] `extractors/types.go` - MetadataExtractor interface, BaseExtractor, LLMExtractor, ExtractorChain
+  - [x] `extractors/title.go` - TitleExtractor (document title from multiple nodes)
+  - [x] `extractors/summary.go` - SummaryExtractor (self, prev, next section summaries)
+  - [x] `extractors/keywords.go` - KeywordsExtractor (comma-separated keywords)
+  - [x] `extractors/questions.go` - QuestionsAnsweredExtractor (questions content can answer)
+  - [x] `extractors/extractors_test.go` - Comprehensive tests for all extractors
 - **Python Reference**: `extractors/metadata_extractors.py`
 - **TypeScript Reference**: `packages/llamaindex/src/extractors/`
 
