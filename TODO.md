@@ -881,7 +881,7 @@ Foundation types that all other components depend on.
 
 **Additional Readers Needed:**
 
-- [ ] **PDFReader** - PDF document extraction (requires external library)
+- [x] **PDFReader** - PDF document extraction using `ledongthuc/pdf` library (`rag/reader/pdf_reader.go`)
 
 ---
 
@@ -1222,89 +1222,101 @@ The Go implementation covers ~70% of core LlamaIndex functionality and is **suit
 
 ### Phase B: Provider Expansion (Weeks 5-6)
 
-#### B.1 Additional LLM Providers ⚠️ **SHOULD HAVE**
+#### B.1 Additional LLM Providers ✅ **SHOULD HAVE**
 - **Priority**: P1
 - **Effort**: Medium (1 week)
 - **Components**:
-  - [ ] `llm/anthropic.go` - Anthropic Claude support
-  - [ ] `llm/ollama.go` - Ollama local models
-  - [ ] `llm/cohere.go` - Cohere support
-  - [ ] `llm/azure_openai.go` - Azure OpenAI support
+  - [x] `llm/anthropic.go` - Anthropic Claude support (Claude 3 Opus/Sonnet/Haiku, Claude 3.5)
+  - [x] `llm/ollama.go` - Ollama local models (Llama 2/3, Mistral, CodeLlama, Gemma, Qwen, etc.)
+  - [x] `llm/cohere.go` - Cohere support (Command, Command-R, Command-R+)
+  - [x] `llm/azure_openai.go` - Azure OpenAI support
+  - [x] `llm/providers_test.go` - Comprehensive tests for all providers
 - **Python Reference**: `llama-index-integrations/llms/`
 
-#### B.2 Additional Embedding Providers ⚠️ **SHOULD HAVE**
+#### B.2 Additional Embedding Providers ✅ **SHOULD HAVE**
 - **Priority**: P1
 - **Effort**: Medium (1 week)
 - **Components**:
-  - [ ] `embedding/ollama.go` - Ollama embeddings
-  - [ ] `embedding/cohere.go` - Cohere embeddings
-  - [ ] `embedding/huggingface.go` - HuggingFace embeddings
-  - [ ] `embedding/azure_openai.go` - Azure OpenAI embeddings
+  - [x] `embedding/ollama.go` - Ollama embeddings (nomic-embed-text, mxbai-embed-large, all-minilm, bge, etc.)
+  - [x] `embedding/cohere.go` - Cohere embeddings (embed-english-v3, embed-multilingual-v3, light variants)
+  - [x] `embedding/huggingface.go` - HuggingFace embeddings (sentence-transformers, BGE, E5, GTE models + TEI support)
+  - [x] `embedding/azure_openai.go` - Azure OpenAI embeddings
+  - [x] `embedding/providers_test.go` - Comprehensive tests for all providers
 - **Python Reference**: `llama-index-integrations/embeddings/`
 
 ### Phase C: Advanced Features (Weeks 7-10)
 
-#### C.1 Workflow System ❌ **SHOULD HAVE**
+#### C.1 Workflow System ✅ **SHOULD HAVE**
 - **Priority**: P2
 - **Effort**: High (2 weeks)
 - **Description**: Event-driven workflow orchestration
 - **Components**:
-  - [ ] `workflow/types.go` - Workflow, Event, Context types
-  - [ ] `workflow/workflow.go` - Workflow execution engine
-  - [ ] `workflow/decorators.go` - Step decorators
-  - [ ] `workflow/events.go` - Event types
+  - [x] `workflow/types.go` - Workflow, Event, Context, StateStore, EventFactory, Handler types
+  - [x] `workflow/workflow.go` - Workflow execution engine with Run/RunStream, retry support
+  - [x] `workflow/decorators.go` - Step decorators (logging, timing, conditional, fallback, chain, middleware)
+  - [x] `workflow/events.go` - Common event types (Start, Stop, Error, InputRequired, HumanResponse)
+  - [x] `workflow/workflow_test.go` - Comprehensive tests
 - **Python Reference**: `workflow/`
 - **TypeScript Reference**: `packages/workflow/`
 
-#### C.2 TreeIndex ❌ **SHOULD HAVE**
+#### C.2 TreeIndex ✅ **SHOULD HAVE**
 - **Priority**: P2
 - **Effort**: Medium (1 week)
 - **Description**: Hierarchical summarization index
 - **Components**:
-  - [ ] `index/tree.go` - TreeIndex implementation
-  - [ ] `index/tree_retriever.go` - Tree retrievers (all-leaf, select-leaf, root)
-  - [ ] `index/tree_inserter.go` - Tree node insertion
+  - [x] `index/tree.go` - TreeIndex implementation with bottom-up tree building
+  - [x] `index/tree_retriever.go` - Tree retrievers (TreeAllLeafRetriever, TreeRootRetriever, TreeSelectLeafRetriever, TreeSelectLeafEmbeddingRetriever)
+  - [x] `index/tree_inserter.go` - Tree node insertion with consolidation
+  - [x] Comprehensive tests in `index/index_test.go`
 - **Python Reference**: `indices/tree/`
 
-#### C.3 Knowledge Graph Index ❌ **SHOULD HAVE**
+#### C.3 Knowledge Graph Index ✅ **SHOULD HAVE**
 - **Priority**: P2
 - **Effort**: High (2 weeks)
 - **Description**: Knowledge graph-based retrieval
 - **Components**:
-  - [ ] `graphstore/types.go` - GraphStore interface
-  - [ ] `graphstore/simple.go` - Simple in-memory graph store
-  - [ ] `index/knowledge_graph.go` - KG index
-  - [ ] `index/kg_retriever.go` - KG retrievers
+  - [x] `graphstore/types.go` - GraphStore interface, Triplet, EntityNode, Relation types
+  - [x] `graphstore/simple.go` - Simple in-memory graph store with persistence
+  - [x] `index/knowledge_graph.go` - KnowledgeGraphIndex with triplet extraction
+  - [x] `index/kg_retriever.go` - KGTableRetriever (keyword, embedding, hybrid modes), KGRAGRetriever
+  - [x] Comprehensive tests in `graphstore/graphstore_test.go` and `index/index_test.go`
 - **Python Reference**: `indices/knowledge_graph/`, `graph_stores/`
 
-#### C.4 PDFReader ❌ **SHOULD HAVE**
+#### C.4 PDFReader ✅ **SHOULD HAVE**
 - **Priority**: P2
 - **Effort**: Low (3 days)
 - **Description**: PDF document extraction
 - **Components**:
-  - [ ] `rag/reader/pdf_reader.go` - PDF reader using external library
-- **Note**: Requires external Go PDF library (e.g., `pdfcpu`, `unipdf`)
+  - [x] `rag/reader/pdf_reader.go` - PDF reader using `ledongthuc/pdf` library
+  - [x] PDFReader with file/directory input, recursive scanning
+  - [x] Split by page option for per-page document nodes
+  - [x] Extra metadata support
+  - [x] Utility functions: `ExtractTextFromPDF`, `ExtractTextFromPDFByPage`, `GetPDFPageCount`, `GetPDFMetadata`
+  - [x] Implements Reader, FileReader, ReaderWithMetadata, ReaderWithContext, LazyReader interfaces
+  - [x] Comprehensive tests in `rag/reader/reader_test.go`
 
-### Phase D: Nice-to-Have Features (Weeks 11+)
+### Phase D: Nice-to-Have Features (Weeks 11+) ✅
 
-#### D.1 Structured LLM Programs
-- [ ] `program/types.go` - Program interface
-- [ ] `program/function_program.go` - Function-based structured output
-- [ ] `program/llm_program.go` - LLM-based structured output
+#### D.1 Structured LLM Programs ✅
+- [x] `program/types.go` - Program interface, OutputParser, JSONOutputParser, PydanticOutputParser
+- [x] `program/function_program.go` - Function-based structured output using LLM tool calling
+- [x] `program/llm_program.go` - LLM-based structured output with parsing
+- [x] `program/program_test.go` - Comprehensive tests
 
-#### D.2 Object Index
-- [ ] `objects/types.go` - ObjectNodeMapping interface
-- [ ] `objects/tool_mapping.go` - Tool node mapping
-- [ ] `objects/base_mapping.go` - Base node mapping
+#### D.2 Object Index ✅
+- [x] `objects/types.go` - ObjectNodeMapping interface, BaseObjectNodeMapping, SimpleObjectNodeMapping
+- [x] `objects/tool_mapping.go` - ToolNodeMapping, ToolRetriever for tool-based retrieval
+- [x] `objects/base_mapping.go` - TypedObjectNodeMapping[T], TypedObjectRetriever[T], ObjectIndex[T]
+- [x] `objects/objects_test.go` - Comprehensive tests
 
-#### D.3 Additional Postprocessors
-- [ ] `postprocessor/pii.go` - PII detection/masking
-- [ ] `postprocessor/node_recency.go` - Time-based filtering
-- [ ] `postprocessor/optimizer.go` - Sentence optimizer
+#### D.3 Additional Postprocessors ✅
+- [x] `postprocessor/pii.go` - PIIPostprocessor with email, phone, SSN, credit card, IP detection/masking
+- [x] `postprocessor/node_recency.go` - NodeRecencyPostprocessor with linear/exponential/step time weighting
+- [x] `postprocessor/optimizer.go` - SentenceOptimizerPostprocessor, TextCompressorPostprocessor
 
-#### D.4 Sparse Embeddings
-- [ ] `embedding/sparse.go` - Sparse embedding interface
-- [ ] `embedding/bm25.go` - BM25 sparse embeddings
+#### D.4 Sparse Embeddings ✅
+- [x] `embedding/sparse.go` - SparseEmbedding, SparseEmbeddingModel, HybridEmbeddingModel interfaces
+- [x] `embedding/bm25.go` - BM25 and BM25Plus sparse embedding models with fit/transform
 
 ---
 
@@ -1321,19 +1333,22 @@ The Go implementation covers ~70% of core LlamaIndex functionality and is **suit
 | Retrievers | ✅ | ✅ | ✅ | None |
 | Synthesizers | ✅ | ✅ | ✅ | None |
 | Query Engines | ✅ | ✅ | ✅ | None |
-| Index Types | ✅ | ✅ | ⚠️ | TreeIndex, KG |
+| Index Types | ✅ | ✅ | ✅ | None |
 | Tools | ✅ | ✅ | ✅ | None |
 | Memory | ✅ | ✅ | ✅ | None |
 | Chat Engine | ✅ | ✅ | ✅ | None |
 | Callbacks | ✅ | ✅ | ✅ | None |
 | Ingestion | ✅ | ✅ | ✅ | None |
-| Postprocessors | ✅ | ✅ | ⚠️ | Rerankers, PII |
-| **Agents** | ✅ | ✅ | ❌ | **Full system** |
-| **Evaluation** | ✅ | ✅ | ❌ | **Full system** |
-| **Extractors** | ✅ | ✅ | ❌ | **Full system** |
-| **Workflows** | ✅ | ✅ | ❌ | **Full system** |
-| LLM Providers | 100+ | 20+ | 1 | Many providers |
-| Embed Providers | 70+ | 10+ | 1 | Many providers |
+| Postprocessors | ✅ | ✅ | ✅ | None |
+| Agents | ✅ | ✅ | ✅ | None |
+| Evaluation | ✅ | ✅ | ✅ | None |
+| Extractors | ✅ | ✅ | ✅ | None |
+| Workflows | ✅ | ✅ | ✅ | None |
+| Programs | ✅ | ✅ | ✅ | None |
+| Object Index | ✅ | ✅ | ✅ | None |
+| Sparse Embeddings | ✅ | ✅ | ✅ | None |
+| LLM Providers | 100+ | 20+ | 5 | Many providers |
+| Embed Providers | 70+ | 10+ | 5 | Many providers |
 
 ---
 

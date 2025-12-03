@@ -365,3 +365,285 @@ func containsStringHelper(s, substr string) bool {
 	}
 	return false
 }
+
+func TestPDFReader(t *testing.T) {
+	t.Run("constructor with files", func(t *testing.T) {
+		reader := NewPDFReader("test1.pdf", "test2.pdf")
+		if len(reader.InputFiles) != 2 {
+			t.Errorf("expected 2 input files, got %d", len(reader.InputFiles))
+		}
+		if reader.Recursive {
+			t.Error("expected Recursive to be false by default")
+		}
+	})
+
+	t.Run("constructor from directory", func(t *testing.T) {
+		reader := NewPDFReaderFromDir("/some/dir", true)
+		if reader.InputDir != "/some/dir" {
+			t.Errorf("expected InputDir '/some/dir', got '%s'", reader.InputDir)
+		}
+		if !reader.Recursive {
+			t.Error("expected Recursive to be true")
+		}
+	})
+
+	t.Run("constructor with options", func(t *testing.T) {
+		extraMeta := map[string]interface{}{"key": "value"}
+		reader := NewPDFReaderWithOptions(
+			WithPDFInputFiles("file1.pdf"),
+			WithPDFInputDir("/dir"),
+			WithPDFRecursive(true),
+			WithPDFSplitByPage(true),
+			WithPDFExtraMetadata(extraMeta),
+		)
+
+		if len(reader.InputFiles) != 1 || reader.InputFiles[0] != "file1.pdf" {
+			t.Error("expected input file 'file1.pdf'")
+		}
+		if reader.InputDir != "/dir" {
+			t.Errorf("expected InputDir '/dir', got '%s'", reader.InputDir)
+		}
+		if !reader.Recursive {
+			t.Error("expected Recursive to be true")
+		}
+		if !reader.SplitByPage {
+			t.Error("expected SplitByPage to be true")
+		}
+		if reader.ExtraMetadata["key"] != "value" {
+			t.Error("expected extra metadata to be set")
+		}
+	})
+
+	t.Run("fluent API", func(t *testing.T) {
+		extraMeta := map[string]interface{}{"source": "test"}
+		reader := NewPDFReader("test.pdf").
+			WithSplitByPage(true).
+			WithExtraMetadata(extraMeta)
+
+		if !reader.SplitByPage {
+			t.Error("expected SplitByPage to be true")
+		}
+		if reader.ExtraMetadata["source"] != "test" {
+			t.Error("expected extra metadata to be set")
+		}
+	})
+
+	t.Run("metadata", func(t *testing.T) {
+		reader := NewPDFReader()
+		meta := reader.Metadata()
+
+		if meta.Name != "PDFReader" {
+			t.Errorf("expected Name 'PDFReader', got '%s'", meta.Name)
+		}
+		if len(meta.SupportedExtensions) != 1 || meta.SupportedExtensions[0] != ".pdf" {
+			t.Error("expected SupportedExtensions to contain '.pdf'")
+		}
+		if meta.Description == "" {
+			t.Error("expected Description to be non-empty")
+		}
+	})
+
+	t.Run("error on no input", func(t *testing.T) {
+		reader := NewPDFReader()
+		_, err := reader.LoadData()
+		if err == nil {
+			t.Error("expected error when no input files or directory specified")
+		}
+	})
+
+	t.Run("error on non-existent file", func(t *testing.T) {
+		reader := NewPDFReader("/non/existent/file.pdf")
+		_, err := reader.LoadData()
+		if err == nil {
+			t.Error("expected error for non-existent file")
+		}
+	})
+
+	t.Run("error on non-existent directory", func(t *testing.T) {
+		reader := NewPDFReaderFromDir("/non/existent/directory", false)
+		_, err := reader.LoadData()
+		if err == nil {
+			t.Error("expected error for non-existent directory")
+		}
+	})
+
+	t.Run("directory scanning", func(t *testing.T) {
+		tmpDir, err := os.MkdirTemp("", "pdf_reader_test")
+		if err != nil {
+			t.Fatalf("failed to create temp dir: %v", err)
+		}
+		defer os.RemoveAll(tmpDir)
+
+		// Create subdirectory
+		subDir := filepath.Join(tmpDir, "subdir")
+		if err := os.MkdirAll(subDir, 0755); err != nil {
+			t.Fatalf("failed to create subdir: %v", err)
+		}
+
+		// Create dummy files (not valid PDFs, but tests file discovery)
+		files := []string{
+			filepath.Join(tmpDir, "doc1.pdf"),
+			filepath.Join(tmpDir, "doc2.pdf"),
+			filepath.Join(tmpDir, "doc.txt"),
+			filepath.Join(subDir, "doc3.pdf"),
+		}
+		for _, f := range files {
+			if err := os.WriteFile(f, []byte("dummy"), 0644); err != nil {
+				t.Fatalf("failed to create file %s: %v", f, err)
+			}
+		}
+
+		// Test non-recursive
+		reader := NewPDFReaderFromDir(tmpDir, false)
+		foundFiles, err := reader.getFiles()
+		if err != nil {
+			t.Fatalf("getFiles() error: %v", err)
+		}
+		if len(foundFiles) != 2 {
+			t.Errorf("expected 2 PDF files (non-recursive), got %d", len(foundFiles))
+		}
+
+		// Test recursive
+		reader = NewPDFReaderFromDir(tmpDir, true)
+		foundFiles, err = reader.getFiles()
+		if err != nil {
+			t.Fatalf("getFiles() error: %v", err)
+		}
+		if len(foundFiles) != 3 {
+			t.Errorf("expected 3 PDF files (recursive), got %d", len(foundFiles))
+		}
+	})
+
+	t.Run("password function", func(t *testing.T) {
+		passwordCalled := false
+		passwordFunc := func(filePath string) string {
+			passwordCalled = true
+			return "secret"
+		}
+
+		reader := NewPDFReaderWithOptions(
+			WithPDFInputFiles("test.pdf"),
+			WithPDFPasswordFunc(passwordFunc),
+		)
+
+		if reader.PasswordFunc == nil {
+			t.Error("expected PasswordFunc to be set")
+		}
+
+		// Call the function to verify it works
+		pwd := reader.PasswordFunc("test.pdf")
+		if !passwordCalled {
+			t.Error("expected password function to be called")
+		}
+		if pwd != "secret" {
+			t.Errorf("expected password 'secret', got '%s'", pwd)
+		}
+	})
+}
+
+func TestPDFReaderInterfaces(t *testing.T) {
+	// Verify interface compliance at compile time
+	var _ Reader = (*PDFReader)(nil)
+	var _ FileReader = (*PDFReader)(nil)
+	var _ ReaderWithMetadata = (*PDFReader)(nil)
+	var _ ReaderWithContext = (*PDFReader)(nil)
+	var _ LazyReader = (*PDFReader)(nil)
+
+	t.Run("Reader interface", func(t *testing.T) {
+		var r Reader = NewPDFReader("test.pdf")
+		if r == nil {
+			t.Error("expected non-nil Reader")
+		}
+	})
+
+	t.Run("FileReader interface", func(t *testing.T) {
+		var r FileReader = NewPDFReader("test.pdf")
+		if r == nil {
+			t.Error("expected non-nil FileReader")
+		}
+	})
+
+	t.Run("ReaderWithMetadata interface", func(t *testing.T) {
+		var r ReaderWithMetadata = NewPDFReader("test.pdf")
+		meta := r.Metadata()
+		if meta.Name != "PDFReader" {
+			t.Errorf("expected Name 'PDFReader', got '%s'", meta.Name)
+		}
+	})
+}
+
+func TestPDFReaderUtilityFunctions(t *testing.T) {
+	t.Run("ExtractTextFromPDF error", func(t *testing.T) {
+		_, err := ExtractTextFromPDF("/non/existent/file.pdf")
+		if err == nil {
+			t.Error("expected error for non-existent file")
+		}
+	})
+
+	t.Run("ExtractTextFromPDFByPage error", func(t *testing.T) {
+		_, err := ExtractTextFromPDFByPage("/non/existent/file.pdf")
+		if err == nil {
+			t.Error("expected error for non-existent file")
+		}
+	})
+
+	t.Run("GetPDFPageCount error", func(t *testing.T) {
+		_, err := GetPDFPageCount("/non/existent/file.pdf")
+		if err == nil {
+			t.Error("expected error for non-existent file")
+		}
+	})
+
+	t.Run("GetPDFMetadata error", func(t *testing.T) {
+		_, err := GetPDFMetadata("/non/existent/file.pdf")
+		if err == nil {
+			t.Error("expected error for non-existent file")
+		}
+	})
+}
+
+func TestPDFReaderLazyLoad(t *testing.T) {
+	t.Run("lazy load with no input", func(t *testing.T) {
+		reader := NewPDFReader()
+		nodeChan, errChan := reader.LazyLoadData()
+
+		// Should receive an error
+		select {
+		case <-nodeChan:
+			t.Error("expected no nodes")
+		case err := <-errChan:
+			if err == nil {
+				t.Error("expected error for no input")
+			}
+		}
+	})
+
+	t.Run("lazy load with non-existent file", func(t *testing.T) {
+		reader := NewPDFReader("/non/existent/file.pdf")
+		nodeChan, errChan := reader.LazyLoadData()
+
+		// Drain the channels
+		var gotError bool
+		for {
+			select {
+			case _, ok := <-nodeChan:
+				if !ok {
+					nodeChan = nil
+				}
+			case err, ok := <-errChan:
+				if !ok {
+					errChan = nil
+				} else if err != nil {
+					gotError = true
+				}
+			}
+			if nodeChan == nil && errChan == nil {
+				break
+			}
+		}
+
+		if !gotError {
+			t.Error("expected error for non-existent file")
+		}
+	})
+}
