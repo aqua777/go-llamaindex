@@ -402,6 +402,22 @@ func (s *IntegrationTestSuite) TestWithRealAPI() {
 
 ## Development Guidelines
 
+### Example Applications
+
+When developing example/demo applications:
+
+1. **Location**: All examples must be placed in `golang/examples/` in subdirectories corresponding to groups of use cases (e.g., `examples/rag/`, `examples/embedding/`, `examples/agent/`).
+
+2. **Structure**: Each example must have a `main()` function defined in `main.go` file and be executable independently from other examples.
+
+3. **Data Files**: If an example requires data files, it should expect to find them in a `.data` directory in the same location as `main.go`. The `.data` directory is excluded from Git (via `.gitignore`).
+
+4. **Documentation**: Each example must provide a `README.md` file explaining:
+   - What the example demonstrates
+   - Prerequisites and setup instructions
+   - How to run the example
+   - Expected output or behavior
+
 ### When Adding New Providers
 
 1. Create interface in appropriate package if not exists
