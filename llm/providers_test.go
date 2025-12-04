@@ -461,102 +461,6 @@ func TestAzureOpenAILLM(t *testing.T) {
 	})
 }
 
-// TestBedrockLLM tests the AWS Bedrock LLM implementation.
-func TestBedrockLLM(t *testing.T) {
-	t.Run("NewBedrockLLM with defaults", func(t *testing.T) {
-		llm := NewBedrockLLM()
-		assert.NotNil(t, llm)
-		assert.Equal(t, DefaultBedrockModel, llm.model)
-		assert.Equal(t, DefaultBedrockMaxTokens, llm.maxTokens)
-	})
-
-	t.Run("NewBedrockLLM with options", func(t *testing.T) {
-		llm := NewBedrockLLM(
-			WithBedrockModel(BedrockClaude3Haiku),
-			WithBedrockMaxTokens(2048),
-			WithBedrockTemperature(0.5),
-			WithBedrockTopP(0.9),
-			WithBedrockRegion("us-west-2"),
-		)
-
-		assert.Equal(t, BedrockClaude3Haiku, llm.model)
-		assert.Equal(t, 2048, llm.maxTokens)
-		assert.Equal(t, float32(0.5), llm.temperature)
-		assert.Equal(t, float32(0.9), llm.topP)
-		assert.Equal(t, "us-west-2", llm.region)
-	})
-
-	t.Run("Metadata returns correct values", func(t *testing.T) {
-		tests := []struct {
-			model         string
-			contextWindow int
-			toolCalling   bool
-			multiModal    bool
-		}{
-			{BedrockClaude35SonnetV2, 200000, true, true},
-			{BedrockClaude3Haiku, 200000, true, true},
-			{BedrockNovaProV1, 300000, true, true},
-			{BedrockNovaMicroV1, 128000, true, false},
-			{BedrockLlama33_70BInstruct, 128000, true, false},
-			{BedrockMistral7BInstruct, 32000, false, false},
-			{BedrockTitanTextExpressV1, 8192, false, false},
-		}
-
-		for _, tt := range tests {
-			llm := NewBedrockLLM(WithBedrockModel(tt.model))
-			meta := llm.Metadata()
-			assert.Equal(t, tt.model, meta.ModelName)
-			assert.Equal(t, tt.contextWindow, meta.ContextWindow, "model: %s", tt.model)
-			assert.Equal(t, tt.toolCalling, meta.IsFunctionCalling, "model: %s", tt.model)
-			assert.Equal(t, tt.multiModal, meta.IsMultiModal, "model: %s", tt.model)
-		}
-	})
-
-	t.Run("SupportsToolCalling depends on model", func(t *testing.T) {
-		llm := NewBedrockLLM(WithBedrockModel(BedrockClaude35SonnetV2))
-		assert.True(t, llm.SupportsToolCalling())
-
-		llm = NewBedrockLLM(WithBedrockModel(BedrockMistral7BInstruct))
-		assert.False(t, llm.SupportsToolCalling())
-	})
-
-	t.Run("SupportsStructuredOutput depends on tool calling", func(t *testing.T) {
-		llm := NewBedrockLLM(WithBedrockModel(BedrockClaude35SonnetV2))
-		assert.True(t, llm.SupportsStructuredOutput())
-
-		llm = NewBedrockLLM(WithBedrockModel(BedrockMistral7BInstruct))
-		assert.False(t, llm.SupportsStructuredOutput())
-	})
-
-	t.Run("IsBedrockFunctionCallingModel helper", func(t *testing.T) {
-		assert.True(t, IsBedrockFunctionCallingModel(BedrockClaude35SonnetV2))
-		assert.True(t, IsBedrockFunctionCallingModel(BedrockNovaProV1))
-		assert.True(t, IsBedrockFunctionCallingModel(BedrockLlama33_70BInstruct))
-		assert.False(t, IsBedrockFunctionCallingModel(BedrockMistral7BInstruct))
-		assert.False(t, IsBedrockFunctionCallingModel(BedrockTitanTextExpressV1))
-	})
-
-	t.Run("BedrockModelContextSize helper", func(t *testing.T) {
-		assert.Equal(t, 200000, BedrockModelContextSize(BedrockClaude35SonnetV2))
-		assert.Equal(t, 300000, BedrockModelContextSize(BedrockNovaProV1))
-		assert.Equal(t, 128000, BedrockModelContextSize(BedrockLlama31_70BInstruct))
-		assert.Equal(t, 32000, BedrockModelContextSize(BedrockMistral7BInstruct))
-		assert.Equal(t, 128000, BedrockModelContextSize("unknown-model")) // default
-	})
-
-	t.Run("Region-prefixed models work correctly", func(t *testing.T) {
-		// Test that us. prefixed models are handled correctly
-		assert.True(t, IsBedrockFunctionCallingModel("us.anthropic.claude-3-5-sonnet-20241022-v2:0"))
-		assert.Equal(t, 200000, BedrockModelContextSize("us.anthropic.claude-3-5-sonnet-20241022-v2:0"))
-
-		// Test eu. prefix
-		assert.True(t, IsBedrockFunctionCallingModel("eu.anthropic.claude-3-5-sonnet-20241022-v2:0"))
-
-		// Test apac. prefix
-		assert.True(t, IsBedrockFunctionCallingModel("apac.anthropic.claude-3-5-sonnet-20241022-v2:0"))
-	})
-}
-
 // TestDeepSeekLLM tests the DeepSeek LLM implementation.
 func TestDeepSeekLLM(t *testing.T) {
 	t.Run("NewDeepSeekLLM with defaults", func(t *testing.T) {
@@ -1036,13 +940,6 @@ func TestLLMInterfaceCompliance(t *testing.T) {
 		var _ FullLLM = (*DeepSeekLLM)(nil)
 	})
 
-	t.Run("BedrockLLM implements all interfaces", func(t *testing.T) {
-		var _ LLM = (*BedrockLLM)(nil)
-		var _ LLMWithMetadata = (*BedrockLLM)(nil)
-		var _ LLMWithToolCalling = (*BedrockLLM)(nil)
-		var _ LLMWithStructuredOutput = (*BedrockLLM)(nil)
-		var _ FullLLM = (*BedrockLLM)(nil)
-	})
 }
 
 // TestModelConstants verifies model constants are defined correctly.
@@ -1098,17 +995,4 @@ func TestModelConstants(t *testing.T) {
 		assert.Equal(t, "deepseek-coder", DeepSeekCoder)
 	})
 
-	t.Run("Bedrock models", func(t *testing.T) {
-		// Claude models
-		assert.Equal(t, "anthropic.claude-3-5-sonnet-20241022-v2:0", BedrockClaude35SonnetV2)
-		assert.Equal(t, "anthropic.claude-3-haiku-20240307-v1:0", BedrockClaude3Haiku)
-		assert.Equal(t, "anthropic.claude-3-opus-20240229-v1:0", BedrockClaude3Opus)
-		// Amazon Nova models
-		assert.Equal(t, "amazon.nova-pro-v1:0", BedrockNovaProV1)
-		assert.Equal(t, "amazon.nova-lite-v1:0", BedrockNovaLiteV1)
-		// Meta Llama models
-		assert.Equal(t, "meta.llama3-3-70b-instruct-v1:0", BedrockLlama33_70BInstruct)
-		// Mistral models
-		assert.Equal(t, "mistral.mistral-7b-instruct-v0:2", BedrockMistral7BInstruct)
-	})
 }

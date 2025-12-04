@@ -1,4 +1,7 @@
-package llm
+// Package bedrock provides an AWS Bedrock LLM implementation.
+// This is a separate sub-module to avoid pulling AWS SDK dependencies
+// unless this provider is explicitly used.
+package bedrock
 
 import (
 	"context"
@@ -8,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/aqua777/go-llamaindex/llm"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -17,177 +21,177 @@ import (
 )
 
 const (
-	// DefaultBedrockModel is the default model to use.
-	DefaultBedrockModel = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-	// DefaultBedrockMaxTokens is the default max tokens.
-	DefaultBedrockMaxTokens = 1024
+	// DefaultModel is the default model to use.
+	DefaultModel = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+	// DefaultMaxTokens is the default max tokens.
+	DefaultMaxTokens = 1024
 )
 
-// Bedrock model constants - Anthropic Claude models.
+// Model constants - Anthropic Claude models.
 const (
-	BedrockClaudeInstantV1  = "anthropic.claude-instant-v1"
-	BedrockClaudeV2         = "anthropic.claude-v2"
-	BedrockClaudeV21        = "anthropic.claude-v2:1"
-	BedrockClaude3Sonnet    = "anthropic.claude-3-sonnet-20240229-v1:0"
-	BedrockClaude3Haiku     = "anthropic.claude-3-haiku-20240307-v1:0"
-	BedrockClaude3Opus      = "anthropic.claude-3-opus-20240229-v1:0"
-	BedrockClaude35Sonnet   = "anthropic.claude-3-5-sonnet-20240620-v1:0"
-	BedrockClaude35SonnetV2 = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-	BedrockClaude35Haiku    = "anthropic.claude-3-5-haiku-20241022-v1:0"
-	BedrockClaude37Sonnet   = "anthropic.claude-3-7-sonnet-20250219-v1:0"
-	BedrockClaude4Sonnet    = "anthropic.claude-sonnet-4-20250514-v1:0"
-	BedrockClaude4Opus      = "anthropic.claude-opus-4-20250514-v1:0"
-	BedrockClaude41Opus     = "anthropic.claude-opus-4-1-20250805-v1:0"
-	BedrockClaude45Sonnet   = "anthropic.claude-sonnet-4-5-20250929-v1:0"
+	ClaudeInstantV1  = "anthropic.claude-instant-v1"
+	ClaudeV2         = "anthropic.claude-v2"
+	ClaudeV21        = "anthropic.claude-v2:1"
+	Claude3Sonnet    = "anthropic.claude-3-sonnet-20240229-v1:0"
+	Claude3Haiku     = "anthropic.claude-3-haiku-20240307-v1:0"
+	Claude3Opus      = "anthropic.claude-3-opus-20240229-v1:0"
+	Claude35Sonnet   = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+	Claude35SonnetV2 = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+	Claude35Haiku    = "anthropic.claude-3-5-haiku-20241022-v1:0"
+	Claude37Sonnet   = "anthropic.claude-3-7-sonnet-20250219-v1:0"
+	Claude4Sonnet    = "anthropic.claude-sonnet-4-20250514-v1:0"
+	Claude4Opus      = "anthropic.claude-opus-4-20250514-v1:0"
+	Claude41Opus     = "anthropic.claude-opus-4-1-20250805-v1:0"
+	Claude45Sonnet   = "anthropic.claude-sonnet-4-5-20250929-v1:0"
 )
 
-// Bedrock model constants - Amazon models.
+// Model constants - Amazon models.
 const (
-	BedrockTitanTextExpressV1 = "amazon.titan-text-express-v1"
-	BedrockTitanTextLiteV1    = "amazon.titan-text-lite-v1"
-	BedrockNovaPremierV1      = "amazon.nova-premier-v1:0"
-	BedrockNovaProV1          = "amazon.nova-pro-v1:0"
-	BedrockNovaLiteV1         = "amazon.nova-lite-v1:0"
-	BedrockNovaMicroV1        = "amazon.nova-micro-v1:0"
+	TitanTextExpressV1 = "amazon.titan-text-express-v1"
+	TitanTextLiteV1    = "amazon.titan-text-lite-v1"
+	NovaPremierV1      = "amazon.nova-premier-v1:0"
+	NovaProV1          = "amazon.nova-pro-v1:0"
+	NovaLiteV1         = "amazon.nova-lite-v1:0"
+	NovaMicroV1        = "amazon.nova-micro-v1:0"
 )
 
-// Bedrock model constants - Meta Llama models.
+// Model constants - Meta Llama models.
 const (
-	BedrockLlama2_13BChat       = "meta.llama2-13b-chat-v1"
-	BedrockLlama2_70BChat       = "meta.llama2-70b-chat-v1"
-	BedrockLlama3_8BInstruct    = "meta.llama3-8b-instruct-v1:0"
-	BedrockLlama3_70BInstruct   = "meta.llama3-70b-instruct-v1:0"
-	BedrockLlama31_8BInstruct   = "meta.llama3-1-8b-instruct-v1:0"
-	BedrockLlama31_70BInstruct  = "meta.llama3-1-70b-instruct-v1:0"
-	BedrockLlama31_405BInstruct = "meta.llama3-1-405b-instruct-v1:0"
-	BedrockLlama32_1BInstruct   = "meta.llama3-2-1b-instruct-v1:0"
-	BedrockLlama32_3BInstruct   = "meta.llama3-2-3b-instruct-v1:0"
-	BedrockLlama32_11BInstruct  = "meta.llama3-2-11b-instruct-v1:0"
-	BedrockLlama32_90BInstruct  = "meta.llama3-2-90b-instruct-v1:0"
-	BedrockLlama33_70BInstruct  = "meta.llama3-3-70b-instruct-v1:0"
+	Llama2_13BChat       = "meta.llama2-13b-chat-v1"
+	Llama2_70BChat       = "meta.llama2-70b-chat-v1"
+	Llama3_8BInstruct    = "meta.llama3-8b-instruct-v1:0"
+	Llama3_70BInstruct   = "meta.llama3-70b-instruct-v1:0"
+	Llama31_8BInstruct   = "meta.llama3-1-8b-instruct-v1:0"
+	Llama31_70BInstruct  = "meta.llama3-1-70b-instruct-v1:0"
+	Llama31_405BInstruct = "meta.llama3-1-405b-instruct-v1:0"
+	Llama32_1BInstruct   = "meta.llama3-2-1b-instruct-v1:0"
+	Llama32_3BInstruct   = "meta.llama3-2-3b-instruct-v1:0"
+	Llama32_11BInstruct  = "meta.llama3-2-11b-instruct-v1:0"
+	Llama32_90BInstruct  = "meta.llama3-2-90b-instruct-v1:0"
+	Llama33_70BInstruct  = "meta.llama3-3-70b-instruct-v1:0"
 )
 
-// Bedrock model constants - Mistral models.
+// Model constants - Mistral models.
 const (
-	BedrockMistral7BInstruct   = "mistral.mistral-7b-instruct-v0:2"
-	BedrockMixtral8x7BInstruct = "mistral.mixtral-8x7b-instruct-v0:1"
-	BedrockMistralLarge2402    = "mistral.mistral-large-2402-v1:0"
+	Mistral7BInstruct   = "mistral.mistral-7b-instruct-v0:2"
+	Mixtral8x7BInstruct = "mistral.mixtral-8x7b-instruct-v0:1"
+	MistralLarge2402    = "mistral.mistral-large-2402-v1:0"
 )
 
-// Bedrock model constants - Cohere models.
+// Model constants - Cohere models.
 const (
-	BedrockCohereCommandTextV14 = "cohere.command-text-v14"
-	BedrockCohereCommandRV1     = "cohere.command-r-v1:0"
-	BedrockCohereCommandRPlusV1 = "cohere.command-r-plus-v1:0"
+	CohereCommandTextV14 = "cohere.command-text-v14"
+	CohereCommandRV1     = "cohere.command-r-v1:0"
+	CohereCommandRPlusV1 = "cohere.command-r-plus-v1:0"
 )
 
-// bedrockModelContextWindows maps model names to their context window sizes.
-var bedrockModelContextWindows = map[string]int{
+// modelContextWindows maps model names to their context window sizes.
+var modelContextWindows = map[string]int{
 	// Amazon models
-	BedrockNovaPremierV1:      1000000,
-	BedrockNovaProV1:          300000,
-	BedrockNovaLiteV1:         300000,
-	BedrockNovaMicroV1:        128000,
-	BedrockTitanTextExpressV1: 8192,
-	BedrockTitanTextLiteV1:    4096,
+	NovaPremierV1:      1000000,
+	NovaProV1:          300000,
+	NovaLiteV1:         300000,
+	NovaMicroV1:        128000,
+	TitanTextExpressV1: 8192,
+	TitanTextLiteV1:    4096,
 
 	// Anthropic Claude models
-	BedrockClaudeInstantV1:  100000,
-	BedrockClaudeV2:         100000,
-	BedrockClaudeV21:        200000,
-	BedrockClaude3Sonnet:    200000,
-	BedrockClaude3Haiku:     200000,
-	BedrockClaude3Opus:      200000,
-	BedrockClaude35Sonnet:   200000,
-	BedrockClaude35SonnetV2: 200000,
-	BedrockClaude35Haiku:    200000,
-	BedrockClaude37Sonnet:   200000,
-	BedrockClaude4Sonnet:    200000,
-	BedrockClaude4Opus:      200000,
-	BedrockClaude41Opus:     200000,
-	BedrockClaude45Sonnet:   200000,
+	ClaudeInstantV1:  100000,
+	ClaudeV2:         100000,
+	ClaudeV21:        200000,
+	Claude3Sonnet:    200000,
+	Claude3Haiku:     200000,
+	Claude3Opus:      200000,
+	Claude35Sonnet:   200000,
+	Claude35SonnetV2: 200000,
+	Claude35Haiku:    200000,
+	Claude37Sonnet:   200000,
+	Claude4Sonnet:    200000,
+	Claude4Opus:      200000,
+	Claude41Opus:     200000,
+	Claude45Sonnet:   200000,
 
 	// Meta Llama models
-	BedrockLlama2_13BChat:       2048,
-	BedrockLlama2_70BChat:       4096,
-	BedrockLlama3_8BInstruct:    8192,
-	BedrockLlama3_70BInstruct:   8192,
-	BedrockLlama31_8BInstruct:   128000,
-	BedrockLlama31_70BInstruct:  128000,
-	BedrockLlama31_405BInstruct: 128000,
-	BedrockLlama32_1BInstruct:   131000,
-	BedrockLlama32_3BInstruct:   131000,
-	BedrockLlama32_11BInstruct:  128000,
-	BedrockLlama32_90BInstruct:  128000,
-	BedrockLlama33_70BInstruct:  128000,
+	Llama2_13BChat:       2048,
+	Llama2_70BChat:       4096,
+	Llama3_8BInstruct:    8192,
+	Llama3_70BInstruct:   8192,
+	Llama31_8BInstruct:   128000,
+	Llama31_70BInstruct:  128000,
+	Llama31_405BInstruct: 128000,
+	Llama32_1BInstruct:   131000,
+	Llama32_3BInstruct:   131000,
+	Llama32_11BInstruct:  128000,
+	Llama32_90BInstruct:  128000,
+	Llama33_70BInstruct:  128000,
 
 	// Mistral models
-	BedrockMistral7BInstruct:   32000,
-	BedrockMixtral8x7BInstruct: 32000,
-	BedrockMistralLarge2402:    32000,
+	Mistral7BInstruct:   32000,
+	Mixtral8x7BInstruct: 32000,
+	MistralLarge2402:    32000,
 
 	// Cohere models
-	BedrockCohereCommandTextV14: 4096,
-	BedrockCohereCommandRV1:     128000,
-	BedrockCohereCommandRPlusV1: 128000,
+	CohereCommandTextV14: 4096,
+	CohereCommandRV1:     128000,
+	CohereCommandRPlusV1: 128000,
 }
 
-// bedrockToolCallingModels lists models that support tool/function calling.
-var bedrockToolCallingModels = map[string]bool{
+// toolCallingModels lists models that support tool/function calling.
+var toolCallingModels = map[string]bool{
 	// Amazon Nova models
-	BedrockNovaPremierV1: true,
-	BedrockNovaProV1:     true,
-	BedrockNovaLiteV1:    true,
-	BedrockNovaMicroV1:   true,
+	NovaPremierV1: true,
+	NovaProV1:     true,
+	NovaLiteV1:    true,
+	NovaMicroV1:   true,
 
 	// Anthropic Claude 3+ models
-	BedrockClaude3Sonnet:    true,
-	BedrockClaude3Haiku:     true,
-	BedrockClaude3Opus:      true,
-	BedrockClaude35Sonnet:   true,
-	BedrockClaude35SonnetV2: true,
-	BedrockClaude35Haiku:    true,
-	BedrockClaude37Sonnet:   true,
-	BedrockClaude4Sonnet:    true,
-	BedrockClaude4Opus:      true,
-	BedrockClaude41Opus:     true,
-	BedrockClaude45Sonnet:   true,
+	Claude3Sonnet:    true,
+	Claude3Haiku:     true,
+	Claude3Opus:      true,
+	Claude35Sonnet:   true,
+	Claude35SonnetV2: true,
+	Claude35Haiku:    true,
+	Claude37Sonnet:   true,
+	Claude4Sonnet:    true,
+	Claude4Opus:      true,
+	Claude41Opus:     true,
+	Claude45Sonnet:   true,
 
 	// Meta Llama 3.1+ models
-	BedrockLlama31_8BInstruct:   true,
-	BedrockLlama31_70BInstruct:  true,
-	BedrockLlama31_405BInstruct: true,
-	BedrockLlama32_11BInstruct:  true,
-	BedrockLlama32_90BInstruct:  true,
-	BedrockLlama33_70BInstruct:  true,
+	Llama31_8BInstruct:   true,
+	Llama31_70BInstruct:  true,
+	Llama31_405BInstruct: true,
+	Llama32_11BInstruct:  true,
+	Llama32_90BInstruct:  true,
+	Llama33_70BInstruct:  true,
 
 	// Cohere Command R models
-	BedrockCohereCommandRV1:     true,
-	BedrockCohereCommandRPlusV1: true,
+	CohereCommandRV1:     true,
+	CohereCommandRPlusV1: true,
 
 	// Mistral Large
-	BedrockMistralLarge2402: true,
+	MistralLarge2402: true,
 }
 
-// bedrockMultiModalModels lists models that support multi-modal inputs.
-var bedrockMultiModalModels = map[string]bool{
-	BedrockClaude3Sonnet:    true,
-	BedrockClaude3Haiku:     true,
-	BedrockClaude3Opus:      true,
-	BedrockClaude35Sonnet:   true,
-	BedrockClaude35SonnetV2: true,
-	BedrockClaude35Haiku:    true,
-	BedrockClaude37Sonnet:   true,
-	BedrockClaude4Sonnet:    true,
-	BedrockClaude4Opus:      true,
-	BedrockClaude41Opus:     true,
-	BedrockClaude45Sonnet:   true,
-	BedrockNovaProV1:        true,
-	BedrockNovaLiteV1:       true,
+// multiModalModels lists models that support multi-modal inputs.
+var multiModalModels = map[string]bool{
+	Claude3Sonnet:    true,
+	Claude3Haiku:     true,
+	Claude3Opus:      true,
+	Claude35Sonnet:   true,
+	Claude35SonnetV2: true,
+	Claude35Haiku:    true,
+	Claude37Sonnet:   true,
+	Claude4Sonnet:    true,
+	Claude4Opus:      true,
+	Claude41Opus:     true,
+	Claude45Sonnet:   true,
+	NovaProV1:        true,
+	NovaLiteV1:       true,
 }
 
-// BedrockLLM implements the LLM interface for AWS Bedrock using the Converse API.
-type BedrockLLM struct {
+// LLM implements the llm.LLM interface for AWS Bedrock using the Converse API.
+type LLM struct {
 	client      *bedrockruntime.Client
 	model       string
 	maxTokens   int
@@ -197,47 +201,47 @@ type BedrockLLM struct {
 	logger      *slog.Logger
 }
 
-// BedrockOption configures a BedrockLLM.
-type BedrockOption func(*BedrockLLM)
+// Option configures an LLM.
+type Option func(*LLM)
 
-// WithBedrockModel sets the model.
-func WithBedrockModel(model string) BedrockOption {
-	return func(b *BedrockLLM) {
+// WithModel sets the model.
+func WithModel(model string) Option {
+	return func(b *LLM) {
 		b.model = model
 	}
 }
 
-// WithBedrockMaxTokens sets the max tokens.
-func WithBedrockMaxTokens(maxTokens int) BedrockOption {
-	return func(b *BedrockLLM) {
+// WithMaxTokens sets the max tokens.
+func WithMaxTokens(maxTokens int) Option {
+	return func(b *LLM) {
 		b.maxTokens = maxTokens
 	}
 }
 
-// WithBedrockTemperature sets the temperature.
-func WithBedrockTemperature(temperature float32) BedrockOption {
-	return func(b *BedrockLLM) {
+// WithTemperature sets the temperature.
+func WithTemperature(temperature float32) Option {
+	return func(b *LLM) {
 		b.temperature = temperature
 	}
 }
 
-// WithBedrockTopP sets the top_p value.
-func WithBedrockTopP(topP float32) BedrockOption {
-	return func(b *BedrockLLM) {
+// WithTopP sets the top_p value.
+func WithTopP(topP float32) Option {
+	return func(b *LLM) {
 		b.topP = topP
 	}
 }
 
-// WithBedrockRegion sets the AWS region.
-func WithBedrockRegion(region string) BedrockOption {
-	return func(b *BedrockLLM) {
+// WithRegion sets the AWS region.
+func WithRegion(region string) Option {
+	return func(b *LLM) {
 		b.region = region
 	}
 }
 
-// WithBedrockCredentials sets explicit AWS credentials.
-func WithBedrockCredentials(accessKeyID, secretAccessKey, sessionToken string) BedrockOption {
-	return func(b *BedrockLLM) {
+// WithCredentials sets explicit AWS credentials.
+func WithCredentials(accessKeyID, secretAccessKey, sessionToken string) Option {
+	return func(b *LLM) {
 		cfg, err := config.LoadDefaultConfig(context.Background(),
 			config.WithRegion(b.region),
 			config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
@@ -252,15 +256,15 @@ func WithBedrockCredentials(accessKeyID, secretAccessKey, sessionToken string) B
 	}
 }
 
-// WithBedrockClient sets a custom Bedrock client (for testing).
-func WithBedrockClient(client *bedrockruntime.Client) BedrockOption {
-	return func(b *BedrockLLM) {
+// WithClient sets a custom Bedrock client (for testing).
+func WithClient(client *bedrockruntime.Client) Option {
+	return func(b *LLM) {
 		b.client = client
 	}
 }
 
-// NewBedrockLLM creates a new AWS Bedrock LLM client.
-func NewBedrockLLM(opts ...BedrockOption) *BedrockLLM {
+// New creates a new AWS Bedrock LLM client.
+func New(opts ...Option) *LLM {
 	region := os.Getenv("AWS_REGION")
 	if region == "" {
 		region = os.Getenv("AWS_DEFAULT_REGION")
@@ -269,9 +273,9 @@ func NewBedrockLLM(opts ...BedrockOption) *BedrockLLM {
 		region = "us-east-1"
 	}
 
-	b := &BedrockLLM{
-		model:       DefaultBedrockModel,
-		maxTokens:   DefaultBedrockMaxTokens,
+	b := &LLM{
+		model:       DefaultModel,
+		maxTokens:   DefaultMaxTokens,
 		temperature: 0.1,
 		topP:        1.0,
 		region:      region,
@@ -297,15 +301,15 @@ func NewBedrockLLM(opts ...BedrockOption) *BedrockLLM {
 }
 
 // Complete generates a completion for a given prompt.
-func (b *BedrockLLM) Complete(ctx context.Context, prompt string) (string, error) {
+func (b *LLM) Complete(ctx context.Context, prompt string) (string, error) {
 	b.logger.Info("Complete called", "model", b.model, "prompt_len", len(prompt))
 
-	messages := []ChatMessage{NewUserMessage(prompt)}
+	messages := []llm.ChatMessage{llm.NewUserMessage(prompt)}
 	return b.Chat(ctx, messages)
 }
 
 // Chat generates a response for a list of chat messages.
-func (b *BedrockLLM) Chat(ctx context.Context, messages []ChatMessage) (string, error) {
+func (b *LLM) Chat(ctx context.Context, messages []llm.ChatMessage) (string, error) {
 	b.logger.Info("Chat called", "model", b.model, "message_count", len(messages))
 
 	converseMessages, systemPrompts := b.convertMessages(messages)
@@ -334,10 +338,10 @@ func (b *BedrockLLM) Chat(ctx context.Context, messages []ChatMessage) (string, 
 }
 
 // Stream generates a streaming completion for a given prompt.
-func (b *BedrockLLM) Stream(ctx context.Context, prompt string) (<-chan string, error) {
+func (b *LLM) Stream(ctx context.Context, prompt string) (<-chan string, error) {
 	b.logger.Info("Stream called", "model", b.model, "prompt_len", len(prompt))
 
-	messages := []ChatMessage{NewUserMessage(prompt)}
+	messages := []llm.ChatMessage{llm.NewUserMessage(prompt)}
 	converseMessages, systemPrompts := b.convertMessages(messages)
 
 	input := &bedrockruntime.ConverseStreamInput{
@@ -384,23 +388,23 @@ func (b *BedrockLLM) Stream(ctx context.Context, prompt string) (<-chan string, 
 }
 
 // Metadata returns information about the model's capabilities.
-func (b *BedrockLLM) Metadata() LLMMetadata {
-	return getBedrockModelMetadata(b.model)
+func (b *LLM) Metadata() llm.LLMMetadata {
+	return GetModelMetadata(b.model)
 }
 
 // SupportsToolCalling returns true if the model supports tool calling.
-func (b *BedrockLLM) SupportsToolCalling() bool {
-	return IsBedrockFunctionCallingModel(b.model)
+func (b *LLM) SupportsToolCalling() bool {
+	return IsFunctionCallingModel(b.model)
 }
 
 // SupportsStructuredOutput returns true if the model supports structured output.
-func (b *BedrockLLM) SupportsStructuredOutput() bool {
+func (b *LLM) SupportsStructuredOutput() bool {
 	// Bedrock Converse API supports tool use which can be used for structured output
 	return b.SupportsToolCalling()
 }
 
 // ChatWithTools generates a response that may include tool calls.
-func (b *BedrockLLM) ChatWithTools(ctx context.Context, messages []ChatMessage, tools []*ToolMetadata, opts *ChatCompletionOptions) (CompletionResponse, error) {
+func (b *LLM) ChatWithTools(ctx context.Context, messages []llm.ChatMessage, tools []*llm.ToolMetadata, opts *llm.ChatCompletionOptions) (llm.CompletionResponse, error) {
 	b.logger.Info("ChatWithTools called", "model", b.model, "message_count", len(messages), "tool_count", len(tools))
 
 	converseMessages, systemPrompts := b.convertMessages(messages)
@@ -442,14 +446,14 @@ func (b *BedrockLLM) ChatWithTools(ctx context.Context, messages []ChatMessage, 
 	resp, err := b.client.Converse(ctx, input)
 	if err != nil {
 		b.logger.Error("ChatWithTools failed", "error", err)
-		return CompletionResponse{}, fmt.Errorf("bedrock converse with tools failed: %w", err)
+		return llm.CompletionResponse{}, fmt.Errorf("bedrock converse with tools failed: %w", err)
 	}
 
 	return b.convertResponse(resp), nil
 }
 
 // ChatWithFormat generates a response in the specified format.
-func (b *BedrockLLM) ChatWithFormat(ctx context.Context, messages []ChatMessage, format *ResponseFormat) (string, error) {
+func (b *LLM) ChatWithFormat(ctx context.Context, messages []llm.ChatMessage, format *llm.ResponseFormat) (string, error) {
 	b.logger.Info("ChatWithFormat called", "model", b.model, "message_count", len(messages), "format", format.Type)
 
 	// For JSON format, we can add instructions to the system prompt
@@ -462,8 +466,8 @@ func (b *BedrockLLM) ChatWithFormat(ctx context.Context, messages []ChatMessage,
 		}
 
 		// Add system message with JSON instruction
-		newMessages := make([]ChatMessage, 0, len(messages)+1)
-		newMessages = append(newMessages, NewSystemMessage(jsonInstruction))
+		newMessages := make([]llm.ChatMessage, 0, len(messages)+1)
+		newMessages = append(newMessages, llm.NewSystemMessage(jsonInstruction))
 		newMessages = append(newMessages, messages...)
 		messages = newMessages
 	}
@@ -472,7 +476,7 @@ func (b *BedrockLLM) ChatWithFormat(ctx context.Context, messages []ChatMessage,
 }
 
 // StreamChat generates a streaming response for chat messages.
-func (b *BedrockLLM) StreamChat(ctx context.Context, messages []ChatMessage) (<-chan StreamToken, error) {
+func (b *LLM) StreamChat(ctx context.Context, messages []llm.ChatMessage) (<-chan llm.StreamToken, error) {
 	b.logger.Info("StreamChat called", "model", b.model, "message_count", len(messages))
 
 	converseMessages, systemPrompts := b.convertMessages(messages)
@@ -497,18 +501,18 @@ func (b *BedrockLLM) StreamChat(ctx context.Context, messages []ChatMessage) (<-
 		return nil, fmt.Errorf("bedrock stream chat failed: %w", err)
 	}
 
-	tokenChan := make(chan StreamToken)
+	tokenChan := make(chan llm.StreamToken)
 
 	go func() {
 		defer close(tokenChan)
 
-		var currentToolCall *ToolCall
+		var currentToolCall *llm.ToolCall
 		stream := resp.GetStream()
 
 		for event := range stream.Events() {
 			switch v := event.(type) {
 			case *types.ConverseStreamOutputMemberContentBlockDelta:
-				token := StreamToken{}
+				token := llm.StreamToken{}
 
 				if textDelta, ok := v.Value.Delta.(*types.ContentBlockDeltaMemberText); ok {
 					token.Delta = textDelta.Value
@@ -528,7 +532,7 @@ func (b *BedrockLLM) StreamChat(ctx context.Context, messages []ChatMessage) (<-
 
 			case *types.ConverseStreamOutputMemberContentBlockStart:
 				if toolStart, ok := v.Value.Start.(*types.ContentBlockStartMemberToolUse); ok {
-					currentToolCall = &ToolCall{
+					currentToolCall = &llm.ToolCall{
 						ID:   aws.ToString(toolStart.Value.ToolUseId),
 						Name: aws.ToString(toolStart.Value.Name),
 					}
@@ -536,8 +540,8 @@ func (b *BedrockLLM) StreamChat(ctx context.Context, messages []ChatMessage) (<-
 
 			case *types.ConverseStreamOutputMemberContentBlockStop:
 				if currentToolCall != nil {
-					token := StreamToken{
-						ToolCalls: []*ToolCall{currentToolCall},
+					token := llm.StreamToken{
+						ToolCalls: []*llm.ToolCall{currentToolCall},
 					}
 					select {
 					case tokenChan <- token:
@@ -548,7 +552,7 @@ func (b *BedrockLLM) StreamChat(ctx context.Context, messages []ChatMessage) (<-
 				}
 
 			case *types.ConverseStreamOutputMemberMessageStop:
-				token := StreamToken{
+				token := llm.StreamToken{
 					FinishReason: string(v.Value.StopReason),
 				}
 				select {
@@ -564,7 +568,7 @@ func (b *BedrockLLM) StreamChat(ctx context.Context, messages []ChatMessage) (<-
 }
 
 // convertMessages converts ChatMessages to Bedrock Converse format.
-func (b *BedrockLLM) convertMessages(messages []ChatMessage) ([]types.Message, []types.SystemContentBlock) {
+func (b *LLM) convertMessages(messages []llm.ChatMessage) ([]types.Message, []types.SystemContentBlock) {
 	var converseMessages []types.Message
 	var systemPrompts []types.SystemContentBlock
 
@@ -572,12 +576,12 @@ func (b *BedrockLLM) convertMessages(messages []ChatMessage) ([]types.Message, [
 		content := msg.GetTextContent()
 
 		switch msg.Role {
-		case MessageRoleSystem:
+		case llm.MessageRoleSystem:
 			systemPrompts = append(systemPrompts, &types.SystemContentBlockMemberText{
 				Value: content,
 			})
 
-		case MessageRoleUser:
+		case llm.MessageRoleUser:
 			converseMessages = append(converseMessages, types.Message{
 				Role: types.ConversationRoleUser,
 				Content: []types.ContentBlock{
@@ -585,7 +589,7 @@ func (b *BedrockLLM) convertMessages(messages []ChatMessage) ([]types.Message, [
 				},
 			})
 
-		case MessageRoleAssistant:
+		case llm.MessageRoleAssistant:
 			contentBlocks := []types.ContentBlock{}
 
 			// Check for tool calls in blocks
@@ -621,7 +625,7 @@ func (b *BedrockLLM) convertMessages(messages []ChatMessage) ([]types.Message, [
 				})
 			}
 
-		case MessageRoleTool:
+		case llm.MessageRoleTool:
 			// Tool results go as user messages with tool result content
 			converseMessages = append(converseMessages, types.Message{
 				Role: types.ConversationRoleUser,
@@ -643,7 +647,7 @@ func (b *BedrockLLM) convertMessages(messages []ChatMessage) ([]types.Message, [
 }
 
 // convertTools converts ToolMetadata to Bedrock tool specifications.
-func (b *BedrockLLM) convertTools(tools []*ToolMetadata) []types.Tool {
+func (b *LLM) convertTools(tools []*llm.ToolMetadata) []types.Tool {
 	var converseTools []types.Tool
 
 	for _, tool := range tools {
@@ -662,13 +666,13 @@ func (b *BedrockLLM) convertTools(tools []*ToolMetadata) []types.Tool {
 }
 
 // convertResponse converts Bedrock response to CompletionResponse.
-func (b *BedrockLLM) convertResponse(resp *bedrockruntime.ConverseOutput) CompletionResponse {
-	response := CompletionResponse{
+func (b *LLM) convertResponse(resp *bedrockruntime.ConverseOutput) llm.CompletionResponse {
+	response := llm.CompletionResponse{
 		Text: b.extractTextFromResponse(resp),
 	}
 
 	// Extract tool calls
-	var toolCalls []*ToolCall
+	var toolCalls []*llm.ToolCall
 	if resp.Output != nil {
 		if msgOutput, ok := resp.Output.(*types.ConverseOutputMemberMessage); ok {
 			for _, block := range msgOutput.Value.Content {
@@ -683,7 +687,7 @@ func (b *BedrockLLM) convertResponse(resp *bedrockruntime.ConverseOutput) Comple
 							}
 						}
 					}
-					toolCalls = append(toolCalls, &ToolCall{
+					toolCalls = append(toolCalls, &llm.ToolCall{
 						ID:        aws.ToString(toolUse.Value.ToolUseId),
 						Name:      aws.ToString(toolUse.Value.Name),
 						Arguments: argsStr,
@@ -694,12 +698,12 @@ func (b *BedrockLLM) convertResponse(resp *bedrockruntime.ConverseOutput) Comple
 	}
 
 	if len(toolCalls) > 0 {
-		msg := ChatMessage{
-			Role:    MessageRoleAssistant,
+		msg := llm.ChatMessage{
+			Role:    llm.MessageRoleAssistant,
 			Content: response.Text,
 		}
 		for _, tc := range toolCalls {
-			msg.Blocks = append(msg.Blocks, NewToolCallBlock(tc))
+			msg.Blocks = append(msg.Blocks, llm.NewToolCallBlock(tc))
 		}
 		response.Message = &msg
 	}
@@ -708,7 +712,7 @@ func (b *BedrockLLM) convertResponse(resp *bedrockruntime.ConverseOutput) Comple
 }
 
 // extractTextFromResponse extracts text content from Bedrock response.
-func (b *BedrockLLM) extractTextFromResponse(resp *bedrockruntime.ConverseOutput) string {
+func (b *LLM) extractTextFromResponse(resp *bedrockruntime.ConverseOutput) string {
 	if resp.Output == nil {
 		return ""
 	}
@@ -726,8 +730,8 @@ func (b *BedrockLLM) extractTextFromResponse(resp *bedrockruntime.ConverseOutput
 	return ""
 }
 
-// getBedrockModelMetadata returns metadata for Bedrock models.
-func getBedrockModelMetadata(model string) LLMMetadata {
+// GetModelMetadata returns metadata for Bedrock models.
+func GetModelMetadata(model string) llm.LLMMetadata {
 	// Handle region-prefixed models (us., eu., apac.)
 	baseModel := model
 	prefixes := []string{"us.", "eu.", "apac.", "jp.", "global."}
@@ -739,23 +743,23 @@ func getBedrockModelMetadata(model string) LLMMetadata {
 	}
 
 	contextWindow := 128000 // default
-	if cw, ok := bedrockModelContextWindows[baseModel]; ok {
+	if cw, ok := modelContextWindows[baseModel]; ok {
 		contextWindow = cw
 	}
 
-	return LLMMetadata{
+	return llm.LLMMetadata{
 		ModelName:         model,
 		ContextWindow:     contextWindow,
 		NumOutputTokens:   4096,
 		IsChat:            true,
-		IsFunctionCalling: IsBedrockFunctionCallingModel(model),
-		IsMultiModal:      bedrockMultiModalModels[baseModel],
+		IsFunctionCalling: IsFunctionCallingModel(model),
+		IsMultiModal:      multiModalModels[baseModel],
 		SystemRole:        "system",
 	}
 }
 
-// IsBedrockFunctionCallingModel returns true if the model supports function calling.
-func IsBedrockFunctionCallingModel(model string) bool {
+// IsFunctionCallingModel returns true if the model supports function calling.
+func IsFunctionCallingModel(model string) bool {
 	// Handle region-prefixed models
 	baseModel := model
 	prefixes := []string{"us.", "eu.", "apac.", "jp.", "global."}
@@ -765,11 +769,11 @@ func IsBedrockFunctionCallingModel(model string) bool {
 			break
 		}
 	}
-	return bedrockToolCallingModels[baseModel]
+	return toolCallingModels[baseModel]
 }
 
-// BedrockModelContextSize returns the context window size for a model.
-func BedrockModelContextSize(model string) int {
+// ModelContextSize returns the context window size for a model.
+func ModelContextSize(model string) int {
 	// Handle region-prefixed models
 	baseModel := model
 	prefixes := []string{"us.", "eu.", "apac.", "jp.", "global."}
@@ -780,15 +784,15 @@ func BedrockModelContextSize(model string) int {
 		}
 	}
 
-	if cw, ok := bedrockModelContextWindows[baseModel]; ok {
+	if cw, ok := modelContextWindows[baseModel]; ok {
 		return cw
 	}
 	return 128000 // default
 }
 
-// Ensure BedrockLLM implements the interfaces.
-var _ LLM = (*BedrockLLM)(nil)
-var _ LLMWithMetadata = (*BedrockLLM)(nil)
-var _ LLMWithToolCalling = (*BedrockLLM)(nil)
-var _ LLMWithStructuredOutput = (*BedrockLLM)(nil)
-var _ FullLLM = (*BedrockLLM)(nil)
+// Ensure LLM implements the interfaces.
+var _ llm.LLM = (*LLM)(nil)
+var _ llm.LLMWithMetadata = (*LLM)(nil)
+var _ llm.LLMWithToolCalling = (*LLM)(nil)
+var _ llm.LLMWithStructuredOutput = (*LLM)(nil)
+var _ llm.FullLLM = (*LLM)(nil)
