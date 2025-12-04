@@ -1,1354 +1,817 @@
 # LlamaIndex Go Implementation TODO
 
-This document outlines the components needed to create a comprehensive Go implementation of LlamaIndex, organized from foundational to advanced components. Each section includes references to Python (`llama-index-core`) and TypeScript (`@llamaindex/core`) implementations.
-
-## Implementation Status Legend
-
-- ✅ **Implemented** - Component exists and is functional
-- 🔄 **Partial** - Basic implementation exists, needs enhancement
-- ❌ **Not Started** - Component needs to be implemented
+This document tracks the implementation status of the Go LlamaIndex port. Components are organized into two sections: what still needs to be built, and what's already done.
 
 ---
 
-## Phase 1: Core Schema & Base Types ✅
+# To Be Implemented
 
-Foundation types that all other components depend on.
+## Provider Integrations (Major Gap)
 
-### 1.1 Node System Enhancement ✅
+The Go implementation has ~5% coverage of Python/TypeScript provider ecosystem. This is the primary gap.
 
-**Current State:** Fully implemented in `schema/` package
+### LLM Providers Needed
 
-**Implemented:**
+Python has 100+ LLM integrations. Go currently has 9 (OpenAI, Anthropic, Ollama, Cohere, Azure OpenAI, Mistral AI, Groq, DeepSeek, AWS Bedrock).
 
-- [x] **Node Relationships** - `schema/node_relationship.go`
-  - `SOURCE`, `PREVIOUS`, `NEXT`, `PARENT`, `CHILD` relationships
+**High Priority:**
+- [ ] **Google Vertex AI / Gemini** - `llm/google.go`
+  - Python: `llama-index-integrations/llms/llama-index-llms-gemini/`
+  - Python: `llama-index-integrations/llms/llama-index-llms-google-genai/`
+  - TypeScript: `packages/providers/google/`
+- [x] **AWS Bedrock** - `llm/bedrock.go` ✅
+  - Python: `llama-index-integrations/llms/llama-index-llms-bedrock/`
+  - Python: `llama-index-integrations/llms/llama-index-llms-bedrock-converse/`
+  - TypeScript: `packages/providers/aws/`
+- [x] **Mistral AI** - `llm/mistral.go` ✅
+  - Python: `llama-index-integrations/llms/llama-index-llms-mistralai/`
+  - TypeScript: `packages/providers/mistral/`
+- [ ] **Together AI** - `llm/together.go`
+  - Python: `llama-index-integrations/llms/llama-index-llms-together/`
+  - TypeScript: `packages/providers/together/`
+- [x] **Groq** - `llm/groq.go` ✅
+  - Python: `llama-index-integrations/llms/llama-index-llms-groq/`
+  - TypeScript: `packages/providers/groq/`
+- [ ] **Fireworks AI** - `llm/fireworks.go`
+  - Python: `llama-index-integrations/llms/llama-index-llms-fireworks/`
+  - TypeScript: `packages/providers/fireworks/`
+
+**Medium Priority:**
+- [ ] **Replicate** - `llm/replicate.go`
+  - Python: `llama-index-integrations/llms/llama-index-llms-replicate/`
+  - TypeScript: `packages/providers/replicate/`
+- [ ] **Perplexity** - `llm/perplexity.go`
+  - Python: `llama-index-integrations/llms/llama-index-llms-perplexity/`
+  - TypeScript: `packages/providers/perplexity/`
+- [x] **DeepSeek** - `llm/deepseek.go` ✅
+  - Python: `llama-index-integrations/llms/llama-index-llms-deepseek/`
+  - TypeScript: `packages/providers/deepseek/`
+- [ ] **vLLM** - `llm/vllm.go`
+  - Python: `llama-index-integrations/llms/llama-index-llms-vllm/`
+  - TypeScript: `packages/providers/vllm/`
+- [ ] **LiteLLM** - `llm/litellm.go`
+  - Python: `llama-index-integrations/llms/llama-index-llms-litellm/`
+
+### Embedding Providers Needed
+
+Python has 70+ embedding integrations. Go currently has 5 (OpenAI, Ollama, Cohere, HuggingFace, Azure OpenAI).
+
+**High Priority:**
+- [ ] **Google Vertex AI Embeddings** - `embedding/google.go`
+- [ ] **AWS Bedrock Embeddings** - `embedding/bedrock.go`
+- [ ] **Voyage AI** - `embedding/voyage.go`
+- [ ] **Jina AI** - `embedding/jina.go`
+- [ ] **Mixedbread** - `embedding/mixedbread.go`
+
+### Vector Store Integrations Needed
+
+Python has 50+ vector store integrations. Go currently has 2 (Chromem-go, Simple in-memory).
+
+**Critical Priority:**
+- [ ] **Pinecone** - `rag/store/pinecone/`
+- [ ] **Weaviate** - `rag/store/weaviate/`
+- [ ] **Qdrant** - `rag/store/qdrant/`
+- [ ] **Milvus** - `rag/store/milvus/`
+- [ ] **pgvector** - `rag/store/pgvector/`
+- [ ] **Chroma** - `rag/store/chroma/`
+
+**Medium Priority:**
+- [ ] **Redis** - `rag/store/redis/`
+- [ ] **Elasticsearch** - `rag/store/elasticsearch/`
+- [ ] **MongoDB Atlas** - `rag/store/mongodb/`
+- [ ] **LanceDB** - `rag/store/lancedb/`
+- [ ] **Supabase** - `rag/store/supabase/`
+
+### Document Readers Needed
+
+Python has 100+ reader integrations. Go currently has 5 (Directory, JSON, HTML, Markdown, PDF).
+
+**High Priority:**
+- [ ] **CSV/Excel Reader** - `rag/reader/csv_reader.go`, `rag/reader/excel_reader.go`
+- [ ] **Docx Reader** - `rag/reader/docx_reader.go`
+- [ ] **Notion Reader** - `rag/reader/notion_reader.go`
+- [ ] **Slack Reader** - `rag/reader/slack_reader.go`
+- [ ] **S3 Reader** - `rag/reader/s3_reader.go`
+- [ ] **Web/URL Reader** - `rag/reader/web_reader.go`
+
+**Medium Priority:**
+- [ ] **Database Readers** (PostgreSQL, MySQL) - `rag/reader/database_reader.go`
+- [ ] **GitHub Reader** - `rag/reader/github_reader.go`
+- [ ] **Confluence Reader** - `rag/reader/confluence_reader.go`
+- [ ] **Google Drive Reader** - `rag/reader/gdrive_reader.go`
+
+---
+
+## Observability Integrations Needed
+
+Go has basic logging handler only. Python has integrations with:
+
+- [ ] **LangSmith** - `callbacks/langsmith.go`
+- [ ] **Weights & Biases** - `callbacks/wandb.go`
+- [ ] **Arize Phoenix** - `callbacks/arize.go`
+- [ ] **OpenTelemetry** - `callbacks/otel.go`
+- [ ] **Datadog** - `callbacks/datadog.go`
+
+---
+
+## Advanced Features (Nice-to-Have)
+
+### Multi-Modal Enhancements
+- [ ] **Vision LLM support** - Full image understanding in chat
+- [ ] **Audio processing** - Speech-to-text integration
+- [ ] **Video processing** - Frame extraction and analysis
+
+### Voice Agents
+- [ ] **Voice Agent Interface** - `voice/types.go`
+- [ ] **Real-time conversation** - WebSocket-based voice chat
+- Python Reference: `voice_agents/`
+
+### LlamaPacks
+- [ ] **Pack System** - Pre-built RAG templates
+- [ ] **Pack Registry** - Download and use community packs
+
+### Additional Index Types
+- [ ] **DocumentSummaryIndex** - Per-document summaries for retrieval
+- [ ] **PropertyGraphIndex** - Property graph-based retrieval
+
+---
+
+## Production Hardening
+
+### Testing & CI/CD
+- [ ] **CI/CD Pipeline** - GitHub Actions for automated testing
+- [ ] **Integration Tests** - Tests with real providers (API key gated)
+- [ ] **Benchmarks** - Performance benchmarks vs Python/TypeScript
+- [ ] **Load Testing** - Concurrent request handling
+
+### Documentation
+- [ ] **API Documentation Site** - GoDoc-based documentation
+- [ ] **Migration Guide** - From Python/TypeScript to Go
+- [ ] **Best Practices Guide** - Production deployment patterns
+
+### Versioning
+- [ ] **Semantic Versioning** - Tagged releases
+- [ ] **Changelog** - Automated changelog generation
+- [ ] **Deprecation Policy** - Clear deprecation timeline
+
+---
+
+# Already Implemented
+
+## Core Schema & Base Types ✅
+
+**Package:** `schema/`
+
+- **Node System** - `schema/schema.go`, `schema/node_relationship.go`
+  - Node relationships: `SOURCE`, `PREVIOUS`, `NEXT`, `PARENT`, `CHILD`
   - `RelatedNodeInfo` struct with `NodeID`, `NodeType`, `Metadata`, `Hash`
+  - SHA256-based hash generation
 
-- [x] **MetadataMode** - `schema/metadata_mode.go`
+- **MetadataMode** - `schema/metadata_mode.go`
   - Modes: `ALL`, `EMBED`, `LLM`, `NONE`
-  - `ExcludedEmbedMetadataKeys`, `ExcludedLLMMetadataKeys` fields in `Node`
+  - `ExcludedEmbedMetadataKeys`, `ExcludedLLMMetadataKeys` fields
 
-- [x] **Node Hash Generation** - `schema/schema.go:288-300`
-  - SHA256-based hash of content + metadata
-
-- [x] **MediaResource** - `schema/media_resource.go`
+- **MediaResource** - `schema/media_resource.go`
   - Fields: `Data`, `Text`, `Path`, `URL`, `MimeType`, `Embeddings`
 
-- [x] **ImageNode** - `schema/image_node.go`
+- **ImageNode** - `schema/image_node.go`
   - Image data (base64, path, URL)
 
-- [x] **IndexNode** - `schema/index_node.go`
+- **IndexNode** - `schema/index_node.go`
   - `IndexID` field for recursive retrieval
 
-### 1.2 Base Component Interface ✅
-
-- [x] **BaseComponent** - `schema/component.go:10-20`
+- **BaseComponent** - `schema/component.go`
   - `ToJSON()`, `FromJSON()`, `ToDict()`, `FromDict()` methods
   - `ClassName()` for type identification
 
-- [x] **TransformComponent** - `schema/component.go:69-76`
+- **TransformComponent** - `schema/component.go`
   - `Transform(nodes []Node) []Node` method
 
 ---
 
-## Phase 2: LLM & Embedding Interfaces
+## LLM Interface & Providers ✅
 
-### 2.1 LLM Interface Enhancement ✅
+**Package:** `llm/`
 
-**Current State:** Fully implemented in `llm/` package
+- **LLM Interface** - `llm/interface.go`
+  - `Complete(ctx, prompt) (string, error)`
+  - `Chat(ctx, messages) (string, error)`
+  - `Stream(ctx, prompt) (<-chan string, error)`
 
-**Implemented:**
-
-- [x] **LLMMetadata** - `llm/types.go`
+- **LLMMetadata** - `llm/types.go`
   - `ContextWindow`, `NumOutputTokens`, `IsChat`, `IsFunctionCalling`
   - `ModelName`, `IsMultiModal`, `SystemRole`
   - Pre-defined metadata for GPT-3.5, GPT-4, GPT-4-Turbo, GPT-4o
 
-- [x] **ChatMessage Types** - `llm/types.go`
+- **ChatMessage Types** - `llm/types.go`
   - `MessageRole`: `system`, `user`, `assistant`, `tool`
   - `ContentBlock`: `TextBlock`, `ImageBlock`, `ToolCallBlock`, `ToolResultBlock`
   - Multi-modal message support with `NewMultiModalMessage()`
 
-- [x] **Tool Calling Support** - `llm/tool_types.go`
+- **Tool Calling Support** - `llm/tool_types.go`
   - `ToolCall`, `ToolResult`, `ToolMetadata` types
   - `LLMWithToolCalling` interface with `ChatWithTools()`, `SupportsToolCalling()`
   - `ToolChoice` enum: `auto`, `none`, `required`
   - `ChatCompletionOptions` for fine-grained control
 
-- [x] **Structured Output** - `llm/tool_types.go`
+- **Structured Output** - `llm/tool_types.go`
   - `ResponseFormat` with `json_object` and `json_schema` types
   - `LLMWithStructuredOutput` interface with `ChatWithFormat()`
 
-### 2.2 Embedding Interface Enhancement ✅
+**Providers Implemented:**
+- **OpenAI** - `llm/openai.go`
+- **Anthropic** - `llm/anthropic.go`
+- **Ollama** - `llm/ollama.go`
+- **Cohere** - `llm/cohere.go`
+- **Azure OpenAI** - `llm/azure_openai.go`
+- **Mistral AI** - `llm/mistral.go`
+- **Groq** - `llm/groq.go`
+- **DeepSeek** - `llm/deepseek.go`
+- **AWS Bedrock** - `llm/bedrock.go`
 
-**Current State:** Fully implemented in `embedding/` package
+---
 
-**Implemented:**
+## Embedding Interface & Providers ✅
 
-- [x] **EmbeddingInfo** - `embedding/types.go`
+**Package:** `embedding/`
+
+- **EmbeddingModel Interface** - `embedding/interface.go`
+  - `GetTextEmbedding(ctx, text) ([]float64, error)`
+  - `GetQueryEmbedding(ctx, query) ([]float64, error)`
+  - `GetTextEmbeddingsBatch(ctx, texts, callback) ([][]float64, error)`
+
+- **EmbeddingInfo** - `embedding/types.go`
   - `Dimensions`, `MaxTokens`, `TokenizerName`, `IsMultiModal`
   - Pre-defined info for OpenAI (ada, 3-small, 3-large) and Ollama models
 
-- [x] **Batch Embedding** - `embedding/interface.go`, `embedding/openai.go`
-  - `GetTextEmbeddingsBatch(ctx, texts, callback) ([][]float64, error)`
-  - `ProgressCallback` for progress tracking
-  - Automatic chunking for large batches (2048 limit)
-
-- [x] **Similarity Functions** - `embedding/similarity.go`
+- **Similarity Functions** - `embedding/similarity.go`
   - `CosineSimilarity`, `EuclideanDistance`, `EuclideanSimilarity`, `DotProduct`
   - `Normalize`, `Magnitude`, `Add`, `Subtract`, `Scale`, `Mean`
   - `TopKSimilar` for finding most similar vectors
   - `SimilarityType` enum: `cosine`, `euclidean`, `dot_product`
 
-- [x] **MultiModal Embedding** - `embedding/interface.go`
+- **MultiModal Embedding** - `embedding/interface.go`
   - `MultiModalEmbeddingModel` interface with `GetImageEmbedding()`
   - `ImageType` supporting URL, Base64, and file path inputs
 
+- **Sparse Embeddings** - `embedding/sparse.go`, `embedding/bm25.go`
+  - `SparseEmbedding`, `SparseEmbeddingModel`, `HybridEmbeddingModel` interfaces
+  - BM25 and BM25Plus sparse embedding models
+
+**Providers Implemented:**
+- **OpenAI** - `embedding/openai.go`
+- **Ollama** - `embedding/ollama.go`
+- **Cohere** - `embedding/cohere.go`
+- **HuggingFace** - `embedding/huggingface.go`
+- **Azure OpenAI** - `embedding/azure_openai.go`
+
 ---
 
-## Phase 3: Text Processing
+## Text Processing ✅
 
-### 3.1 Node Parser Interface ✅
+**Package:** `textsplitter/`, `nodeparser/`, `validation/`
 
-**Current State:** Fully implemented in `nodeparser/` package
+### Text Splitters
 
-**Implemented:**
-
-- [x] **NodeParser Interface** - `nodeparser/interface.go`
-  - `GetNodesFromDocuments(documents []Document) []*Node`
-  - `ParseNodes(nodes []*Node) []*Node`
-  - `NodeParserWithOptions` for fluent configuration
-  - `NodeParserOptions` with `IncludeMetadata`, `IncludePrevNextRel`, `IDFunc`
-
-- [x] **Post-Processing** - `nodeparser/base.go`
-  - `PostProcessNodes()` establishes `PREVIOUS`/`NEXT` relationships
-  - Calculates `StartCharIdx`/`EndCharIdx` for each node
-  - `mergeMetadata()` copies parent metadata to child nodes
-  - `BuildNodesFromSplits()` helper for text splitter integration
-
-- [x] **Implementations** - `nodeparser/sentence_parser.go`
-  - `SentenceNodeParser` wraps `SentenceSplitter` with node management
-  - `SimpleNodeParser` creates one node per document (no splitting)
-  - Event callbacks for progress tracking
-
-### 3.2 Text Splitters ✅
-
-**Current State:** Fully implemented in `textsplitter/` package
-
-**Implemented:**
-
-- [x] **TokenTextSplitter** - `textsplitter/token_splitter.go`
-  - Token-based splitting with configurable chunk size and overlap
-  - Custom tokenizer support (SimpleTokenizer, TikToken)
+- **SentenceSplitter** - `textsplitter/sentence_splitter.go`
+  - Sentence-aware splitting with configurable chunk size and overlap
   - `SplitTextMetadataAware()` for metadata-conscious splitting
 
-- [x] **MarkdownSplitter** - `textsplitter/markdown_splitter.go`
+- **TokenTextSplitter** - `textsplitter/token_splitter.go`
+  - Token-based splitting with configurable chunk size and overlap
+  - Custom tokenizer support (SimpleTokenizer, TikToken)
+
+- **MarkdownSplitter** - `textsplitter/markdown_splitter.go`
   - Preserves code blocks (``` and ~~~)
   - Splits by headers while maintaining structure
-  - Handles large code blocks gracefully
-  - `SplitTextMetadataAware()` support
 
-- [x] **SentenceWindowSplitter** - `textsplitter/sentence_window_splitter.go`
+- **SentenceWindowSplitter** - `textsplitter/sentence_window_splitter.go`
   - Configurable window size for context around sentences
   - `SplitTextWithWindows()` returns sentences with context
-  - `SplitTextForNodes()` returns data with metadata for node creation
-  - Custom metadata keys support
 
-- [x] **MetadataAwareTextSplitter** - All splitters support this
-  - `SentenceSplitter.SplitTextMetadataAware()` (existing)
-  - `TokenTextSplitter.SplitTextMetadataAware()`
-  - `MarkdownSplitter.SplitTextMetadataAware()`
+### Tokenization
 
-### 3.3 Tokenization ✅
-
-**Current State:** Full TikToken integration in `textsplitter/` package
-
-**Implemented:**
-
-- [x] **TikToken Integration** - `textsplitter/tokenizer_tiktoken.go`
+- **TikToken Integration** - `textsplitter/tokenizer_tiktoken.go`
   - `TikTokenTokenizer` using `tiktoken-go` library
-  - `TikTokenTokenizerByEncoding` for specific encodings
   - Encoding constants: `cl100k_base`, `p50k_base`, `r50k_base`, `o200k_base`
   - `GetEncodingForModel()` maps models to encodings
-  - `DefaultTokenizer()` singleton for shared usage
-  - `CountTokens()`, `EncodeToIDs()`, `Decode()` methods
 
-- [x] **Model Encoding Map** - Supports GPT-4o, GPT-4, GPT-3.5, embedding models
+### Node Parsers
 
-### 3.4 Input Validation ✅
+- **NodeParser Interface** - `nodeparser/interface.go`
+  - `GetNodesFromDocuments(documents []Document) []*Node`
+  - `ParseNodes(nodes []*Node) []*Node`
 
-**Current State:** Validation package in `validation/`
+- **SentenceNodeParser** - `nodeparser/sentence_parser.go`
+  - Wraps `SentenceSplitter` with node management
+  - Event callbacks for progress tracking
 
-**Implemented:**
+- **SimpleNodeParser** - `nodeparser/sentence_parser.go`
+  - Creates one node per document (no splitting)
 
-- [x] **Validation Package** - `validation/validation.go`
+### Validation
+
+- **Validation Package** - `validation/validation.go`
   - `Validator` type for collecting errors
-  - `ValidationError` and `ValidationErrors` types
   - `RequirePositive()`, `RequireNonNegative()`, `RequireNotEmpty()`
-  - `RequireLessThan()`, `RequireLessOrEqual()`, `RequireNotNil()`
   - `ValidateChunkParams()` for chunk_size/chunk_overlap validation
 
-- [x] **Splitter Validation** - `validation/splitter_validation.go`
-  - `ValidateSentenceSplitterConfig()`
-  - `ValidateTokenSplitterConfig()`
-  - `ValidateMarkdownSplitterConfig()`
-  - `ValidateSentenceWindowSplitterConfig()`
-  - `ValidateMetadataAwareSplit()` for metadata size checks
-  - `GetEffectiveChunkSize()` helper
-
-- [x] **Validated Constructors** - In splitter files
-  - `NewSentenceSplitterWithValidation()`
-  - `NewTokenTextSplitterWithValidation()`
-  - `Validate()` methods on splitter instances
+- **Splitter Validation** - `validation/splitter_validation.go`
+  - `ValidateSentenceSplitterConfig()`, `ValidateTokenSplitterConfig()`
+  - `ValidateMarkdownSplitterConfig()`, `ValidateSentenceWindowSplitterConfig()`
 
 ---
 
-## Phase 4: Storage Layer
+## Storage Layer ✅
 
-### 4.1 Key-Value Store ✅
+**Package:** `storage/`
 
-- [x] **KVStore Interface** - `storage/kvstore/interface.go`
-  - `Put(ctx, key, val, collection) error`
-  - `Get(ctx, key, collection) (StoredValue, error)`
-  - `Delete(ctx, key, collection) (bool, error)`
-  - `GetAll(ctx, collection) (map[string]StoredValue, error)`
+### Key-Value Store
+
+- **KVStore Interface** - `storage/kvstore/interface.go`
+  - `Put`, `Get`, `Delete`, `GetAll` methods
   - `PersistableKVStore` extends with `Persist(ctx, path) error`
 
-- [x] **SimpleKVStore** - In-memory implementation with optional persistence
-- [x] **FileKVStore** - File-based persistence (auto-persists on write)
+- **SimpleKVStore** - In-memory implementation with optional persistence
+- **FileKVStore** - File-based persistence (auto-persists on write)
 
-### 4.2 Document Store ✅
+### Document Store
 
-- [x] **DocStore Interface** - `storage/docstore/interface.go`
-  - `Docs(ctx) (map[string]BaseNode, error)`
-  - `AddDocuments(ctx, docs, allowUpdate) error`
-  - `GetDocument(ctx, docID, raiseError) (BaseNode, error)`
-  - `DeleteDocument(ctx, docID, raiseError) error`
-  - `DocumentExists(ctx, docID) (bool, error)`
-  - `GetRefDocInfo(ctx, refDocID) (*RefDocInfo, error)`
-  - `GetAllRefDocInfo(ctx) (map[string]*RefDocInfo, error)`
-  - `DeleteRefDoc(ctx, refDocID, raiseError) error`
+- **DocStore Interface** - `storage/docstore/interface.go`
+  - `Docs`, `AddDocuments`, `GetDocument`, `DeleteDocument`, `DocumentExists`
+  - `GetRefDocInfo`, `GetAllRefDocInfo`, `DeleteRefDoc`
   - Hash methods: `SetDocumentHash`, `GetDocumentHash`, `GetAllDocumentHashes`
 
-- [x] **KVDocumentStore** - KVStore-backed implementation (`storage/docstore/kv_docstore.go`)
-- [x] **SimpleDocumentStore** - In-memory with persistence (`storage/docstore/simple_docstore.go`)
-- [x] **RefDocInfo** - Reference document tracking with NodeIDs and Metadata
+- **KVDocumentStore** - `storage/docstore/kv_docstore.go`
+- **SimpleDocumentStore** - `storage/docstore/simple_docstore.go`
 
-### 4.3 Index Store ✅
+### Index Store
 
-- [x] **IndexStore Interface** - `storage/indexstore/interface.go`
-  - `IndexStructs(ctx) ([]*IndexStruct, error)`
-  - `AddIndexStruct(ctx, indexStruct) error`
-  - `GetIndexStruct(ctx, structID) (*IndexStruct, error)`
-  - `DeleteIndexStruct(ctx, key) error`
+- **IndexStore Interface** - `storage/indexstore/interface.go`
+  - `IndexStructs`, `AddIndexStruct`, `GetIndexStruct`, `DeleteIndexStruct`
 
-- [x] **IndexStruct** - Supports multiple index types (VectorStore, List, KeywordTable, Tree, KG)
-- [x] **KVIndexStore** - KVStore-backed implementation (`storage/indexstore/kv_indexstore.go`)
-- [x] **SimpleIndexStore** - In-memory with persistence (`storage/indexstore/simple_indexstore.go`)
+- **IndexStruct** - Supports VectorStore, List, KeywordTable, Tree, KG types
+- **KVIndexStore** - `storage/indexstore/kv_indexstore.go`
+- **SimpleIndexStore** - `storage/indexstore/simple_indexstore.go`
 
-### 4.4 Chat Store ✅
+### Chat Store
 
-- [x] **ChatStore Interface** - `storage/chatstore/interface.go`
-  - `SetMessages(ctx, key, messages) error`
-  - `GetMessages(ctx, key) ([]ChatMessage, error)`
-  - `AddMessage(ctx, key, message, idx) error`
-  - `DeleteMessages(ctx, key) ([]ChatMessage, error)`
-  - `DeleteMessage(ctx, key, idx) (*ChatMessage, error)`
-  - `DeleteLastMessage(ctx, key) (*ChatMessage, error)`
-  - `GetKeys(ctx) ([]string, error)`
+- **ChatStore Interface** - `storage/chatstore/interface.go`
+  - `SetMessages`, `GetMessages`, `AddMessage`, `DeleteMessages`, `GetKeys`
 
-- [x] **SimpleChatStore** - In-memory with persistence (`storage/chatstore/simple_chatstore.go`)
-- [x] Uses existing `llm.ChatMessage` type from `llm/types.go`
+- **SimpleChatStore** - `storage/chatstore/simple_chatstore.go`
 
-### 4.5 Vector Store Enhancement ✅
+### Vector Store
 
-**Enhanced in `schema/schema.go`:**
+- **VectorStore Interface** - `rag/store/interface.go`
+  - `Add(ctx, nodes) ([]string, error)`
+  - `Query(ctx, query) ([]NodeWithScore, error)`
 
-- [x] **VectorStoreQueryMode** - Query mode support
+- **VectorStoreQueryMode** - `schema/schema.go`
   - `QueryModeDefault`, `QueryModeSparse`, `QueryModeHybrid`, `QueryModeMMR`
-  - `QueryModeTextSearch`, `QueryModeSemanticHybrid`, `QueryModeSVM`
 
-- [x] **Enhanced FilterOperator** - Additional filter operators
+- **FilterOperator** - `schema/schema.go`
   - Basic: `EQ`, `GT`, `LT`, `NE`, `GTE`, `LTE`
   - Array: `IN`, `NIN`, `ANY`, `ALL`
   - Text: `TEXT_MATCH`, `TEXT_MATCH_INSENSITIVE`
   - Special: `CONTAINS`, `IS_EMPTY`
 
-- [x] **FilterCondition** - Nested filter conditions
-  - `FilterConditionAnd`, `FilterConditionOr`, `FilterConditionNot`
-  - `MetadataFilters.Nested` for complex filter trees
+- **Implementations:**
+  - `store.SimpleVectorStore` - In-memory store
+  - `chromem.ChromemStore` - Persistent store using chromem-go
 
-- [x] **Enhanced VectorStoreQuery** - Extended query options
-  - `Mode`, `Alpha` (hybrid), `MMRThreshold`
-  - `DocIDs`, `NodeIDs`, `SparseTopK`, `HybridTopK`
-  - Builder methods: `WithMode()`, `WithFilters()`, `WithAlpha()`, `WithMMRThreshold()`
+### Storage Context
 
-- [x] **VectorStoreQueryResult** - Structured query results
-
-### 4.6 Storage Context ✅
-
-- [x] **StorageContext** - Unified storage management (`storage/context.go`)
-  - Combines `DocStore`, `IndexStore`, `VectorStores` (map by namespace)
-  - `NewStorageContext()` - Create with defaults
-  - `NewStorageContextFromOptions()` - Create with custom stores
-  - `StorageContextFromPersistDir()` - Load from disk
-  - `Persist()` - Save to disk
-  - `ToDict()` / `StorageContextFromDict()` - Dictionary serialization
-  - `ToJSON()` / `StorageContextFromJSON()` - JSON serialization
-  - `VectorStore()` / `SetVectorStore()` / `AddVectorStore()` / `GetVectorStore()` - Vector store management
+- **StorageContext** - `storage/context.go`
+  - Combines `DocStore`, `IndexStore`, `VectorStores`
+  - `NewStorageContext()`, `StorageContextFromPersistDir()`
+  - `Persist()`, `ToJSON()`, `StorageContextFromJSON()`
 
 ---
 
-## Phase 5: Prompt System ✅
+## Prompt System ✅
 
-### 5.1 Prompt Templates ✅
+**Package:** `prompts/`
 
-- [x] **PromptTemplate** - Basic template with variable substitution (`prompts/template.go`)
+- **PromptTemplate** - `prompts/template.go`
   - Template string with `{variable}` placeholders
   - `Format()`, `FormatMessages()`, `PartialFormat()`
-  - `GetTemplate()`, `GetTemplateVars()`, `GetPromptType()`, `GetMetadata()`
 
-- [x] **ChatPromptTemplate** - Message-based prompts (`prompts/template.go`)
+- **ChatPromptTemplate** - `prompts/template.go`
   - System, user, assistant message templates
   - `FormatMessages()` returns `[]llm.ChatMessage`
-  - `NewChatPromptTemplate()`, `ChatPromptTemplateFromMessages()`
 
-- [x] **PromptType Enum** - Standard prompt categories (`prompts/prompt_type.go`)
+- **PromptType Enum** - `prompts/prompt_type.go`
   - `PromptTypeSummary`, `PromptTypeQuestionAnswer`, `PromptTypeRefine`
   - `PromptTypeTreeInsert`, `PromptTypeTreeSelect`, `PromptTypeKeywordExtract`
-  - `PromptTypeKnowledgeTripletExtract`, `PromptTypeChoiceSelect`, `PromptTypeCustom`, etc.
 
-### 5.2 Prompt Mixin ✅
-
-- [x] **PromptMixin Interface** - Prompt management for components (`prompts/mixin.go`)
+- **PromptMixin Interface** - `prompts/mixin.go`
   - `GetPrompts() PromptDictType`
   - `UpdatePrompts(prompts PromptDictType)`
-  - Supports nested modules with "module:prompt" naming
 
-- [x] **BasePromptMixin** - Base implementation
-  - `SetPrompt()`, `GetPrompt()`, `AddModule()`
-
-### 5.3 Default Prompts ✅
-
-- [x] **Default Prompt Library** (`prompts/default_prompts.go`)
+- **Default Prompt Library** - `prompts/default_prompts.go`
   - `DefaultSummaryPrompt`, `DefaultTreeSummarizePrompt`
   - `DefaultTextQAPrompt`, `DefaultRefinePrompt`
-  - `DefaultInsertPrompt`, `DefaultQueryPrompt`
   - `DefaultKeywordExtractPrompt`, `DefaultKGTripletExtractPrompt`
-  - `DefaultChoiceSelectPrompt`, `DefaultRankGPTRerankPrompt`
-  - `GetDefaultPrompt(promptType)` helper function
 
 ---
 
-## Phase 6: Retrieval System ✅
+## Retrieval System ✅
 
-### 6.1 Retriever Enhancement ✅
+**Package:** `rag/retriever/`
 
-- [x] **Retriever Interface** (`rag/retriever/interface.go`)
+- **Retriever Interface** - `rag/retriever/interface.go`
   - `Retrieve(ctx, query) ([]NodeWithScore, error)`
 
-- [x] **BaseRetriever** - Full base implementation
+- **BaseRetriever** - Full base implementation
   - `ObjectMap` for recursive retrieval
   - `HandleRecursiveRetrieval()` for IndexNode references
-  - `AddObject()`, `GetObject()` for object management
-  - `BasePromptMixin` integration
 
-- [x] **VectorRetriever** (`rag/retriever/vector.go`)
+- **VectorRetriever** - `rag/retriever/vector.go`
   - Queries vector store with embeddings
   - Supports query modes (default, hybrid, MMR, etc.)
-  - `WithTopK()`, `WithQueryMode()` options
 
-### 6.2 Advanced Retrievers ✅
-
-- [x] **FusionRetriever** (`rag/retriever/fusion.go`)
+- **FusionRetriever** - `rag/retriever/fusion.go`
   - Combines multiple retrievers
-  - Fusion modes:
-    - `FusionModeReciprocalRank` - Reciprocal Rank Fusion (RRF)
-    - `FusionModeRelativeScore` - Relative score normalization
-    - `FusionModeDistBasedScore` - Distance-based score fusion
-    - `FusionModeSimple` - Max score for duplicates
-  - `WithRetrieverWeights()` for weighted fusion
+  - Fusion modes: `ReciprocalRank`, `RelativeScore`, `DistBasedScore`, `Simple`
 
-- [x] **AutoMergingRetriever** (`rag/retriever/auto_merging.go`)
+- **AutoMergingRetriever** - `rag/retriever/auto_merging.go`
   - Merges child nodes into parent nodes
   - `SimpleRatioThresh` controls merge threshold
-  - Fills gaps between consecutive nodes
-  - Uses `StorageContext.DocStore` for parent lookup
 
-- [x] **RouterRetriever** (`rag/retriever/router.go`)
+- **RouterRetriever** - `rag/retriever/router.go`
   - Routes queries to appropriate retrievers
-  - `RetrieverTool` wraps retrievers with metadata
   - `Selector` interface for routing decisions
-  - `SimpleSelector` (all), `SingleSelector` (first)
 
 ---
 
-## Phase 7: Response Synthesis ✅
+## Response Synthesis ✅
 
-### 7.1 Synthesizer Enhancement ✅
+**Package:** `rag/synthesizer/`
 
-- [x] **Synthesizer Interface** (`rag/synthesizer/interface.go`)
+- **Synthesizer Interface** - `rag/synthesizer/interface.go`
   - `Synthesize(ctx, query, nodes) (*Response, error)`
   - `GetResponse(ctx, query, textChunks) (string, error)`
 
-- [x] **BaseSynthesizer** - Full base implementation
-  - `LLM`, `Streaming`, `Verbose` fields
-  - `GetMetadataForResponse()`, `PrepareResponseOutput()`
-  - `BasePromptMixin` integration
-  - `WithStreaming()`, `WithSynthesizerVerbose()` options
-
-### 7.2 Response Synthesizer Strategies ✅
-
-- [x] **SimpleSynthesizer** (`rag/synthesizer/simple.go`)
+- **SimpleSynthesizer** - `rag/synthesizer/simple.go`
   - Merges all chunks, single LLM call
-  - `WithTextQATemplate()` option
 
-- [x] **RefineSynthesizer** (`rag/synthesizer/refine.go`)
+- **RefineSynthesizer** - `rag/synthesizer/refine.go`
   - Iteratively refines response across chunks
-  - `WithRefineTextQATemplate()`, `WithRefineTemplate()` options
 
-- [x] **CompactAndRefineSynthesizer** (`rag/synthesizer/compact.go`)
+- **CompactAndRefineSynthesizer** - `rag/synthesizer/compact.go`
   - Compacts chunks before refining
-  - `WithMaxChunkSize()`, `WithChunkSeparator()` options
 
-- [x] **TreeSummarizeSynthesizer** (`rag/synthesizer/tree_summarize.go`)
+- **TreeSummarizeSynthesizer** - `rag/synthesizer/tree_summarize.go`
   - Recursive bottom-up summarization
-  - `WithSummaryTemplate()`, `WithTreeMaxChunkSize()` options
 
-- [x] **AccumulateSynthesizer** (`rag/synthesizer/accumulate.go`)
+- **AccumulateSynthesizer** - `rag/synthesizer/accumulate.go`
   - Generates response per chunk, concatenates
-  - `WithAccumulateTextQATemplate()`, `WithAccumulateSeparator()` options
 
-- [x] **CompactAccumulateSynthesizer** (`rag/synthesizer/accumulate.go`)
-  - Compacts chunks before accumulating
+- **ResponseMode Enum** - `rag/synthesizer/response_mode.go`
+  - `Refine`, `Compact`, `SimpleSummarize`, `TreeSummarize`, `Accumulate`
 
-- [x] **ResponseMode Enum** (`rag/synthesizer/response_mode.go`)
-  - `ResponseModeRefine`, `ResponseModeCompact`, `ResponseModeSimpleSummarize`
-  - `ResponseModeTreeSummarize`, `ResponseModeAccumulate`, `ResponseModeCompactAccumulate`
-  - `ResponseModeGeneration`, `ResponseModeNoText`, `ResponseModeContextOnly`
-
-- [x] **GetSynthesizer Factory** (`rag/synthesizer/factory.go`)
-  - Returns synthesizer for given response mode
-
-### 7.3 Response Types ✅
-
-- [x] **Response** (`rag/synthesizer/response.go`)
-  - `Response`, `SourceNodes`, `Metadata` fields
-  - `String()`, `GetFormattedSources()` methods
-
-- [x] **StreamingResponse** (`rag/synthesizer/response.go`)
-  - `ResponseChan` for streaming tokens
-  - `String()`, `GetResponse()`, `GetFormattedSources()` methods
-
-- [x] **ResponseType Interface**
-  - Common interface for all response types
+- **Response Types** - `rag/synthesizer/response.go`
+  - `Response`, `StreamingResponse`, `ResponseType` interface
 
 ---
 
-## Phase 8: Query Engine ✅
+## Query Engine ✅
 
-### 8.1 Query Engine Enhancement ✅
+**Package:** `rag/queryengine/`
 
-- [x] **QueryEngine Interface** (`rag/queryengine/interface.go`)
+- **QueryEngine Interface** - `rag/queryengine/interface.go`
   - `Query(ctx, query) (*Response, error)`
 
-- [x] **QueryEngineWithRetrieval Interface**
-  - `Retrieve(ctx, query) ([]NodeWithScore, error)`
-  - `Synthesize(ctx, query, nodes) (*Response, error)`
-
-- [x] **BaseQueryEngine** - Full base implementation
-  - `Verbose` field, `BasePromptMixin` integration
-  - `WithQueryEngineVerbose()` option
-
-- [x] **RetrieverQueryEngine** (`rag/queryengine/interface.go`)
+- **RetrieverQueryEngine** - `rag/queryengine/interface.go`
   - Combines retriever and synthesizer
-  - Implements `QueryEngineWithRetrieval`
 
-- [x] **QueryEngineTool** (`rag/queryengine/tool.go`)
-  - Wraps query engine with metadata for routing
-  - `ToolMetadata` struct
-
-### 8.2 Advanced Query Engines ✅
-
-- [x] **SubQuestionQueryEngine** (`rag/queryengine/sub_question.go`)
+- **SubQuestionQueryEngine** - `rag/queryengine/sub_question.go`
   - Decomposes complex queries into sub-questions
-  - `QuestionGenerator` interface
-  - `LLMQuestionGenerator` implementation
-  - `SubQuestion`, `SubQuestionAnswerPair` types
 
-- [x] **RouterQueryEngine** (`rag/queryengine/router.go`)
+- **RouterQueryEngine** - `rag/queryengine/router.go`
   - Routes queries to appropriate engines
-  - `QueryEngineSelector` interface
-  - `SingleSelector`, `MultiSelector` implementations
-  - `WithRouterSelector()`, `WithRouterSummarizer()` options
 
-- [x] **RetryQueryEngine** (`rag/queryengine/retry.go`)
+- **RetryQueryEngine** - `rag/queryengine/retry.go`
   - Retries queries on failure
-  - `WithMaxRetries()`, `WithRetryDelay()` options
 
-- [x] **TransformQueryEngine** (`rag/queryengine/transform.go`)
+- **TransformQueryEngine** - `rag/queryengine/transform.go`
   - Transforms queries before execution
-  - `QueryTransform` interface
   - `IdentityTransform`, `HyDETransform` implementations
 
 ---
 
-## Phase 9: Index Abstractions ✅
+## Index Abstractions ✅
 
-### 9.1 Base Index ✅
+**Package:** `index/`
 
-- [x] **BaseIndex Interface** - `index/interface.go`
-  - `AsRetriever() Retriever`
-  - `AsQueryEngine() QueryEngine`
-  - `InsertNodes(nodes []Node) error`
-  - `DeleteNodes(nodeIDs []string) error`
-  - `RefreshDocuments(documents []Document) error`
-  - Python: `indices/base.py`
+- **BaseIndex Interface** - `index/interface.go`
+  - `AsRetriever()`, `AsQueryEngine()`
+  - `InsertNodes()`, `DeleteNodes()`, `RefreshDocuments()`
 
-- [x] **Index Interface** - Core interface for all index types
-  - `IndexID() string`
-  - `IndexStruct() *IndexStruct`
-  - `StorageContext() *StorageContext`
-
-- [x] **RetrieverConfig/QueryEngineConfig** - Configuration options
-  - Functional options pattern for flexible configuration
-
-### 9.2 Index Types ✅
-
-- [x] **VectorStoreIndex** - Vector-based retrieval - `index/vector_store.go`
+- **VectorStoreIndex** - `index/vector_store.go`
   - Embedding generation and storage
   - Batch insertion with configurable batch size
-  - Integration with VectorStore interface
-  - VectorIndexRetriever for similarity search
-  - Python: `indices/vector_store/`
 
-- [x] **SummaryIndex** (ListIndex) - Sequential document index - `index/summary.go`
+- **SummaryIndex** (ListIndex) - `index/summary.go`
   - Stores nodes in a list structure
   - Multiple retriever modes: Default, Embedding, LLM
-  - SummaryIndexRetriever with mode selection
-  - Python: `indices/list/`
 
-- [x] **KeywordTableIndex** - Keyword-based retrieval - `index/keyword_table.go`
+- **KeywordTableIndex** - `index/keyword_table.go`
   - SimpleKeywordExtractor with stop word removal
   - Keyword-to-node mapping
-  - KeywordTableRetriever with keyword matching
-  - Python: `indices/keyword_table/`
 
-- [ ] **TreeIndex** - Hierarchical summarization (future)
-  - Python: `indices/tree/`
+- **TreeIndex** - `index/tree.go`
+  - Hierarchical summarization index
+  - Bottom-up tree building
+  - Tree retrievers: `TreeAllLeafRetriever`, `TreeRootRetriever`, `TreeSelectLeafRetriever`
 
-### 9.3 Tests ✅
-
-- [x] **Index Tests** - `index/index_test.go`
-  - MockEmbeddingModel for testing
-  - VectorStoreIndex tests (create, insert, delete, retrieve)
-  - SummaryIndex tests (create, insert, delete, retrieve)
-  - KeywordTableIndex tests (create, insert, delete, retrieve)
-  - SimpleKeywordExtractor tests
-  - Interface compliance tests
+- **KnowledgeGraphIndex** - `index/knowledge_graph.go`
+  - Triplet extraction from documents
+  - KGTableRetriever (keyword, embedding, hybrid modes)
 
 ---
 
-## Phase 10: Tools & Function Calling ✅
+## Tools & Function Calling ✅
 
-### 10.1 Tool System ✅
+**Package:** `tools/`
 
-- [x] **Tool Interface** - `tools/types.go`
-  - `Call(ctx context.Context, input interface{}) (*ToolOutput, error)`
+- **Tool Interface** - `tools/types.go`
+  - `Call(ctx, input) (*ToolOutput, error)`
   - `Metadata() *ToolMetadata`
-  - Python: `tools/types.py`
 
-- [x] **ToolMetadata** - Tool description and schema - `tools/types.go`
+- **ToolMetadata** - `tools/types.go`
   - `Name`, `Description`, `Parameters` (JSON Schema)
-  - `ToOpenAITool()` conversion to OpenAI function calling format
-  - `ToOpenAIFunction()` legacy format
-  - `GetParametersJSON()` for schema serialization
-  - Python: `tools/types.py:23-90`
+  - `ToOpenAITool()`, `ToOpenAIFunction()` conversions
 
-- [x] **ToolOutput** - Tool execution result - `tools/types.go`
-  - `Content`, `ToolName`, `RawInput`, `RawOutput`, `IsError`, `Error`
-  - `NewToolOutput()`, `NewToolOutputWithInput()`, `NewErrorToolOutput()` constructors
-  - Python: `tools/types.py:93-150`
-
-- [x] **BaseTool** - Base implementation for tools - `tools/types.go`
-  - Common metadata handling
-  - `ToolSpec` for declarative tool definition
-
-- [x] **FunctionTool** - Wrap Go functions as tools - `tools/function_tool.go`
+- **FunctionTool** - `tools/function_tool.go`
   - Automatic schema generation from function signature
-  - Support for context.Context parameter
   - Type conversion for function arguments
-  - `typeToJSONSchema()` for Go type to JSON Schema conversion
-  - `structToJSONSchema()` for struct types
-  - Python: `tools/function_tool.py`
 
-### 10.2 Specialized Tools ✅
+- **QueryEngineTool** - `tools/query_engine_tool.go`
+  - Wraps query engine as tool
 
-- [x] **QueryEngineTool** - Wrap query engine as tool - `tools/query_engine_tool.go`
-  - Executes queries against a QueryEngine
-  - Configurable input resolution
-  - `NewQueryEngineTool()`, `NewQueryEngineToolFromDefaults()` constructors
-  - Python: `tools/query_engine.py`
-
-- [x] **RetrieverTool** - Wrap retriever as tool - `tools/retriever_tool.go`
-  - Retrieves documents from a Retriever
-  - Support for NodePostprocessors
-  - Formats retrieved content for LLM consumption
-  - Python: `tools/retriever_tool.py`
-
-### 10.3 Tests ✅
-
-- [x] **Tool Tests** - `tools/tools_test.go`
-  - ToolMetadata tests (creation, JSON schema, OpenAI format)
-  - ToolOutput tests (creation, error handling)
-  - ToolSpec tests
-  - FunctionTool tests (simple functions, context, map input, errors)
-  - QueryEngineTool tests
-  - RetrieverTool tests
-  - Type conversion tests
-  - Interface compliance tests
+- **RetrieverTool** - `tools/retriever_tool.go`
+  - Wraps retriever as tool
 
 ---
 
-## Phase 11: Memory System ✅
+## Memory System ✅
 
-### 11.1 Chat Memory ✅
+**Package:** `memory/`
 
-- [x] **Memory Interface** - `memory/types.go`
-  - `Get(ctx, input) ([]ChatMessage, error)` - Retrieve messages, optionally filtered
-  - `GetAll(ctx) ([]ChatMessage, error)` - Retrieve all messages
-  - `Put(ctx, message) error` - Add a message
-  - `PutMessages(ctx, messages) error` - Add multiple messages
-  - `Set(ctx, messages) error` - Replace all messages
-  - `Reset(ctx) error` - Clear all messages
-  - Python: `memory/types.py`
+- **Memory Interface** - `memory/types.go`
+  - `Get`, `GetAll`, `Put`, `PutMessages`, `Set`, `Reset`
 
-- [x] **BaseMemory** - Base implementation - `memory/types.go`
-  - Common functionality for chat store interaction
-  - Configurable chat store and key
-  - `TokenizerFunc` type for token counting
-  - `DefaultTokenizer` (~4 chars per token)
+- **SimpleMemory** - `memory/types.go`
+  - Basic memory that stores all messages
 
-- [x] **SimpleMemory** - Basic memory that stores all messages - `memory/types.go`
-  - Simple implementation that returns all messages on Get
+- **ChatMemoryBuffer** - `memory/chat_memory_buffer.go`
+  - Fixed-size message buffer with token limit enforcement
 
-- [x] **ChatMemoryBuffer** - Fixed-size message buffer - `memory/chat_memory_buffer.go`
-  - Token limit enforcement
-  - Trims older messages when limit exceeded
-  - Skips assistant/tool messages at start
-  - `GetWithInitialTokenCount` for accounting system prompts
-  - `NewChatMemoryBufferFromDefaults` with LLM context window support
-  - Python: `memory/chat_memory_buffer.py`
-
-- [x] **ChatSummaryMemoryBuffer** - Summarize old messages - `memory/chat_summary_memory_buffer.go`
+- **ChatSummaryMemoryBuffer** - `memory/chat_summary_memory_buffer.go`
   - Summarizes older messages using LLM
-  - Keeps recent messages in full text
-  - Configurable summarization prompt
-  - `countInitialTokens` option
-  - `NewChatSummaryMemoryBufferFromDefaults` constructor
-  - Python: `memory/chat_summary_memory_buffer.py`
 
-### 11.2 Vector Memory ✅
-
-- [x] **VectorMemory** - Vector-based memory retrieval - `memory/vector_memory.go`
-  - Stores messages in vector store for semantic retrieval
-  - `batchByUserMessage` groups user/assistant pairs
-  - Retrieves relevant messages based on query similarity
-  - `NewVectorMemoryFromDefaults` constructor
-  - Python: `memory/vector_memory.py`
-
-### 11.3 Tests ✅
-
-- [x] **Memory Tests** - `memory/memory_test.go`
-  - SimpleMemory tests (put, get, set, reset)
-  - ChatMemoryBuffer tests (token limits, trimming)
-  - ChatSummaryMemoryBuffer tests (summarization)
-  - VectorMemory tests (put, get, batching)
-  - BaseMemory tests
-  - DefaultTokenizer tests
-  - Interface compliance tests
+- **VectorMemory** - `memory/vector_memory.go`
+  - Vector-based memory retrieval
 
 ---
 
-## Phase 12: Chat Engine ✅
+## Chat Engine ✅
 
-### 12.1 Chat Engine Interface ✅
+**Package:** `chatengine/`
 
-- [x] **ChatEngine Interface** - `chatengine/types.go`
-  - `Chat(ctx, message) (*ChatResponse, error)` - Send message and get response
-  - `ChatWithHistory(ctx, message, history) (*ChatResponse, error)` - Chat with explicit history
-  - `StreamChat(ctx, message) (*StreamingChatResponse, error)` - Streaming chat
-  - `Reset(ctx) error` - Clear conversation state
-  - `ChatHistory(ctx) ([]ChatMessage, error)` - Get chat history
-  - Python: `chat_engine/types.py`
+- **ChatEngine Interface** - `chatengine/types.go`
+  - `Chat`, `ChatWithHistory`, `StreamChat`, `Reset`, `ChatHistory`
 
-- [x] **ChatResponse** - Chat response struct - `chatengine/types.go`
-  - `Response` - Text response
-  - `SourceNodes` - Source nodes used for response
-  - `Sources` - Tool sources (retriever output)
-  - `Metadata` - Additional metadata
+- **SimpleChatEngine** - `chatengine/simple.go`
+  - Direct LLM chat without knowledge base
 
-- [x] **StreamingChatResponse** - Streaming response - `chatengine/types.go`
-  - `ResponseChan` - Channel for streaming tokens
-  - `Consume()` - Read all tokens and return full response
-  - `IsDone()` - Check if streaming is complete
+- **ContextChatEngine** - `chatengine/context.go`
+  - RAG-enhanced chat with retriever
 
-- [x] **BaseChatEngine** - Base implementation - `chatengine/types.go`
-  - Common LLM and prefix messages handling
-  - `WithLLM`, `WithSystemPrompt`, `WithPrefixMessages` options
-
-- [x] **ChatMode** - Chat engine modes enum - `chatengine/types.go`
-  - `ChatModeSimple`, `ChatModeContext`, `ChatModeCondensePlusContext`
-
-### 12.2 Chat Engine Implementations ✅
-
-- [x] **SimpleChatEngine** - Direct LLM chat - `chatengine/simple.go`
-  - Chat with LLM without knowledge base
-  - Memory integration for conversation history
-  - Streaming support
-  - `NewSimpleChatEngineFromDefaults` constructor
-  - Python: `chat_engine/simple.py`
-
-- [x] **ContextChatEngine** - RAG-enhanced chat - `chatengine/context.go`
-  - Retrieves context from retriever
-  - Injects context into system prompt
-  - Returns source nodes with response
-  - Configurable context template
-  - `NewContextChatEngineFromDefaults` constructor
-  - Python: `chat_engine/context.py`
-
-- [x] **CondensePlusContextChatEngine** - Query condensation + context - `chatengine/condense_plus_context.go`
-  - Condenses conversation history + latest message to standalone question
-  - Retrieves context using condensed question
-  - `skipCondense` option to bypass condensation
-  - `verbose` mode for debugging
-  - Configurable condense and context templates
-  - `NewCondensePlusContextChatEngineFromDefaults` constructor
-  - Python: `chat_engine/condense_plus_context.py`
-
-### 12.3 Tests ✅
-
-- [x] **Chat Engine Tests** - `chatengine/chatengine_test.go`
-  - ChatResponse and StreamingChatResponse tests
-  - SimpleChatEngine tests (chat, streaming, reset, history)
-  - ContextChatEngine tests (chat with retriever, source nodes)
-  - CondensePlusContextChatEngine tests (condensing, skip condense)
-  - BaseChatEngine tests
-  - Interface compliance tests
-  - Custom memory integration tests
+- **CondensePlusContextChatEngine** - `chatengine/condense_plus_context.go`
+  - Query condensation + context retrieval
 
 ---
 
-## Phase 13: Callbacks & Instrumentation ✅
+## Agent System ✅
 
-### 13.1 Event Types ✅
+**Package:** `agent/`
 
-- [x] **CBEventType Enum** - `callbacks/schema.go`
-  - `CBEventTypeChunking`, `CBEventTypeNodeParsing`, `CBEventTypeEmbedding`
-  - `CBEventTypeLLM`, `CBEventTypeQuery`, `CBEventTypeRetrieve`
-  - `CBEventTypeSynthesize`, `CBEventTypeTree`, `CBEventTypeSubQuestion`
-  - `CBEventTypeTemplating`, `CBEventTypeFunctionCall`, `CBEventTypeReranking`
-  - `CBEventTypeException`, `CBEventTypeAgentStep`
-  - `IsLeafEvent()` helper function
-  - Python: `callbacks/schema.py`
+- **Agent Interface** - `agent/types.go`
+  - `AgentState`, `AgentStep`, `ToolSelection`, `ToolCallResult`, `AgentOutput`
 
-- [x] **EventPayload Enum** - `callbacks/schema.go`
-  - `EventPayloadDocuments`, `EventPayloadChunks`, `EventPayloadNodes`
-  - `EventPayloadPrompt`, `EventPayloadMessages`, `EventPayloadCompletion`
-  - `EventPayloadResponse`, `EventPayloadQueryStr`, `EventPayloadEmbeddings`
-  - `EventPayloadException`, etc.
+- **ReAct Agent** - `agent/react.go`
+  - Thought-action-observation loop
+  - `FunctionCallingReActAgent`, `SimpleAgent`
 
-- [x] **CBEvent** - Event struct - `callbacks/schema.go`
-  - `EventType`, `Payload`, `Time`, `ID`
-  - `NewCBEvent()` constructor
+- **Output Parser** - `agent/output_parser.go`
+  - `ActionReasoningStep`, `ObservationReasoningStep`, `ResponseReasoningStep`
 
-- [x] **EventStats** - Statistics struct - `callbacks/schema.go`
-  - `TotalSecs`, `AverageSecs`, `TotalCount`
-
-### 13.2 Callback Handler ✅
-
-- [x] **CallbackHandler Interface** - `callbacks/handler.go`
-  - `OnEventStart(eventType, payload, eventID, parentID) string`
-  - `OnEventEnd(eventType, payload, eventID)`
-  - `StartTrace(traceID)`, `EndTrace(traceID, traceMap)`
-  - `EventStartsToIgnore()`, `EventEndsToIgnore()`
-  - Python: `callbacks/base_handler.py`
-
-- [x] **BaseCallbackHandler** - Base implementation - `callbacks/handler.go`
-  - Default no-op implementations
-  - `ShouldIgnoreEventStart()`, `ShouldIgnoreEventEnd()` helpers
-  - Configurable event ignore lists
-
-### 13.3 Callback Manager ✅
-
-- [x] **CallbackManager** - Event dispatch system - `callbacks/manager.go`
-  - `OnEventStart()`, `OnEventEnd()` - Dispatch to handlers
-  - `AddHandler()`, `RemoveHandler()`, `SetHandlers()` - Handler management
-  - `StartTrace()`, `EndTrace()` - Trace management
-  - `TraceMap()` - Get event parent-child relationships
-  - Thread-safe with mutex
-  - Python: `callbacks/base.py`
-
-- [x] **EventContext** - Event wrapper - `callbacks/manager.go`
-  - `OnStart()`, `OnEnd()` - Trigger event start/end
-  - `EventID()`, `IsStarted()`, `IsFinished()` - State queries
-  - Prevents duplicate start/end calls
-
-- [x] **Helper Methods** - `callbacks/manager.go`
-  - `Event()` - Create EventContext
-  - `WithEvent()` - Execute function within event context
-  - `WithTrace()` - Execute function within trace context
-
-### 13.4 Handler Implementations ✅
-
-- [x] **LoggingHandler** - Logs events - `callbacks/handlers.go`
-  - Logs event start/end with timestamps
-  - Verbose mode with payload details
-  - Duration tracking
-  - Configurable writer
-
-- [x] **TokenCountingHandler** - Tracks token usage - `callbacks/handlers.go`
-  - `TotalLLMTokens()`, `PromptTokens()`, `CompletionTokens()`
-  - `TotalEmbedTokens()`
-  - `LLMEventCount()`, `EmbedEventCount()`
-  - `Reset()` to clear counters
-
-- [x] **EventCollectorHandler** - Collects events - `callbacks/handlers.go`
-  - `StartEvents()`, `EndEvents()` - Get collected events
-  - `GetEventsByType()` - Filter by event type
-  - `Clear()` - Clear collected events
-  - Useful for testing and debugging
-
-### 13.5 Tests ✅
-
-- [x] **Callback Tests** - `callbacks/callbacks_test.go`
-  - CBEventType and EventPayload tests
-  - CBEvent and EventStats tests
-  - BaseCallbackHandler tests
-  - CallbackManager tests (handlers, events, traces)
-  - EventContext tests
-  - LoggingHandler tests
-  - TokenCountingHandler tests
-  - EventCollectorHandler tests
-  - Event ignoring tests
-  - Trace stack tests
-  - Concurrent access tests
-  - Interface compliance tests
+- **Formatter** - `agent/formatter.go`
+  - ReAct chat formatter with system header templates
 
 ---
 
-## Phase 14: Document Readers
+## Evaluation Framework ✅
 
-### 14.1 Reader Interface ✅
+**Package:** `evaluation/`
 
-- [x] **Reader Interface** - `rag/reader/interface.go`
+- **Evaluator Interface** - `evaluation/types.go`
+  - `EvaluationResult`, `EvaluateInput`, `EvaluatorRegistry`
+
+- **FaithfulnessEvaluator** - `evaluation/faithfulness.go`
+  - Checks if response is supported by context
+
+- **RelevancyEvaluator** - `evaluation/relevancy.go`
+  - `ContextRelevancyEvaluator`, `AnswerRelevancyEvaluator`
+
+- **CorrectnessEvaluator** - `evaluation/correctness.go`
+  - Scores 1-5 with reference comparison
+
+- **SemanticSimilarityEvaluator** - `evaluation/semantic_similarity.go`
+  - Cosine, dot product, euclidean similarity
+
+- **BatchEvalRunner** - `evaluation/batch_runner.go`
+  - Concurrent evaluation support
+
+---
+
+## Callbacks & Instrumentation ✅
+
+**Package:** `callbacks/`
+
+- **CBEventType Enum** - `callbacks/schema.go`
+  - `Chunking`, `NodeParsing`, `Embedding`, `LLM`, `Query`, `Retrieve`
+  - `Synthesize`, `Tree`, `SubQuestion`, `FunctionCall`, `Reranking`, `AgentStep`
+
+- **CallbackHandler Interface** - `callbacks/handler.go`
+  - `OnEventStart`, `OnEventEnd`, `StartTrace`, `EndTrace`
+
+- **CallbackManager** - `callbacks/manager.go`
+  - Event dispatch system, thread-safe
+
+- **Handler Implementations:**
+  - `LoggingHandler` - Logs events with timestamps
+  - `TokenCountingHandler` - Tracks token usage
+  - `EventCollectorHandler` - Collects events for testing
+
+---
+
+## Document Readers ✅
+
+**Package:** `rag/reader/`
+
+- **Reader Interface** - `rag/reader/interface.go`
   - `LoadData() ([]Node, error)`
-  - `LazyReader` with `LazyLoadData() (<-chan Node, <-chan error)`
-  - `FileReader` with `LoadFromFile(path string)`
-  - `ReaderWithContext` for cancellation support
-  - `ReaderMetadata` for reader information
-  - `ReaderOptions` for common configuration
-  - `ReaderError` for structured error handling
+  - `LazyReader`, `FileReader`, `ReaderWithContext`
 
-### 14.2 Reader Implementations ✅
+- **SimpleDirectoryReader** - `rag/reader/simple_directory_reader.go`
+  - Recursive directory traversal, extension filtering
 
-**Current State:** Multiple readers implemented
+- **JSONReader** - `rag/reader/json_reader.go`
+  - JSON object, array, and JSONL support
 
-**Implemented:**
+- **HTMLReader** - `rag/reader/html_reader.go`
+  - Script/style removal, entity decoding, metadata extraction
 
-- [x] **SimpleDirectoryReader** - `rag/reader/simple_directory_reader.go`
-  - Recursive directory traversal
-  - Extension filtering
+- **MarkdownReader** - `rag/reader/markdown_reader.go`
+  - YAML frontmatter, header-based splitting
 
-- [x] **JSONReader** - `rag/reader/json_reader.go`
-  - Single JSON object and array support
-  - JSON Lines (JSONL) format support
-  - Configurable text content key
-  - Metadata key extraction
-
-- [x] **HTMLReader** - `rag/reader/html_reader.go`
-  - Script/style tag removal
-  - HTML entity decoding
-  - Metadata extraction (title, description, language)
-  - Tag-specific content extraction
-  - Whitespace normalization
-
-- [x] **MarkdownReader** - `rag/reader/markdown_reader.go`
-  - YAML frontmatter extraction
-  - Header-based document splitting
-  - Hyperlink/image removal options
-  - Multiple markdown extensions support
-
-**Additional Readers Needed:**
-
-- [x] **PDFReader** - PDF document extraction using `ledongthuc/pdf` library (`rag/reader/pdf_reader.go`)
+- **PDFReader** - `rag/reader/pdf_reader.go`
+  - PDF extraction using `ledongthuc/pdf` library
 
 ---
 
-## Phase 15: Ingestion Pipeline ✅
+## Ingestion Pipeline ✅
 
-### 15.1 Pipeline Components ✅
+**Package:** `ingestion/`
 
-- [x] **IngestionPipeline** - `ingestion/pipeline.go`
-  - Chain of transformations via `TransformComponent` interface
-  - Caching support with `IngestionCache`
-  - Document deduplication with docstore strategies
-  - Vector store integration
-  - Configurable via functional options pattern
-  - `DocstoreStrategy` enum: `UPSERTS`, `DUPLICATES_ONLY`, `UPSERTS_AND_DELETE`
-  - `Run()` method for synchronous execution
-  - `RunTransformations()` standalone function
+- **IngestionPipeline** - `ingestion/pipeline.go`
+  - Chain of transformations via `TransformComponent`
+  - Caching support, document deduplication
+  - `DocstoreStrategy`: `UPSERTS`, `DUPLICATES_ONLY`, `UPSERTS_AND_DELETE`
 
-- [x] **IngestionCache** - `ingestion/cache.go`
-  - In-memory cache with collection support
-  - `Put()` and `Get()` for node caching
-  - `Persist()` and `LoadFromPath()` for persistence
-  - `Clear()` and `HasKey()` utility methods
-  - Thread-safe with `sync.RWMutex`
-
-### 15.2 Tests ✅
-
-- [x] **Ingestion Tests** - `ingestion/ingestion_test.go`
-  - IngestionCache tests (put, get, clear, persist, load)
-  - IngestionPipeline tests (run with documents, nodes, transformations)
-  - Cache hit/miss tests
-  - Docstore deduplication tests
-  - Vector store integration tests
-  - Transformation hash tests
+- **IngestionCache** - `ingestion/cache.go`
+  - In-memory cache with persistence support
 
 ---
 
-## Phase 16: Postprocessors ✅
+## Postprocessors ✅
 
-### 16.1 Node Postprocessors ✅
+**Package:** `postprocessor/`
 
-- [x] **NodePostprocessor Interface** - `postprocessor/types.go`
-  - `PostprocessNodes(ctx, nodes []NodeWithScore, queryBundle) ([]NodeWithScore, error)`
-  - `Name() string`
+- **NodePostprocessor Interface** - `postprocessor/types.go`
+  - `PostprocessNodes(ctx, nodes, queryBundle) ([]NodeWithScore, error)`
 
-- [x] **BaseNodePostprocessor** - `postprocessor/types.go`
-  - Default no-op implementation
-  - Configurable via functional options
+- **SimilarityPostprocessor** - `postprocessor/similarity.go`
+  - Filter by similarity score threshold
 
-- [x] **PostprocessorChain** - `postprocessor/types.go`
-  - Chain multiple postprocessors together
-  - Sequential execution
+- **KeywordPostprocessor** - `postprocessor/keyword.go`
+  - Filter by required/excluded keywords
 
-- [x] **SimilarityPostprocessor** - `postprocessor/similarity.go`
-  - Filter nodes by similarity score threshold
-  - Configurable cutoff via `WithSimilarityCutoff()`
-
-- [x] **KeywordPostprocessor** - `postprocessor/keyword.go`
-  - Filter by required keywords (all must match)
-  - Filter by excluded keywords (any match excludes)
-  - Case-sensitive/insensitive matching
-
-- [x] **MetadataReplacementPostprocessor** - `postprocessor/metadata_replacement.go`
+- **MetadataReplacementPostprocessor** - `postprocessor/metadata_replacement.go`
   - Replace node content with metadata value
-  - Configurable target metadata key
 
-- [x] **LongContextReorder** - `postprocessor/long_context_reorder.go`
+- **LongContextReorder** - `postprocessor/long_context_reorder.go`
   - Reorder nodes for long context models
-  - Based on paper: https://arxiv.org/abs/2307.03172
-  - Places higher-scored nodes at start and end
 
-- [x] **TopKPostprocessor** - `postprocessor/top_k.go`
+- **TopKPostprocessor** - `postprocessor/top_k.go`
   - Limit number of returned nodes
-  - Sorts by score descending
 
-### 16.2 Tests ✅
+- **LLMRerank** - `postprocessor/llm_rerank.go`
+  - LLM-based reranking with choice-select prompt
 
-- [x] **Postprocessor Tests** - `postprocessor/postprocessor_test.go`
-  - BaseNodePostprocessor tests
-  - SimilarityPostprocessor tests (cutoff filtering)
-  - KeywordPostprocessor tests (required/excluded, case sensitivity)
-  - MetadataReplacementPostprocessor tests
-  - LongContextReorder tests
-  - TopKPostprocessor tests
-  - PostprocessorChain tests
-  - Interface compliance tests
+- **RankGPTRerank** - `postprocessor/rankgpt_rerank.go`
+  - Conversational ranking, sliding window
 
----
+- **PIIPostprocessor** - `postprocessor/pii.go`
+  - Email, phone, SSN, credit card, IP detection/masking
 
-## Phase 17: Advanced Features ✅
-
-### 17.1 Selectors ✅
-
-- [x] **Selector Interface** - `selector/types.go`
-  - `Select(ctx, choices []ToolMetadata, query string) (*SelectorResult, error)`
-  - `ToolMetadata` struct with Name and Description
-  - `SingleSelection` struct with Index and Reason
-  - `SelectorResult` with helper methods (Ind, Inds, Reason, Reasons)
-  - `BuildChoicesText()` helper function
-
-- [x] **BaseSelector** - `selector/types.go`
-  - Default no-op implementation
-  - Configurable via functional options
-
-- [x] **LLMSingleSelector** - `selector/llm_selector.go`
-  - LLM-based single selection from choices
-  - Configurable prompt template
-  - SelectionOutputParser for JSON parsing
-
-- [x] **LLMMultiSelector** - `selector/llm_selector.go`
-  - LLM-based multi selection from choices
-  - Configurable max outputs
-  - Converts 1-indexed LLM output to 0-indexed
-
-### 17.2 Question Generation ✅
-
-- [x] **QuestionGenerator Interface** - `questiongen/types.go`
-  - `Generate(ctx, tools []ToolMetadata, query string) ([]SubQuestion, error)`
-  - `SubQuestion` struct with SubQuestion and ToolName
-  - `SubQuestionList` wrapper for JSON parsing
-
-- [x] **BaseQuestionGenerator** - `questiongen/types.go`
-  - Default no-op implementation
-  - Configurable via functional options
-
-- [x] **LLMQuestionGenerator** - `questiongen/llm_generator.go`
-  - LLM-based sub-question generation
-  - Few-shot prompt template with examples
-  - SubQuestionOutputParser for JSON parsing
-  - `buildToolsText()` helper function
-
-### 17.3 Output Parsers ✅
-
-- [x] **OutputParser Interface** - `outputparser/types.go`
-  - `Parse(output string) (*StructuredOutput, error)`
-  - `Format(promptTemplate string) string`
-  - `StructuredOutput` with RawOutput and ParsedOutput
-  - `OutputParserError` for structured errors
-
-- [x] **BaseOutputParser** - `outputparser/types.go`
-  - Default pass-through implementation
-  - Configurable via functional options
-
-- [x] **JSONOutputParser** - `outputparser/json_parser.go`
-  - Parses JSON objects and arrays
-  - Extracts JSON from code blocks
-  - Handles surrounding text
-
-- [x] **ListOutputParser** - `outputparser/json_parser.go`
-  - Parses newline-separated lists
-  - Configurable separator
-  - Filters empty items
-
-- [x] **BooleanOutputParser** - `outputparser/json_parser.go`
-  - Parses boolean values from text
-  - Configurable true/false value sets
-  - Handles surrounding text
-
-### 17.4 Tests ✅
-
-- [x] **Selector Tests** - `selector/selector_test.go`
-  - ToolMetadata, SingleSelection, SelectorResult tests
-  - BaseSelector tests
-  - SelectionOutputParser tests
-  - LLMSingleSelector and LLMMultiSelector tests
-  - Interface compliance tests
-
-- [x] **Question Generator Tests** - `questiongen/questiongen_test.go`
-  - SubQuestion, SubQuestionList tests
-  - BaseQuestionGenerator tests
-  - SubQuestionOutputParser tests
-  - LLMQuestionGenerator tests
-  - Interface compliance tests
-
-- [x] **Output Parser Tests** - `outputparser/outputparser_test.go`
-  - StructuredOutput, OutputParserError tests
-  - BaseOutputParser tests
-  - JSONOutputParser tests
-  - ListOutputParser tests
-  - BooleanOutputParser tests
-  - extractJSON tests
-  - Interface compliance tests
+- **NodeRecencyPostprocessor** - `postprocessor/node_recency.go`
+  - Time-based weighting (linear, exponential, step)
 
 ---
 
-## Implementation Priority Order
+## Metadata Extractors ✅
 
-### Tier 1: Foundation (Weeks 1-2)
-1. ~~Node System Enhancement (1.1)~~ ✅
-2. ~~Base Component Interface (1.2)~~ ✅
-3. ~~LLM Interface Enhancement (2.1)~~ ✅
-4. ~~Embedding Interface Enhancement (2.2)~~ ✅
+**Package:** `extractors/`
 
-### Tier 2: Storage & Processing (Weeks 3-4)
-5. Key-Value Store (4.1)
-6. Document Store (4.2)
-7. Node Parser Interface (3.1)
-8. Additional Text Splitters (3.2)
+- **MetadataExtractor Interface** - `extractors/types.go`
+  - `BaseExtractor`, `LLMExtractor`, `ExtractorChain`
 
-### Tier 3: Prompts & Retrieval (Weeks 5-6)
-9. Prompt Templates (5.1)
-10. Prompt Mixin (5.2)
-11. Retriever Enhancement (6.1)
-12. Vector Store Enhancement (4.5)
-
-### Tier 4: Response & Query (Weeks 7-8)
-13. Synthesizer Enhancement (7.1)
-14. Response Synthesizer Strategies (7.2)
-15. Query Engine Enhancement (8.1)
-16. Base Index (9.1)
-
-### Tier 5: Tools & Memory (Weeks 9-10)
-17. Tool System (10.1)
-18. Chat Memory (11.1)
-19. Chat Engine (12.1-12.2)
-
-### Tier 6: Advanced Features (Weeks 11-12)
-20. Callbacks & Instrumentation (13.1-13.2)
-21. Ingestion Pipeline (15.1)
-22. Postprocessors (16.1)
-23. Advanced Query Engines (8.2)
+- **TitleExtractor** - `extractors/title.go`
+- **SummaryExtractor** - `extractors/summary.go`
+- **KeywordsExtractor** - `extractors/keywords.go`
+- **QuestionsAnsweredExtractor** - `extractors/questions.go`
 
 ---
 
-## Testing Requirements
+## Workflow System ✅
 
-Each component should include:
+**Package:** `workflow/`
 
-1. **Unit Tests** - Using `testify/suite`
-2. **Mock Implementations** - For interface testing
-3. **Integration Tests** - With real providers (skip if API key not set)
-4. **Example Usage** - In `examples/` directory
+- **Workflow Types** - `workflow/types.go`
+  - `Workflow`, `Event`, `Context`, `StateStore`, `EventFactory`, `Handler`
 
-## Documentation Requirements
+- **Workflow Engine** - `workflow/workflow.go`
+  - `Run`, `RunStream`, retry support
 
-1. **GoDoc Comments** - All exported types and functions
-2. **CLAUDE.md Updates** - Document new patterns and conventions
-3. **README Updates** - Usage examples and feature list
-4. **Example Programs** - Runnable examples for each major feature
+- **Step Decorators** - `workflow/decorators.go`
+  - Logging, timing, conditional, fallback, chain, middleware
 
----
-
-## Deferred Features
-
-The following features were deferred during initial implementation and should be completed:
-
-### TreeIndex (Phase 9.2)
-- **Priority**: Medium
-- **Complexity**: High
-- **Description**: Hierarchical summarization index that organizes nodes in a tree structure
-- **Requirements**:
-  - Tree building with recursive LLM-based summarization
-  - `TreeSelectLeafRetriever` - Select relevant leaf nodes via tree traversal
-  - `TreeAllLeafRetriever` - Return all leaf nodes
-  - `TreeRootRetriever` - Return root summary
-  - Support for different tree building strategies (top-down, bottom-up)
-- **Python Reference**: `indices/tree/`
-- **Depends On**: LLM integration for summarization
+- **Common Events** - `workflow/events.go`
+  - `Start`, `Stop`, `Error`, `InputRequired`, `HumanResponse`
 
 ---
 
-## Production Readiness Assessment
+## Structured Programs ✅
 
-**Last Updated:** December 2024
+**Package:** `program/`
 
-### Overall Score: 65-70% Production Ready
+- **Program Interface** - `program/types.go`
+  - `OutputParser`, `JSONOutputParser`, `PydanticOutputParser`
 
-The Go implementation covers ~70% of core LlamaIndex functionality and is **suitable for basic RAG applications**:
-- ✅ Document ingestion, chunking, and embedding
-- ✅ Vector-based retrieval with multiple strategies
-- ✅ Response synthesis with all major strategies
-- ✅ Conversational interfaces with memory
-- ✅ Full instrumentation and callbacks
+- **FunctionProgram** - `program/function_program.go`
+  - Function-based structured output using LLM tool calling
 
-**Not yet suitable for:**
-- ❌ Agentic applications (no agent system)
-- ❌ Production systems requiring quality evaluation
-- ❌ Multi-provider deployments (OpenAI only)
-- ❌ Advanced retrieval with reranking
+- **LLMProgram** - `program/llm_program.go`
+  - LLM-based structured output with parsing
 
 ---
 
-## Next Steps Plan (Priority Order)
+## Object Index ✅
 
-### Phase A: Critical Production Features (Weeks 1-4)
+**Package:** `objects/`
 
-#### A.1 Agent System ✅ **CRITICAL**
-- **Priority**: P0
-- **Effort**: High (2 weeks)
-- **Description**: Implement ReAct agent for tool-using autonomous reasoning
-- **Components**:
-  - [x] `agent/types.go` - Agent interface, AgentState, AgentStep, ToolSelection, ToolCallResult, AgentOutput, AgentChatResponse
-  - [x] `agent/react.go` - ReAct agent with thought-action-observation loop, FunctionCallingReActAgent, SimpleAgent
-  - [x] `agent/output_parser.go` - ReAct output parser with ActionReasoningStep, ObservationReasoningStep, ResponseReasoningStep
-  - [x] `agent/formatter.go` - ReAct chat formatter with system header templates
-  - [x] `agent/utils.go` - Agent utilities (CallTool, GetToolsByName, ValidateToolSelection, etc.)
-  - [x] `agent/agent_test.go` - Comprehensive tests for all agent components
-- **Python Reference**: `agent/react/`
-- **TypeScript Reference**: `packages/core/src/agent/`
+- **ObjectNodeMapping Interface** - `objects/types.go`
+  - `BaseObjectNodeMapping`, `SimpleObjectNodeMapping`
 
-#### A.2 Evaluation Framework ✅ **CRITICAL**
-- **Priority**: P0
-- **Effort**: Medium (1 week)
-- **Description**: Implement RAG evaluation metrics
-- **Components**:
-  - [x] `evaluation/types.go` - Evaluator interface, EvaluationResult, EvaluateInput, EvaluatorRegistry
-  - [x] `evaluation/faithfulness.go` - FaithfulnessEvaluator (checks if response is supported by context)
-  - [x] `evaluation/relevancy.go` - RelevancyEvaluator, ContextRelevancyEvaluator, AnswerRelevancyEvaluator
-  - [x] `evaluation/correctness.go` - CorrectnessEvaluator (scores 1-5 with reference comparison)
-  - [x] `evaluation/semantic_similarity.go` - SemanticSimilarityEvaluator (cosine, dot product, euclidean)
-  - [x] `evaluation/batch_runner.go` - BatchEvalRunner with concurrent evaluation support
-  - [x] `evaluation/evaluation_test.go` - Comprehensive tests for all evaluators
-- **Python Reference**: `evaluation/`
-- **TypeScript Reference**: `packages/llamaindex/src/evaluation/`
+- **ToolNodeMapping** - `objects/tool_mapping.go`
+  - `ToolRetriever` for tool-based retrieval
 
-#### A.3 LLM Reranker ✅ **CRITICAL**
-- **Priority**: P0
-- **Effort**: Low (3 days)
-- **Description**: Implement LLM-based reranking postprocessor
-- **Components**:
-  - [x] `postprocessor/llm_rerank.go` - LLMRerank with choice-select prompt, batch processing, relevance scoring
-  - [x] `postprocessor/rankgpt_rerank.go` - RankGPTRerank with conversational ranking, SlidingWindowRankGPT, CohereRerank placeholder
-  - [x] Tests added to `postprocessor/postprocessor_test.go`
-- **Python Reference**: `postprocessor/llm_rerank.py`, `postprocessor/rankGPT_rerank.py`
-
-#### A.4 Metadata Extractors ✅ **CRITICAL**
-- **Priority**: P0
-- **Effort**: Medium (1 week)
-- **Description**: Auto-extract metadata from documents
-- **Components**:
-  - [x] `extractors/types.go` - MetadataExtractor interface, BaseExtractor, LLMExtractor, ExtractorChain
-  - [x] `extractors/title.go` - TitleExtractor (document title from multiple nodes)
-  - [x] `extractors/summary.go` - SummaryExtractor (self, prev, next section summaries)
-  - [x] `extractors/keywords.go` - KeywordsExtractor (comma-separated keywords)
-  - [x] `extractors/questions.go` - QuestionsAnsweredExtractor (questions content can answer)
-  - [x] `extractors/extractors_test.go` - Comprehensive tests for all extractors
-- **Python Reference**: `extractors/metadata_extractors.py`
-- **TypeScript Reference**: `packages/llamaindex/src/extractors/`
-
-### Phase B: Provider Expansion (Weeks 5-6)
-
-#### B.1 Additional LLM Providers ✅ **SHOULD HAVE**
-- **Priority**: P1
-- **Effort**: Medium (1 week)
-- **Components**:
-  - [x] `llm/anthropic.go` - Anthropic Claude support (Claude 3 Opus/Sonnet/Haiku, Claude 3.5)
-  - [x] `llm/ollama.go` - Ollama local models (Llama 2/3, Mistral, CodeLlama, Gemma, Qwen, etc.)
-  - [x] `llm/cohere.go` - Cohere support (Command, Command-R, Command-R+)
-  - [x] `llm/azure_openai.go` - Azure OpenAI support
-  - [x] `llm/providers_test.go` - Comprehensive tests for all providers
-- **Python Reference**: `llama-index-integrations/llms/`
-
-#### B.2 Additional Embedding Providers ✅ **SHOULD HAVE**
-- **Priority**: P1
-- **Effort**: Medium (1 week)
-- **Components**:
-  - [x] `embedding/ollama.go` - Ollama embeddings (nomic-embed-text, mxbai-embed-large, all-minilm, bge, etc.)
-  - [x] `embedding/cohere.go` - Cohere embeddings (embed-english-v3, embed-multilingual-v3, light variants)
-  - [x] `embedding/huggingface.go` - HuggingFace embeddings (sentence-transformers, BGE, E5, GTE models + TEI support)
-  - [x] `embedding/azure_openai.go` - Azure OpenAI embeddings
-  - [x] `embedding/providers_test.go` - Comprehensive tests for all providers
-- **Python Reference**: `llama-index-integrations/embeddings/`
-
-### Phase C: Advanced Features (Weeks 7-10)
-
-#### C.1 Workflow System ✅ **SHOULD HAVE**
-- **Priority**: P2
-- **Effort**: High (2 weeks)
-- **Description**: Event-driven workflow orchestration
-- **Components**:
-  - [x] `workflow/types.go` - Workflow, Event, Context, StateStore, EventFactory, Handler types
-  - [x] `workflow/workflow.go` - Workflow execution engine with Run/RunStream, retry support
-  - [x] `workflow/decorators.go` - Step decorators (logging, timing, conditional, fallback, chain, middleware)
-  - [x] `workflow/events.go` - Common event types (Start, Stop, Error, InputRequired, HumanResponse)
-  - [x] `workflow/workflow_test.go` - Comprehensive tests
-- **Python Reference**: `workflow/`
-- **TypeScript Reference**: `packages/workflow/`
-
-#### C.2 TreeIndex ✅ **SHOULD HAVE**
-- **Priority**: P2
-- **Effort**: Medium (1 week)
-- **Description**: Hierarchical summarization index
-- **Components**:
-  - [x] `index/tree.go` - TreeIndex implementation with bottom-up tree building
-  - [x] `index/tree_retriever.go` - Tree retrievers (TreeAllLeafRetriever, TreeRootRetriever, TreeSelectLeafRetriever, TreeSelectLeafEmbeddingRetriever)
-  - [x] `index/tree_inserter.go` - Tree node insertion with consolidation
-  - [x] Comprehensive tests in `index/index_test.go`
-- **Python Reference**: `indices/tree/`
-
-#### C.3 Knowledge Graph Index ✅ **SHOULD HAVE**
-- **Priority**: P2
-- **Effort**: High (2 weeks)
-- **Description**: Knowledge graph-based retrieval
-- **Components**:
-  - [x] `graphstore/types.go` - GraphStore interface, Triplet, EntityNode, Relation types
-  - [x] `graphstore/simple.go` - Simple in-memory graph store with persistence
-  - [x] `index/knowledge_graph.go` - KnowledgeGraphIndex with triplet extraction
-  - [x] `index/kg_retriever.go` - KGTableRetriever (keyword, embedding, hybrid modes), KGRAGRetriever
-  - [x] Comprehensive tests in `graphstore/graphstore_test.go` and `index/index_test.go`
-- **Python Reference**: `indices/knowledge_graph/`, `graph_stores/`
-
-#### C.4 PDFReader ✅ **SHOULD HAVE**
-- **Priority**: P2
-- **Effort**: Low (3 days)
-- **Description**: PDF document extraction
-- **Components**:
-  - [x] `rag/reader/pdf_reader.go` - PDF reader using `ledongthuc/pdf` library
-  - [x] PDFReader with file/directory input, recursive scanning
-  - [x] Split by page option for per-page document nodes
-  - [x] Extra metadata support
-  - [x] Utility functions: `ExtractTextFromPDF`, `ExtractTextFromPDFByPage`, `GetPDFPageCount`, `GetPDFMetadata`
-  - [x] Implements Reader, FileReader, ReaderWithMetadata, ReaderWithContext, LazyReader interfaces
-  - [x] Comprehensive tests in `rag/reader/reader_test.go`
-
-### Phase D: Nice-to-Have Features (Weeks 11+) ✅
-
-#### D.1 Structured LLM Programs ✅
-- [x] `program/types.go` - Program interface, OutputParser, JSONOutputParser, PydanticOutputParser
-- [x] `program/function_program.go` - Function-based structured output using LLM tool calling
-- [x] `program/llm_program.go` - LLM-based structured output with parsing
-- [x] `program/program_test.go` - Comprehensive tests
-
-#### D.2 Object Index ✅
-- [x] `objects/types.go` - ObjectNodeMapping interface, BaseObjectNodeMapping, SimpleObjectNodeMapping
-- [x] `objects/tool_mapping.go` - ToolNodeMapping, ToolRetriever for tool-based retrieval
-- [x] `objects/base_mapping.go` - TypedObjectNodeMapping[T], TypedObjectRetriever[T], ObjectIndex[T]
-- [x] `objects/objects_test.go` - Comprehensive tests
-
-#### D.3 Additional Postprocessors ✅
-- [x] `postprocessor/pii.go` - PIIPostprocessor with email, phone, SSN, credit card, IP detection/masking
-- [x] `postprocessor/node_recency.go` - NodeRecencyPostprocessor with linear/exponential/step time weighting
-- [x] `postprocessor/optimizer.go` - SentenceOptimizerPostprocessor, TextCompressorPostprocessor
-
-#### D.4 Sparse Embeddings ✅
-- [x] `embedding/sparse.go` - SparseEmbedding, SparseEmbeddingModel, HybridEmbeddingModel interfaces
-- [x] `embedding/bm25.go` - BM25 and BM25Plus sparse embedding models with fit/transform
+- **TypedObjectNodeMapping** - `objects/base_mapping.go`
+  - Generic typed mapping and retrieval
 
 ---
 
-## Gap Summary Table
+## Advanced Features ✅
 
-| Category | Python | TypeScript | Go | Gap |
-|----------|--------|------------|-----|-----|
-| Core Schema | ✅ | ✅ | ✅ | None |
-| LLM Interface | ✅ | ✅ | ✅ | None |
-| Embedding Interface | ✅ | ✅ | ✅ | None |
-| Text Splitters | ✅ | ✅ | ✅ | None |
-| Storage Layer | ✅ | ✅ | ✅ | None |
-| Prompts | ✅ | ✅ | ✅ | None |
-| Retrievers | ✅ | ✅ | ✅ | None |
-| Synthesizers | ✅ | ✅ | ✅ | None |
-| Query Engines | ✅ | ✅ | ✅ | None |
-| Index Types | ✅ | ✅ | ✅ | None |
-| Tools | ✅ | ✅ | ✅ | None |
-| Memory | ✅ | ✅ | ✅ | None |
-| Chat Engine | ✅ | ✅ | ✅ | None |
-| Callbacks | ✅ | ✅ | ✅ | None |
-| Ingestion | ✅ | ✅ | ✅ | None |
-| Postprocessors | ✅ | ✅ | ✅ | None |
-| Agents | ✅ | ✅ | ✅ | None |
-| Evaluation | ✅ | ✅ | ✅ | None |
-| Extractors | ✅ | ✅ | ✅ | None |
-| Workflows | ✅ | ✅ | ✅ | None |
-| Programs | ✅ | ✅ | ✅ | None |
-| Object Index | ✅ | ✅ | ✅ | None |
-| Sparse Embeddings | ✅ | ✅ | ✅ | None |
-| LLM Providers | 100+ | 20+ | 5 | Many providers |
-| Embed Providers | 70+ | 10+ | 5 | Many providers |
+### Selectors - `selector/`
+- `LLMSingleSelector`, `LLMMultiSelector`
+- `SelectionOutputParser` for JSON parsing
+
+### Question Generation - `questiongen/`
+- `LLMQuestionGenerator` with few-shot prompts
+- `SubQuestionOutputParser`
+
+### Output Parsers - `outputparser/`
+- `JSONOutputParser`, `ListOutputParser`, `BooleanOutputParser`
+
+### Graph Store - `graphstore/`
+- `GraphStore` interface, `Triplet`, `EntityNode`, `Relation` types
+- `SimpleGraphStore` - In-memory with persistence
 
 ---
 
