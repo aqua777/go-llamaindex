@@ -19,19 +19,9 @@ Python has 100+ LLM integrations. Go currently has 9 (OpenAI, Anthropic, Ollama,
   - Python: `llama-index-integrations/llms/llama-index-llms-gemini/`
   - Python: `llama-index-integrations/llms/llama-index-llms-google-genai/`
   - TypeScript: `packages/providers/google/`
-- [x] **AWS Bedrock** - `llm/bedrock.go` ✅
-  - Python: `llama-index-integrations/llms/llama-index-llms-bedrock/`
-  - Python: `llama-index-integrations/llms/llama-index-llms-bedrock-converse/`
-  - TypeScript: `packages/providers/aws/`
-- [x] **Mistral AI** - `llm/mistral.go` ✅
-  - Python: `llama-index-integrations/llms/llama-index-llms-mistralai/`
-  - TypeScript: `packages/providers/mistral/`
 - [ ] **Together AI** - `llm/together.go`
   - Python: `llama-index-integrations/llms/llama-index-llms-together/`
   - TypeScript: `packages/providers/together/`
-- [x] **Groq** - `llm/groq.go` ✅
-  - Python: `llama-index-integrations/llms/llama-index-llms-groq/`
-  - TypeScript: `packages/providers/groq/`
 - [ ] **Fireworks AI** - `llm/fireworks.go`
   - Python: `llama-index-integrations/llms/llama-index-llms-fireworks/`
   - TypeScript: `packages/providers/fireworks/`
@@ -43,9 +33,6 @@ Python has 100+ LLM integrations. Go currently has 9 (OpenAI, Anthropic, Ollama,
 - [ ] **Perplexity** - `llm/perplexity.go`
   - Python: `llama-index-integrations/llms/llama-index-llms-perplexity/`
   - TypeScript: `packages/providers/perplexity/`
-- [x] **DeepSeek** - `llm/deepseek.go` ✅
-  - Python: `llama-index-integrations/llms/llama-index-llms-deepseek/`
-  - TypeScript: `packages/providers/deepseek/`
 - [ ] **vLLM** - `llm/vllm.go`
   - Python: `llama-index-integrations/llms/llama-index-llms-vllm/`
   - TypeScript: `packages/providers/vllm/`
@@ -58,7 +45,6 @@ Python has 70+ embedding integrations. Go currently has 6 (OpenAI, Ollama, Coher
 
 **High Priority:**
 - [ ] **Google Vertex AI Embeddings** - `embedding/google.go`
-- [x] **AWS Bedrock Embeddings** - `llm/bedrock/embedding.go` ✅
 - [ ] **Voyage AI** - `embedding/voyage.go`
 - [ ] **Jina AI** - `embedding/jina.go`
 - [ ] **Mixedbread** - `embedding/mixedbread.go`
@@ -84,11 +70,9 @@ Python has 50+ vector store integrations. Go currently has 2 (Chromem-go, Simple
 
 ### Document Readers Needed
 
-Python has 100+ reader integrations. Go currently has 5 (Directory, JSON, HTML, Markdown, PDF).
+Python has 100+ reader integrations. Go currently has 8 (Directory, JSON, HTML, Markdown, PDF, CSV, Excel, Docx).
 
 **High Priority:**
-- [ ] **CSV/Excel Reader** - `rag/reader/csv_reader.go`, `rag/reader/excel_reader.go`
-- [ ] **Docx Reader** - `rag/reader/docx_reader.go`
 - [ ] **Notion Reader** - `rag/reader/notion_reader.go`
 - [ ] **Slack Reader** - `rag/reader/slack_reader.go`
 - [ ] **S3 Reader** - `rag/reader/s3_reader.go`
@@ -682,6 +666,24 @@ Go has basic logging handler only. Python has integrations with:
 
 - **PDFReader** - `rag/reader/pdf_reader.go`
   - PDF extraction using `ledongthuc/pdf` library
+
+- **CSVReader** - `rag/reader/csv_reader.go`
+  - CSV/TSV file support with configurable delimiter
+  - Header detection, column selection for text/metadata
+  - Row-per-document or concatenated modes
+  - Streaming reader for large files (`CSVStreamReader`)
+
+- **ExcelReader** - `rag/reader/excel_reader.go`
+  - Excel files (.xlsx, .xlsm) using `excelize` library
+  - Multi-sheet support with sheet selection
+  - Column selection by name, index, or Excel letter (A, B, etc.)
+  - Row/sheet concatenation options
+
+- **DocxReader** - `rag/reader/docx_reader.go`
+  - Microsoft Word (.docx) files using native Go ZIP/XML parsing
+  - Extracts paragraphs, tables, and document properties (title, author, etc.)
+  - Optional image extraction as separate nodes
+  - `LoadFromBytes()` for in-memory processing
 
 ---
 
