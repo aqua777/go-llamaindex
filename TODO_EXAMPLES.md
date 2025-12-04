@@ -45,9 +45,9 @@ These examples demonstrate fundamental RAG patterns and can be fully implemented
 | `response_synthesizers/refine.ipynb` | Refine synthesis | `rag/synthesizer/refine.go` | ✅ | [x] `examples/rag/response_synthesis/` |
 | `response_synthesizers/tree_summarize.ipynb` | Tree summarization | `rag/synthesizer/tree_summarize.go` | ✅ | [x] `examples/rag/response_synthesis/` |
 | `response_synthesizers/custom_prompt_synthesizer.ipynb` | Custom prompts | `prompts`, `rag/synthesizer` | ✅ | [x] `examples/rag/response_synthesis/` |
-| `response_synthesizers/pydantic_tree_summarize.ipynb` | Structured output | `program`, `rag/synthesizer` | ✅ | [ ] |
+| `response_synthesizers/pydantic_tree_summarize.ipynb` | Structured output | `program`, `rag/synthesizer` | ✅ | [x] `examples/rag/pydantic_tree_summarize/` |
 
-**Go Example:** `examples/rag/response_synthesis/` (covers refine, tree_summarize, custom prompts)
+**Go Example:** `examples/rag/response_synthesis/` (covers refine, tree_summarize, custom prompts, pydantic_tree_summarize)
 
 ---
 
@@ -93,16 +93,16 @@ All chat engine modes are implemented in Go.
 
 | Python Example | Description | Go Components Required | Status | Implemented |
 |----------------|-------------|------------------------|--------|-------------|
-| `retrievers/auto_merging_retriever.ipynb` | Auto-merging retrieval | `rag/retriever/auto_merging.go` | ✅ | [ ] |
+| `retrievers/auto_merging_retriever.ipynb` | Auto-merging retrieval | `rag/retriever/auto_merging.go` | ✅ | [x] `examples/retrievers/auto_merging/` |
 | `retrievers/reciprocal_rerank_fusion.ipynb` | RRF fusion | `rag/retriever/fusion.go` | ✅ | [x] `examples/rag/fusion_retriever/` |
 | `retrievers/relative_score_dist_fusion.ipynb` | Score fusion | `rag/retriever/fusion.go` | ✅ | [x] `examples/rag/fusion_retriever/` |
 | `retrievers/simple_fusion.ipynb` | Simple fusion | `rag/retriever/fusion.go` | ✅ | [x] `examples/rag/fusion_retriever/` |
-| `retrievers/router_retriever.ipynb` | Router retriever | `rag/retriever/router.go` | ✅ | [ ] |
-| `retrievers/composable_retrievers.ipynb` | Composable retrievers | `rag/retriever` | ✅ | [ ] |
-| `retrievers/bm25_retriever.ipynb` | BM25 retrieval | `embedding/bm25.go` | ✅ | [ ] |
+| `retrievers/router_retriever.ipynb` | Router retriever | `rag/retriever/router.go` | ✅ | [x] `examples/retrievers/router/` |
+| `retrievers/composable_retrievers.ipynb` | Composable retrievers | `rag/retriever` | ✅ | [x] `examples/retrievers/composable/` |
+| `retrievers/bm25_retriever.ipynb` | BM25 retrieval | `embedding/bm25.go` | ✅ | [x] `examples/retrievers/bm25/` |
 | `retrievers/ensemble_retrieval.ipynb` | Ensemble retrieval | `rag/retriever/fusion.go` | ✅ | [x] `examples/rag/fusion_retriever/` |
 
-**Suggested Go Example:** `examples/retrievers/`
+**Go Example:** `examples/retrievers/` (covers auto_merging, router, composable, bm25)
 
 ---
 
@@ -213,11 +213,11 @@ All chat engine modes are implemented in Go.
 
 | Python Example | Description | Go Components Required | Status | Implemented |
 |----------------|-------------|------------------------|--------|-------------|
-| `prompts/advanced_prompts.ipynb` | Advanced prompts | `prompts/template.go` | ✅ | [ ] |
-| `prompts/prompt_mixin.ipynb` | Prompt mixin | `prompts/mixin.go` | ✅ | [ ] |
-| `prompts/rich_prompt_template_features.ipynb` | Template features | `prompts` | ✅ | [ ] |
+| `prompts/advanced_prompts.ipynb` | Advanced prompts | `prompts/template.go` | ✅ | [x] `examples/prompts/advanced_prompts/` |
+| `prompts/prompt_mixin.ipynb` | Prompt mixin | `prompts/mixin.go` | ✅ | [x] `examples/prompts/prompt_mixin/` |
+| `prompts/rich_prompt_template_features.ipynb` | Template features | `prompts` | ✅ | [x] `examples/prompts/template_features/` |
 
-**Suggested Go Example:** `examples/prompts/`
+**Go Example:** `examples/prompts/` (covers advanced_prompts, prompt_mixin, template_features)
 
 ---
 
@@ -225,11 +225,11 @@ All chat engine modes are implemented in Go.
 
 | Python Example | Description | Go Components Required | Status | Implemented |
 |----------------|-------------|------------------------|--------|-------------|
-| `metadata_extraction/MetadataExtractionSEC.ipynb` | SEC metadata | `extractors` | ✅ | [ ] |
-| `metadata_extraction/MetadataExtraction_LLMSurvey.ipynb` | LLM survey | `extractors` | ✅ | [ ] |
-| `metadata_extraction/EntityExtractionClimate.ipynb` | Entity extraction | `extractors` | ✅ | [ ] |
+| `metadata_extraction/MetadataExtractionSEC.ipynb` | SEC metadata | `extractors` | ✅ | [x] `examples/extractors/metadata_extraction/` |
+| `metadata_extraction/MetadataExtraction_LLMSurvey.ipynb` | LLM survey | `extractors` | ✅ | [x] `examples/extractors/metadata_extraction/` |
+| `metadata_extraction/EntityExtractionClimate.ipynb` | Entity extraction | `extractors` | ✅ | [x] `examples/extractors/entity_extraction/` |
 
-**Suggested Go Example:** `examples/extractors/`
+**Go Example:** `examples/extractors/` (covers metadata_extraction, entity_extraction)
 
 ---
 
@@ -237,10 +237,10 @@ All chat engine modes are implemented in Go.
 
 | Python Example | Description | Go Components Required | Status | Implemented |
 |----------------|-------------|------------------------|--------|-------------|
-| `output_parsing/function_program.ipynb` | Function program | `program/function_program.go` | ✅ | [ ] |
-| `output_parsing/llm_program.ipynb` | LLM program | `program/llm_program.go` | ✅ | [ ] |
+| `output_parsing/function_program.ipynb` | Function program | `program/function_program.go` | ✅ | [x] `examples/program/function_program/` |
+| `output_parsing/llm_program.ipynb` | LLM program | `program/llm_program.go` | ✅ | [x] `examples/program/llm_program/` |
 
-**Suggested Go Example:** `examples/program/`
+**Go Example:** `examples/program/` (covers function_program, llm_program)
 
 ---
 
@@ -248,10 +248,10 @@ All chat engine modes are implemented in Go.
 
 | Python Example | Description | Go Components Required | Status | Implemented |
 |----------------|-------------|------------------------|--------|-------------|
-| `tools/function_tool_callback.ipynb` | Function tools | `tools/function_tool.go` | ✅ | [ ] |
-| `tools/eval_query_engine_tool.ipynb` | Query engine tool | `tools/query_engine_tool.go` | ✅ | [ ] |
+| `tools/function_tool_callback.ipynb` | Function tools | `tools/function_tool.go` | ✅ | [x] `examples/tools/function_tool/` |
+| `tools/eval_query_engine_tool.ipynb` | Query engine tool | `tools/query_engine_tool.go` | ✅ | [x] `examples/tools/query_engine_tool/` |
 
-**Suggested Go Example:** `examples/tools/`
+**Go Example:** `examples/tools/` (covers function_tool, query_engine_tool)
 
 ---
 
@@ -259,10 +259,10 @@ All chat engine modes are implemented in Go.
 
 | Python Example | Description | Go Components Required | Status | Implemented |
 |----------------|-------------|------------------------|--------|-------------|
-| `customization/streaming/SimpleIndexDemo-streaming.ipynb` | Basic streaming | `llm`, `rag/synthesizer` | ✅ | [ ] |
-| `customization/streaming/chat_engine_condense_question_stream_response.ipynb` | Chat streaming | `chatengine` | ✅ | [ ] |
+| `customization/streaming/SimpleIndexDemo-streaming.ipynb` | Basic streaming | `llm`, `rag/synthesizer` | ✅ | [x] `examples/streaming/basic_streaming/` |
+| `customization/streaming/chat_engine_condense_question_stream_response.ipynb` | Chat streaming | `chatengine` | ✅ | [x] `examples/streaming/chat_streaming/` |
 
-**Suggested Go Example:** `examples/streaming/`
+**Go Example:** `examples/streaming/` (covers basic_streaming, chat_streaming)
 
 ---
 
@@ -270,10 +270,10 @@ All chat engine modes are implemented in Go.
 
 | Python Example | Description | Go Components Required | Status | Implemented |
 |----------------|-------------|------------------------|--------|-------------|
-| `customization/llms/AzureOpenAI.ipynb` | Azure OpenAI | `llm/azure_openai.go` | ✅ | [ ] |
-| `customization/llms/SimpleIndexDemo-ChatGPT.ipynb` | OpenAI ChatGPT | `llm/openai.go` | ✅ | [ ] |
+| `customization/llms/AzureOpenAI.ipynb` | Azure OpenAI | `llm/azure_openai.go` | ✅ | [x] `examples/llm/azure_openai/` |
+| `customization/llms/SimpleIndexDemo-ChatGPT.ipynb` | OpenAI ChatGPT | `llm/openai.go` | ✅ | [x] `examples/llm/openai_llm/` |
 
-**Suggested Go Example:** `examples/llm/`
+**Go Example:** `examples/llm/` (covers openai_llm, azure_openai)
 
 ---
 
