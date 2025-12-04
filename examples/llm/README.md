@@ -24,7 +24,28 @@ export OPENAI_API_KEY="your-api-key"
 cd openai_llm && go run main.go
 ```
 
-### 2. Azure OpenAI (`azure_openai/`)
+### 2. AWS Bedrock (`bedrock/`)
+
+Demonstrates AWS Bedrock LLM and Embedding capabilities.
+
+**Features:**
+- LLM: Claude, Nova, Llama, Mistral, Cohere models
+- Embeddings: Titan, Cohere models
+- Complete, Chat, Streaming
+- Tool/function calling
+- Batch embeddings
+- Model comparison
+
+**Run:**
+```bash
+# Configure AWS credentials (via env vars, profile, or IAM role)
+export AWS_REGION="us-east-1"
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+cd bedrock && go run main.go
+```
+
+### 3. Azure OpenAI (`azure_openai/`)
 
 Demonstrates Azure OpenAI LLM capabilities.
 
@@ -92,6 +113,45 @@ llm := llm.NewAzureOpenAILLMWithConfig(
     "gpt-35-turbo",
     "2024-02-15-preview",
 )
+```
+
+### AWS Bedrock LLM
+
+```go
+import "github.com/aqua777/go-llamaindex/llm/bedrock"
+
+// Default (Claude 3.5 Sonnet)
+llm := bedrock.New()
+
+// With specific model
+llm := bedrock.New(
+    bedrock.WithModel(bedrock.Claude3Haiku),
+    bedrock.WithRegion("us-east-1"),
+    bedrock.WithMaxTokens(2048),
+)
+
+// Available models: Claude35SonnetV2, Claude3Haiku, NovaProV1, Llama33_70BInstruct, etc.
+```
+
+### AWS Bedrock Embeddings
+
+```go
+import "github.com/aqua777/go-llamaindex/llm/bedrock"
+
+// Default (Titan Embed V2)
+emb := bedrock.NewEmbedding()
+
+// With specific model and dimensions
+emb := bedrock.NewEmbedding(
+    bedrock.WithEmbeddingModel(bedrock.TitanEmbedTextV2),
+    bedrock.WithEmbeddingDimensions(512),
+)
+
+// Get embedding
+vector, err := emb.GetTextEmbedding(ctx, "Hello world")
+
+// Batch embeddings
+vectors, err := emb.GetTextEmbeddingsBatch(ctx, texts, nil)
 ```
 
 ### Chat Messages
@@ -180,8 +240,12 @@ fmt.Printf("Function Calling: %v\n", metadata.IsFunctionCalling)
 | OpenAI | `llm.NewOpenAILLM()` | ✅ |
 | Azure OpenAI | `llm.NewAzureOpenAILLM()` | ✅ |
 | Anthropic | `llm.NewAnthropicLLM()` | ✅ |
+| AWS Bedrock | `bedrock.New()` | ✅ |
 | Ollama | `llm.NewOllamaLLM()` | ✅ |
 | Cohere | `llm.NewCohereLLM()` | ✅ |
+| Groq | `llm.NewGroqLLM()` | ✅ |
+| DeepSeek | `llm.NewDeepSeekLLM()` | ✅ |
+| Mistral AI | `llm.NewMistralLLM()` | ✅ |
 
 ## Environment Variables
 
@@ -202,3 +266,18 @@ fmt.Printf("Function Calling: %v\n", metadata.IsFunctionCalling)
 
 ### Cohere
 - `COHERE_API_KEY` - API key
+
+### AWS Bedrock
+- `AWS_REGION` / `AWS_DEFAULT_REGION` - AWS region
+- `AWS_ACCESS_KEY_ID` - Access key (optional if using IAM role)
+- `AWS_SECRET_ACCESS_KEY` - Secret key (optional if using IAM role)
+- `AWS_SESSION_TOKEN` - Session token (optional)
+
+### Groq
+- `GROQ_API_KEY` - API key
+
+### DeepSeek
+- `DEEPSEEK_API_KEY` - API key
+
+### Mistral AI
+- `MISTRAL_API_KEY` - API key

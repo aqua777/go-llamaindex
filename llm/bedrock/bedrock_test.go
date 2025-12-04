@@ -3,6 +3,7 @@ package bedrock
 import (
 	"testing"
 
+	"github.com/aqua777/go-llamaindex/embedding"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -99,5 +100,112 @@ func TestLLM(t *testing.T) {
 
 		// Test apac. prefix
 		assert.True(t, IsFunctionCallingModel("apac.anthropic.claude-3-5-sonnet-20241022-v2:0"))
+	})
+}
+
+// TestEmbedding tests the AWS Bedrock Embedding implementation.
+func TestEmbedding(t *testing.T) {
+	t.Run("NewEmbedding with defaults", func(t *testing.T) {
+		emb := NewEmbedding()
+		assert.NotNil(t, emb)
+		assert.Equal(t, DefaultEmbeddingModel, emb.model)
+		assert.Equal(t, 1024, emb.dimensions)
+		assert.True(t, emb.normalize)
+	})
+
+	t.Run("NewEmbedding with options", func(t *testing.T) {
+		emb := NewEmbedding(
+			WithEmbeddingModel(TitanEmbedTextV1),
+			WithEmbeddingRegion("us-west-2"),
+			WithEmbeddingDimensions(512),
+			WithEmbeddingNormalize(false),
+		)
+
+		assert.Equal(t, TitanEmbedTextV1, emb.model)
+		assert.Equal(t, "us-west-2", emb.region)
+		assert.Equal(t, 512, emb.dimensions)
+		assert.False(t, emb.normalize)
+	})
+
+	t.Run("Info returns correct values for Titan models", func(t *testing.T) {
+		tests := []struct {
+			model      string
+			dimensions int
+			maxTokens  int
+		}{
+			{TitanEmbedTextV1, 1536, 8192},
+			{TitanEmbedTextV2, 1024, 8192},
+			{TitanEmbedG1Text02, 1536, 8192},
+		}
+
+		for _, tt := range tests {
+			emb := NewEmbedding(WithEmbeddingModel(tt.model))
+			info := emb.Info()
+			assert.Equal(t, tt.model, info.ModelName)
+			assert.Equal(t, tt.dimensions, info.Dimensions, "model: %s", tt.model)
+			assert.Equal(t, tt.maxTokens, info.MaxTokens, "model: %s", tt.model)
+		}
+	})
+
+	t.Run("Info returns correct values for Cohere models", func(t *testing.T) {
+		tests := []struct {
+			model      string
+			dimensions int
+			maxTokens  int
+		}{
+			{CohereEmbedEnglishV3, 1024, 512},
+			{CohereEmbedMultilingualV3, 1024, 512},
+			{CohereEmbedV4, 1024, 512},
+		}
+
+		for _, tt := range tests {
+			emb := NewEmbedding(WithEmbeddingModel(tt.model))
+			info := emb.Info()
+			assert.Equal(t, tt.model, info.ModelName)
+			assert.Equal(t, tt.dimensions, info.Dimensions, "model: %s", tt.model)
+			assert.Equal(t, tt.maxTokens, info.MaxTokens, "model: %s", tt.model)
+		}
+	})
+
+	t.Run("Titan V2 respects custom dimensions", func(t *testing.T) {
+		emb := NewEmbedding(
+			WithEmbeddingModel(TitanEmbedTextV2),
+			WithEmbeddingDimensions(256),
+		)
+		info := emb.Info()
+		assert.Equal(t, 256, info.Dimensions)
+	})
+
+	t.Run("getProvider extracts provider correctly", func(t *testing.T) {
+		tests := []struct {
+			model    string
+			provider string
+		}{
+			{TitanEmbedTextV1, "amazon"},
+			{TitanEmbedTextV2, "amazon"},
+			{CohereEmbedEnglishV3, "cohere"},
+			{"us.amazon.titan-embed-text-v2:0", "amazon"},
+			{"eu.cohere.embed-english-v3", "cohere"},
+		}
+
+		for _, tt := range tests {
+			emb := NewEmbedding(WithEmbeddingModel(tt.model))
+			assert.Equal(t, tt.provider, emb.getProvider(), "model: %s", tt.model)
+		}
+	})
+
+	t.Run("Embedding model constants are correct", func(t *testing.T) {
+		assert.Equal(t, "amazon.titan-embed-text-v1", TitanEmbedTextV1)
+		assert.Equal(t, "amazon.titan-embed-text-v2:0", TitanEmbedTextV2)
+		assert.Equal(t, "amazon.titan-embed-g1-text-02", TitanEmbedG1Text02)
+		assert.Equal(t, "cohere.embed-english-v3", CohereEmbedEnglishV3)
+		assert.Equal(t, "cohere.embed-multilingual-v3", CohereEmbedMultilingualV3)
+		assert.Equal(t, "cohere.embed-v4:0", CohereEmbedV4)
+	})
+
+	t.Run("Embedding implements all interfaces", func(t *testing.T) {
+		var _ embedding.EmbeddingModel = (*Embedding)(nil)
+		var _ embedding.EmbeddingModelWithInfo = (*Embedding)(nil)
+		var _ embedding.EmbeddingModelWithBatch = (*Embedding)(nil)
 	})
 }

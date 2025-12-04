@@ -54,11 +54,11 @@ Python has 100+ LLM integrations. Go currently has 9 (OpenAI, Anthropic, Ollama,
 
 ### Embedding Providers Needed
 
-Python has 70+ embedding integrations. Go currently has 5 (OpenAI, Ollama, Cohere, HuggingFace, Azure OpenAI).
+Python has 70+ embedding integrations. Go currently has 6 (OpenAI, Ollama, Cohere, HuggingFace, Azure OpenAI, AWS Bedrock).
 
 **High Priority:**
 - [ ] **Google Vertex AI Embeddings** - `embedding/google.go`
-- [ ] **AWS Bedrock Embeddings** - `embedding/bedrock.go`
+- [x] **AWS Bedrock Embeddings** - `llm/bedrock/embedding.go` ✅
 - [ ] **Voyage AI** - `embedding/voyage.go`
 - [ ] **Jina AI** - `embedding/jina.go`
 - [ ] **Mixedbread** - `embedding/mixedbread.go`
@@ -264,6 +264,7 @@ Go has basic logging handler only. Python has integrations with:
 - **Cohere** - `embedding/cohere.go`
 - **HuggingFace** - `embedding/huggingface.go`
 - **Azure OpenAI** - `embedding/azure_openai.go`
+- **AWS Bedrock** - `llm/bedrock/embedding.go`
 
 ---
 
