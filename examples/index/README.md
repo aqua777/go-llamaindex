@@ -1,6 +1,6 @@
 # Index Examples
 
-This directory contains examples demonstrating different index types in go-llamaindex.
+This directory contains examples demonstrating different index types in `go-llamaindex`.
 
 ## Examples
 

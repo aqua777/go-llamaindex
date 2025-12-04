@@ -1,6 +1,6 @@
 # Tool Examples
 
-This directory contains examples demonstrating tool abstractions in go-llamaindex.
+This directory contains examples demonstrating tool abstractions in `go-llamaindex`.
 
 ## Examples
 

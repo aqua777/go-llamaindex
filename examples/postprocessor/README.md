@@ -1,6 +1,6 @@
 # Postprocessor Examples
 
-This directory contains examples demonstrating node postprocessing capabilities in go-llamaindex.
+This directory contains examples demonstrating node postprocessing capabilities in `go-llamaindex`.
 
 ## Examples
 

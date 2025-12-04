@@ -1,6 +1,6 @@
 # Program Examples
 
-This directory contains examples demonstrating structured output programs in go-llamaindex.
+This directory contains examples demonstrating structured output programs in `go-llamaindex`.
 
 ## Examples
 

@@ -1,4 +1,4 @@
-# go-llamaindex
+# `go-llamaindex`
 
 **⚠️ EXPERIMENTAL AI-GENERATED CODE ⚠️**
 
@@ -6,7 +6,7 @@ This is an AI-generated conversion of [LlamaIndex](https://github.com/run-llama/
 
 ## Overview
 
-go-llamaindex is a Go implementation of core LlamaIndex abstractions, providing a framework for building Retrieval-Augmented Generation (RAG) applications. It includes components for document loading, text splitting, embedding generation, vector storage, and query processing.
+`go-llamaindex` is a Go implementation of core LlamaIndex abstractions, providing a framework for building Retrieval-Augmented Generation (RAG) applications. It includes components for document loading, text splitting, embedding generation, vector storage, and query processing.
 
 ## Features
 

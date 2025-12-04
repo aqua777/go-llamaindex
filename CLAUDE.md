@@ -1,6 +1,6 @@
-# CLAUDE.md - go-llamaindex
+# CLAUDE.md - `go-llamaindex`
 
-This file provides guidance to AI coding agents when working with the go-llamaindex codebase. It documents architectural decisions, design patterns, and conventions derived from the Python and TypeScript LlamaIndex implementations.
+This file provides guidance to AI coding agents when working with the `go-llamaindex` codebase. It documents architectural decisions, design patterns, and conventions derived from the Python and TypeScript LlamaIndex implementations.
 
 ## Development Commands
 
@@ -30,7 +30,7 @@ go mod vendor
 
 ## Architecture Overview
 
-go-llamaindex is a Go implementation of core LlamaIndex abstractions for building Retrieval-Augmented Generation (RAG) applications. The architecture follows the same conceptual model as Python and TypeScript versions while embracing Go idioms.
+`go-llamaindex` is a Go implementation of core LlamaIndex abstractions for building Retrieval-Augmented Generation (RAG) applications. The architecture follows the same conceptual model as Python and TypeScript versions while embracing Go idioms.
 
 ### Core Data Flow
 

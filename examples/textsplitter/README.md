@@ -1,6 +1,6 @@
 # Text Splitter Examples
 
-This directory contains examples demonstrating text splitting strategies in go-llamaindex.
+This directory contains examples demonstrating text splitting strategies in `go-llamaindex`.
 
 ## Examples
 

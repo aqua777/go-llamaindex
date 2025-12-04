@@ -1,6 +1,6 @@
 # Workflow Examples
 
-This directory contains examples demonstrating event-driven workflow orchestration in go-llamaindex.
+This directory contains examples demonstrating event-driven workflow orchestration in `go-llamaindex`.
 
 ## Examples
 

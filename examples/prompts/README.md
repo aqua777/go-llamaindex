@@ -1,6 +1,6 @@
 # Prompt Examples
 
-This directory contains examples demonstrating prompt template features in go-llamaindex.
+This directory contains examples demonstrating prompt template features in `go-llamaindex`.
 
 ## Examples
 

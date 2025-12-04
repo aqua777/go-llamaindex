@@ -1,6 +1,6 @@
 # Go LlamaIndex Examples
 
-This directory contains comprehensive examples demonstrating the capabilities of go-llamaindex. Each example is self-contained with a `main.go` file and category-level `README.md` documentation.
+This directory contains comprehensive examples demonstrating the capabilities of `go-llamaindex`. Each example is self-contained with a `main.go` file and category-level `README.md` documentation.
 
 ## Prerequisites
 

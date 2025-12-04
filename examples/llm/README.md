@@ -1,6 +1,6 @@
 # LLM Provider Examples
 
-This directory contains examples demonstrating LLM provider usage in go-llamaindex.
+This directory contains examples demonstrating LLM provider usage in `go-llamaindex`.
 
 ## Examples
 

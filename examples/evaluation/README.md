@@ -1,6 +1,6 @@
 # Evaluation Examples
 
-This directory contains examples demonstrating RAG evaluation capabilities in go-llamaindex.
+This directory contains examples demonstrating RAG evaluation capabilities in `go-llamaindex`.
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # Query Engine Examples
 
-This directory contains examples demonstrating various query engine patterns in go-llamaindex.
+This directory contains examples demonstrating various query engine patterns in `go-llamaindex`.
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # Extractor Examples
 
-This directory contains examples demonstrating metadata extraction in go-llamaindex.
+This directory contains examples demonstrating metadata extraction in `go-llamaindex`.
 
 ## Examples
 

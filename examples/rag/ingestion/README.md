@@ -1,6 +1,6 @@
 # Document Ingestion Pipeline Examples
 
-This directory contains examples demonstrating document ingestion pipelines in go-llamaindex.
+This directory contains examples demonstrating document ingestion pipelines in `go-llamaindex`.
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # Retriever Examples
 
-This directory contains examples demonstrating various retrieval strategies in go-llamaindex.
+This directory contains examples demonstrating various retrieval strategies in `go-llamaindex`.
 
 ## Examples
 

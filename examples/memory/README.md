@@ -1,6 +1,6 @@
 # Memory Examples
 
-This directory contains examples demonstrating chat memory management in go-llamaindex.
+This directory contains examples demonstrating chat memory management in `go-llamaindex`.
 
 ## Examples
 

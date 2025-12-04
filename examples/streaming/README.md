@@ -1,6 +1,6 @@
 # Streaming Examples
 
-This directory contains examples demonstrating streaming responses in go-llamaindex.
+This directory contains examples demonstrating streaming responses in `go-llamaindex`.
 
 ## Examples
 

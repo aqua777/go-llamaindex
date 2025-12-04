@@ -1,6 +1,6 @@
 # Agent Examples
 
-This directory contains examples demonstrating various agent patterns in go-llamaindex.
+This directory contains examples demonstrating various agent patterns in `go-llamaindex`.
 
 ## Examples
 
