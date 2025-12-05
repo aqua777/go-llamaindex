@@ -1,0 +1,45 @@
+{
+    "name": "GO LLamaIndex",
+    "build": {
+        "dockerfile": "../.docker/Dev.dockerfile",
+        "target": "devcontainer",
+        "context": "..",
+        "args": {
+            "GO_USER_NAME": "dev"
+        }
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/go-llamaindex,type=bind,consistency=cached",
+    "workspaceFolder": "/go-llamaindex",
+    "remoteUser": "dev",
+    "updateRemoteUserUID": true,
+    // "overrideCommand": false,
+    "mounts": [
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.go",
+                "ms-azuretools.vscode-docker",
+                "ms-vscode.makefile-tools"
+            ]
+        },
+        "settings": {
+            "files.autoSave": "afterDelay",
+            "files.autoSaveDelay": 100
+        }
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "installZsh": true,
+            "configureZshAsDefaultShell": true,
+            "installOhMyZsh": true
+        }
+    },
+    "forwardPorts": [],
+    "containerEnv": {
+        "OLLAMA_URL": "http://host.docker.internal:11434",
+        "OLLAMA_MODEL": "jan-v1:q6_k",
+
+        "OPENAI_URL": "http://host.docker.internal:11434/v1"
+    }
+}
