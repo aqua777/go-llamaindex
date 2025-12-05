@@ -3,6 +3,11 @@
 ## explicit; go 1.24.1
 # github.com/aqua777/go-llamaindex v0.0.0 => .
 ## explicit; go 1.24.1
+# github.com/aqua777/krait v0.0.1
+## explicit; go 1.24
+github.com/aqua777/krait
+# github.com/aqua777/krait/testing v0.0.0-20250823172035-5bce5a842776
+## explicit; go 1.24
 # github.com/aws/aws-sdk-go-v2 v1.40.1
 ## explicit; go 1.23
 github.com/aws/aws-sdk-go-v2/aws
@@ -122,20 +127,39 @@ github.com/aws/smithy-go/transport/http
 github.com/aws/smithy-go/transport/http/internal/io
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
+# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 github.com/davecgh/go-spew/spew
 # github.com/dlclark/regexp2 v1.10.0
 ## explicit; go 1.13
 github.com/dlclark/regexp2
 github.com/dlclark/regexp2/syntax
+# github.com/fsnotify/fsnotify v1.9.0
+## explicit; go 1.17
+github.com/fsnotify/fsnotify
+github.com/fsnotify/fsnotify/internal
+# github.com/go-viper/mapstructure/v2 v2.3.0
+## explicit; go 1.18
+github.com/go-viper/mapstructure/v2
+github.com/go-viper/mapstructure/v2/internal/errors
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
+# github.com/inconshreveable/mousetrap v1.1.0
+## explicit; go 1.18
+github.com/inconshreveable/mousetrap
 # github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 ## explicit; go 1.24.1
 github.com/ledongthuc/pdf
 # github.com/neurosnap/sentences v1.1.2
 ## explicit; go 1.18
 github.com/neurosnap/sentences
+# github.com/pelletier/go-toml/v2 v2.2.4
+## explicit; go 1.21.0
+github.com/pelletier/go-toml/v2
+github.com/pelletier/go-toml/v2/internal/characters
+github.com/pelletier/go-toml/v2/internal/danger
+github.com/pelletier/go-toml/v2/internal/tracker
+github.com/pelletier/go-toml/v2/unstable
 # github.com/philippgille/chromem-go v0.7.0
 ## explicit; go 1.21
 github.com/philippgille/chromem-go
@@ -144,6 +168,7 @@ github.com/philippgille/chromem-go
 github.com/pkoukk/tiktoken-go
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
+# github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 github.com/pmezard/go-difflib/difflib
 # github.com/richardlehane/mscfb v1.0.4
 ## explicit
@@ -151,17 +176,52 @@ github.com/richardlehane/mscfb
 # github.com/richardlehane/msoleps v1.0.4
 ## explicit
 github.com/richardlehane/msoleps/types
+# github.com/sagikazarmark/locafero v0.9.0
+## explicit; go 1.23.0
+github.com/sagikazarmark/locafero
 # github.com/sashabaranov/go-openai v1.41.2
 ## explicit; go 1.18
 github.com/sashabaranov/go-openai
 github.com/sashabaranov/go-openai/internal
 github.com/sashabaranov/go-openai/jsonschema
+# github.com/sourcegraph/conc v0.3.0
+## explicit; go 1.19
+github.com/sourcegraph/conc
+github.com/sourcegraph/conc/internal/multierror
+github.com/sourcegraph/conc/iter
+github.com/sourcegraph/conc/panics
+# github.com/spf13/afero v1.14.0
+## explicit; go 1.23.0
+github.com/spf13/afero
+github.com/spf13/afero/internal/common
+github.com/spf13/afero/mem
+# github.com/spf13/cast v1.9.2
+## explicit; go 1.21.0
+github.com/spf13/cast
+github.com/spf13/cast/internal
+# github.com/spf13/cobra v1.9.1
+## explicit; go 1.15
+github.com/spf13/cobra
+# github.com/spf13/pflag v1.0.6
+## explicit; go 1.12
+github.com/spf13/pflag
+# github.com/spf13/viper v1.20.1
+## explicit; go 1.21.0
+github.com/spf13/viper
+github.com/spf13/viper/internal/encoding/dotenv
+github.com/spf13/viper/internal/encoding/json
+github.com/spf13/viper/internal/encoding/toml
+github.com/spf13/viper/internal/encoding/yaml
+github.com/spf13/viper/internal/features
 # github.com/stretchr/testify v1.11.1
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
 github.com/stretchr/testify/require
 github.com/stretchr/testify/suite
+# github.com/subosito/gotenv v1.6.0
+## explicit; go 1.18
+github.com/subosito/gotenv
 # github.com/tiendc/go-deepcopy v1.7.1
 ## explicit; go 1.18
 github.com/tiendc/go-deepcopy
@@ -174,6 +234,9 @@ github.com/xuri/excelize/v2
 # github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9
 ## explicit; go 1.15
 github.com/xuri/nfp
+# go.uber.org/multierr v1.11.0
+## explicit; go 1.19
+go.uber.org/multierr
 # golang.org/x/crypto v0.43.0
 ## explicit; go 1.24.0
 golang.org/x/crypto/md4
@@ -183,6 +246,12 @@ golang.org/x/crypto/ripemd160
 golang.org/x/net/html
 golang.org/x/net/html/atom
 golang.org/x/net/html/charset
+# golang.org/x/sys v0.33.0
+## explicit; go 1.24.0
+# golang.org/x/sys v0.37.0
+## go 1.24.0
+golang.org/x/sys/unix
+golang.org/x/sys/windows
 # golang.org/x/text v0.30.0
 ## explicit; go 1.24.0
 golang.org/x/text/cases
