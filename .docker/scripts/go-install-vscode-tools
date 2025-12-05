@@ -1,0 +1,44 @@
+#!/bin/bash
+
+. /usr/local/bin/go-common
+
+function install-tools() {
+    local go_binary="$1"
+
+    apt-get update && apt-get install -y zsh;
+
+    MODULES=(
+        github.com/uudashr/gopkgs/v2/cmd/gopkgs@latest
+        github.com/ramya-rao-a/go-outline@latest
+        github.com/cweill/gotests/gotests@latest
+        github.com/fatih/gomodifytags@latest
+        github.com/josharian/impl@latest
+        github.com/haya14busa/goplay/cmd/goplay@latest
+        github.com/go-delve/delve/cmd/dlv@latest
+        github.com/square/certigo@latest
+        honnef.co/go/tools/cmd/staticcheck@latest
+        golang.org/x/tools/gopls@latest
+    )
+
+    # go-fix-cache
+    for mod in ${MODULES[@]}; do
+        CMD="${go_binary} install ${mod}"
+        echo "Executing: ${CMD}"
+        ${CMD}
+    done
+
+    DLV_BINARY=$(command -v dlv)
+    DLV_DAP_BINARY=$(dirname ${DLV_BINARY})/dlv-dap
+    ln -s ${DLV_BINARY} ${DLV_DAP_BINARY}
+    echo "Linked ${DLV_DAP_BINARY} to ${DLV_BINARY};"
+}
+
+GO_BINARY=$(command -v go)
+if [ -z "${GO_BINARY}" ]; then
+    echo "Go not found!"
+    exit 1
+fi
+
+sudo-exec-func install-tools "${GO_BINARY}"
+
+exec go-fix-cache

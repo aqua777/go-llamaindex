@@ -1,0 +1,26 @@
+#!/bin/bash
+
+. /usr/local/bin/go-common
+
+function fix-cache() {
+    if [ -z "${GOMODCACHE}" ] || [ -z "${GOCACHE}" ]; then
+        echo "Missing environment variables: GOMODCACHE='${GOMODCACHE}', GOCACHE='${GOCACHE}'."
+        exit 1
+    fi
+
+    if [ ! -d ${GOMODCACHE} ]; then mkdir -p ${GOMODCACHE}; fi
+    if [ ! -d ${GOCACHE} ]; then mkdir -p ${GOCACHE}; fi
+
+    find ${GOMODCACHE} -type d -exec chmod 755 {} \;
+    find ${GOMODCACHE}/cache -type d -exec chmod 777 {} \;
+    find ${GOCACHE} -type d -exec chmod 777 {} \;
+    find ${GOCACHE} -type f -exec chmod 666 {} \;
+
+    if [ -f ${GOCACHE}/trim.txt ]; then chmod go+w ${GOCACHE}/trim.txt; fi
+
+    chown -R ${GO_USER_NAME} ${GOMODCACHE}
+    chown -R ${GO_USER_NAME} ${GOCACHE} 
+    chown -R ${GO_USER_NAME} ${GOPATH}
+}
+
+sudo-exec-func fix-cache

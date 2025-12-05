@@ -1,0 +1,11 @@
+#!/bin/bash
+
+function sudo-exec-func() {
+    local func=$1
+    shift
+
+    if ! sudo -E bash -c "$(declare -f ${func}); ${func} $*"; then
+        echo "Unable to execute '${func}' as 'sudo' ... exiting"
+        exit 1
+    fi
+}
