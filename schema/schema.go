@@ -329,24 +329,77 @@ type Document struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
+// GetHash returns a hash of the document content.
+func (d *Document) GetHash() string {
+	h := sha256.New()
+	h.Write([]byte(d.ID))
+	h.Write([]byte(d.Text))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 // NodeWithScore represents a node with a similarity score.
 type NodeWithScore struct {
 	Node  Node    `json:"node"`
 	Score float64 `json:"score"`
 }
 
+// VectorStoreQueryMode represents the query mode for vector store queries.
+type VectorStoreQueryMode string
+
+const (
+	// QueryModeDefault is the default vector similarity search.
+	QueryModeDefault VectorStoreQueryMode = "default"
+	// QueryModeSparse uses sparse vector search (e.g., BM25).
+	QueryModeSparse VectorStoreQueryMode = "sparse"
+	// QueryModeHybrid combines dense and sparse search.
+	QueryModeHybrid VectorStoreQueryMode = "hybrid"
+	// QueryModeTextSearch uses full-text search.
+	QueryModeTextSearch VectorStoreQueryMode = "text_search"
+	// QueryModeSemanticHybrid combines semantic and keyword search.
+	QueryModeSemanticHybrid VectorStoreQueryMode = "semantic_hybrid"
+	// QueryModeMMR uses Maximum Marginal Relevance for diversity.
+	QueryModeMMR VectorStoreQueryMode = "mmr"
+	// QueryModeSVM uses SVM-based retrieval.
+	QueryModeSVM VectorStoreQueryMode = "svm"
+)
+
 // FilterOperator represents the operator for a metadata filter.
 type FilterOperator string
 
 const (
-	FilterOperatorEq  FilterOperator = "=="
-	FilterOperatorGt  FilterOperator = ">"
-	FilterOperatorLt  FilterOperator = "<"
-	FilterOperatorNe  FilterOperator = "!="
-	FilterOperatorGte FilterOperator = ">="
-	FilterOperatorLte FilterOperator = "<="
-	FilterOperatorIn  FilterOperator = "in"
-	FilterOperatorNin FilterOperator = "nin"
+	// Basic comparison operators
+	FilterOperatorEq  FilterOperator = "==" // Equal (string, int, float)
+	FilterOperatorGt  FilterOperator = ">"  // Greater than (int, float)
+	FilterOperatorLt  FilterOperator = "<"  // Less than (int, float)
+	FilterOperatorNe  FilterOperator = "!=" // Not equal (string, int, float)
+	FilterOperatorGte FilterOperator = ">=" // Greater than or equal (int, float)
+	FilterOperatorLte FilterOperator = "<=" // Less than or equal (int, float)
+
+	// Array operators
+	FilterOperatorIn  FilterOperator = "in"  // Value in array
+	FilterOperatorNin FilterOperator = "nin" // Value not in array
+	FilterOperatorAny FilterOperator = "any" // Array contains any of values
+	FilterOperatorAll FilterOperator = "all" // Array contains all of values
+
+	// Text operators
+	FilterOperatorTextMatch            FilterOperator = "text_match"             // Full text match
+	FilterOperatorTextMatchInsensitive FilterOperator = "text_match_insensitive" // Case-insensitive text match
+
+	// Special operators
+	FilterOperatorContains FilterOperator = "contains" // Metadata array contains value
+	FilterOperatorIsEmpty  FilterOperator = "is_empty" // Field is empty or doesn't exist
+)
+
+// FilterCondition represents how multiple filters are combined.
+type FilterCondition string
+
+const (
+	// FilterConditionAnd combines filters with AND logic.
+	FilterConditionAnd FilterCondition = "and"
+	// FilterConditionOr combines filters with OR logic.
+	FilterConditionOr FilterCondition = "or"
+	// FilterConditionNot negates the filter condition.
+	FilterConditionNot FilterCondition = "not"
 )
 
 // MetadataFilter represents a single metadata filter.
@@ -356,9 +409,71 @@ type MetadataFilter struct {
 	Operator FilterOperator `json:"operator"`
 }
 
-// MetadataFilters represents a list of metadata filters.
+// NewMetadataFilter creates a new metadata filter with the EQ operator.
+func NewMetadataFilter(key string, value interface{}) MetadataFilter {
+	return MetadataFilter{
+		Key:      key,
+		Value:    value,
+		Operator: FilterOperatorEq,
+	}
+}
+
+// NewMetadataFilterWithOp creates a new metadata filter with a specific operator.
+func NewMetadataFilterWithOp(key string, value interface{}, op FilterOperator) MetadataFilter {
+	return MetadataFilter{
+		Key:      key,
+		Value:    value,
+		Operator: op,
+	}
+}
+
+// MetadataFilters represents a collection of metadata filters with a condition.
 type MetadataFilters struct {
-	Filters []MetadataFilter `json:"filters"`
+	Filters   []MetadataFilter `json:"filters"`
+	Condition FilterCondition  `json:"condition,omitempty"`
+	// Nested allows for complex nested filter conditions.
+	Nested []*MetadataFilters `json:"nested,omitempty"`
+}
+
+// NewMetadataFilters creates a new MetadataFilters with AND condition.
+func NewMetadataFilters(filters ...MetadataFilter) *MetadataFilters {
+	return &MetadataFilters{
+		Filters:   filters,
+		Condition: FilterConditionAnd,
+	}
+}
+
+// NewMetadataFiltersWithCondition creates a new MetadataFilters with a specific condition.
+func NewMetadataFiltersWithCondition(condition FilterCondition, filters ...MetadataFilter) *MetadataFilters {
+	return &MetadataFilters{
+		Filters:   filters,
+		Condition: condition,
+	}
+}
+
+// And adds filters with AND condition.
+func (mf *MetadataFilters) And(filters ...MetadataFilter) *MetadataFilters {
+	if mf.Condition == "" {
+		mf.Condition = FilterConditionAnd
+	}
+	mf.Filters = append(mf.Filters, filters...)
+	return mf
+}
+
+// Or creates a nested OR condition.
+func (mf *MetadataFilters) Or(filters ...MetadataFilter) *MetadataFilters {
+	orFilters := &MetadataFilters{
+		Filters:   filters,
+		Condition: FilterConditionOr,
+	}
+	mf.Nested = append(mf.Nested, orFilters)
+	return mf
+}
+
+// AddNested adds a nested filter group.
+func (mf *MetadataFilters) AddNested(nested *MetadataFilters) *MetadataFilters {
+	mf.Nested = append(mf.Nested, nested)
+	return mf
 }
 
 // QueryBundle encapsulates the query string and potential metadata.
@@ -383,7 +498,95 @@ type StreamingEngineResponse struct {
 
 // VectorStoreQuery represents a query to the vector store.
 type VectorStoreQuery struct {
-	Embedding []float64        `json:"embedding"`
-	TopK      int              `json:"top_k"`
-	Filters   *MetadataFilters `json:"filters,omitempty"`
+	// QueryEmbedding is the embedding vector for similarity search.
+	QueryEmbedding []float64 `json:"query_embedding,omitempty"`
+	// Embedding is an alias for QueryEmbedding (for backward compatibility).
+	Embedding []float64 `json:"embedding,omitempty"`
+	// SimilarityTopK is the number of top results to return.
+	SimilarityTopK int `json:"similarity_top_k"`
+	// TopK is an alias for SimilarityTopK (for backward compatibility).
+	TopK int `json:"top_k,omitempty"`
+	// QueryStr is the original query string (for text search modes).
+	QueryStr string `json:"query_str,omitempty"`
+	// Mode is the query mode (default, sparse, hybrid, mmr, etc.).
+	Mode VectorStoreQueryMode `json:"mode,omitempty"`
+	// Filters are metadata filters to apply.
+	Filters *MetadataFilters `json:"filters,omitempty"`
+	// DocIDs limits the search to specific document IDs.
+	DocIDs []string `json:"doc_ids,omitempty"`
+	// NodeIDs limits the search to specific node IDs.
+	NodeIDs []string `json:"node_ids,omitempty"`
+	// Alpha is the weight for hybrid search (0 = BM25, 1 = vector).
+	Alpha *float64 `json:"alpha,omitempty"`
+	// MMRThreshold is the diversity threshold for MMR mode.
+	MMRThreshold *float64 `json:"mmr_threshold,omitempty"`
+	// SparseTopK is the number of sparse results for hybrid search.
+	SparseTopK *int `json:"sparse_top_k,omitempty"`
+	// HybridTopK is the final number of results from hybrid search.
+	HybridTopK *int `json:"hybrid_top_k,omitempty"`
+	// OutputFields specifies which fields to return.
+	OutputFields []string `json:"output_fields,omitempty"`
+	// EmbeddingField specifies which embedding field to use.
+	EmbeddingField string `json:"embedding_field,omitempty"`
+}
+
+// NewVectorStoreQuery creates a new VectorStoreQuery with defaults.
+func NewVectorStoreQuery(embedding []float64, topK int) *VectorStoreQuery {
+	return &VectorStoreQuery{
+		QueryEmbedding: embedding,
+		Embedding:      embedding,
+		SimilarityTopK: topK,
+		TopK:           topK,
+		Mode:           QueryModeDefault,
+	}
+}
+
+// WithMode sets the query mode.
+func (q *VectorStoreQuery) WithMode(mode VectorStoreQueryMode) *VectorStoreQuery {
+	q.Mode = mode
+	return q
+}
+
+// WithFilters sets the metadata filters.
+func (q *VectorStoreQuery) WithFilters(filters *MetadataFilters) *VectorStoreQuery {
+	q.Filters = filters
+	return q
+}
+
+// WithAlpha sets the alpha for hybrid search.
+func (q *VectorStoreQuery) WithAlpha(alpha float64) *VectorStoreQuery {
+	q.Alpha = &alpha
+	return q
+}
+
+// WithMMRThreshold sets the MMR threshold.
+func (q *VectorStoreQuery) WithMMRThreshold(threshold float64) *VectorStoreQuery {
+	q.MMRThreshold = &threshold
+	return q
+}
+
+// GetEmbedding returns the query embedding (prefers QueryEmbedding over Embedding).
+func (q *VectorStoreQuery) GetEmbedding() []float64 {
+	if len(q.QueryEmbedding) > 0 {
+		return q.QueryEmbedding
+	}
+	return q.Embedding
+}
+
+// GetTopK returns the top-k value (prefers SimilarityTopK over TopK).
+func (q *VectorStoreQuery) GetTopK() int {
+	if q.SimilarityTopK > 0 {
+		return q.SimilarityTopK
+	}
+	if q.TopK > 0 {
+		return q.TopK
+	}
+	return 10 // default
+}
+
+// VectorStoreQueryResult represents the result of a vector store query.
+type VectorStoreQueryResult struct {
+	Nodes        []BaseNode `json:"nodes,omitempty"`
+	Similarities []float64  `json:"similarities,omitempty"`
+	IDs          []string   `json:"ids,omitempty"`
 }
