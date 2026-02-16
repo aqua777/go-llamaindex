@@ -124,7 +124,7 @@ func main() {
 	os.RemoveAll(persistPath)
 	defer os.RemoveAll(persistPath)
 
-	vectorStore, err := chromem.NewChromemStore(persistPath, collectionName)
+	vectorStore, err := chromem.NewSimpleChromemStore(persistPath, collectionName)
 	if err != nil {
 		log.Fatalf("Failed to create ChromemStore: %v", err)
 	}

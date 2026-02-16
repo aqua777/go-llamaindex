@@ -20,7 +20,7 @@ func TestChromemStore(t *testing.T) {
 	collectionName := "test-collection"
 
 	// 1. Initialize Store (Persistent)
-	store, err := NewChromemStore(tmpDir, collectionName)
+	store, err := NewSimpleChromemStore(tmpDir, collectionName)
 	require.NoError(t, err)
 	require.NotNil(t, store)
 
@@ -79,7 +79,7 @@ func TestChromemStore(t *testing.T) {
 
 	// 5. Test Persistence (Re-open store)
 	// Re-initialize store pointing to same dir
-	store2, err := NewChromemStore(tmpDir, collectionName)
+	store2, err := NewSimpleChromemStore(tmpDir, collectionName)
 	require.NoError(t, err)
 
 	// Query again
@@ -93,7 +93,7 @@ func TestChromemStore(t *testing.T) {
 func TestChromemStore_InMemory(t *testing.T) {
 	ctx := context.Background()
 	// Empty path = in-memory
-	store, err := NewChromemStore("", "mem-collection")
+	store, err := NewSimpleChromemStore("", "mem-collection")
 	require.NoError(t, err)
 
 	nodes := []schema.Node{{ID: "A", Text: "Alpha", Embedding: []float64{0.5}}}

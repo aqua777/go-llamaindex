@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,13 @@ func TestOllamaEmbedding(t *testing.T) {
 		e := NewOllamaEmbedding()
 		assert.NotNil(t, e)
 		assert.Equal(t, OllamaNomicEmbedText, e.model)
-		assert.Equal(t, OllamaDefaultURL, e.baseURL)
+		
+		// baseURL should respect OLLAMA_HOST env var, or use default
+		expectedURL := os.Getenv("OLLAMA_HOST")
+		if expectedURL == "" {
+			expectedURL = OllamaDefaultURL
+		}
+		assert.Equal(t, expectedURL, e.baseURL)
 	})
 
 	t.Run("NewOllamaEmbedding with options", func(t *testing.T) {

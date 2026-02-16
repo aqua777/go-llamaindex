@@ -51,20 +51,8 @@ func (s *SimpleVectorStore) Query(ctx context.Context, query schema.VectorStoreQ
 
 	for id, node := range s.nodes {
 		// Apply filters if present
-		if query.Filters != nil {
-			match := true
-			for _, filter := range query.Filters.Filters {
-				if filter.Operator == schema.FilterOperatorEq {
-					if val, ok := node.Metadata[filter.Key]; !ok || fmt.Sprintf("%v", val) != fmt.Sprintf("%v", filter.Value) {
-						match = false
-						break
-					}
-				}
-				// Add more operators as needed
-			}
-			if !match {
-				continue
-			}
+		if !matchesFilters(node.Metadata, query.Filters) {
+			continue
 		}
 
 		if len(node.Embedding) == 0 {
@@ -116,6 +104,52 @@ func (s *SimpleVectorStore) Delete(ctx context.Context, refDocID string) error {
 	return nil
 }
 
+// PersistPath returns the storage path. Returns "" for in-memory stores.
+func (s *SimpleVectorStore) PersistPath() string {
+	return ""
+}
+
+// DeleteByFilter removes all nodes matching the metadata filters.
+func (s *SimpleVectorStore) DeleteByFilter(ctx context.Context, filters *schema.MetadataFilters) (int, error) {
+	if filters == nil || len(filters.Filters) == 0 {
+		return 0, errors.New("filters cannot be nil or empty for bulk delete")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var toDelete []string
+	for id, node := range s.nodes {
+		if matchesFilters(node.Metadata, filters) {
+			toDelete = append(toDelete, id)
+		}
+	}
+
+	for _, id := range toDelete {
+		delete(s.nodes, id)
+	}
+
+	return len(toDelete), nil
+}
+
+// Count returns total nodes matching the optional filters.
+func (s *SimpleVectorStore) Count(ctx context.Context, filters *schema.MetadataFilters) (int, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if filters == nil || len(filters.Filters) == 0 {
+		return len(s.nodes), nil
+	}
+
+	count := 0
+	for _, node := range s.nodes {
+		if matchesFilters(node.Metadata, filters) {
+			count++
+		}
+	}
+	return count, nil
+}
+
 func cosineSimilarity(a, b []float64) (float64, error) {
 	if len(a) != len(b) {
 		return 0, errors.New("vector lengths do not match")
@@ -133,4 +167,54 @@ func cosineSimilarity(a, b []float64) (float64, error) {
 	}
 
 	return dotProduct / (math.Sqrt(normA) * math.Sqrt(normB)), nil
+}
+
+// matchesFilters checks if node metadata matches the filter criteria.
+// Supports AND/OR conditions and comparison operators.
+func matchesFilters(metadata map[string]interface{}, filters *schema.MetadataFilters) bool {
+	if filters == nil || len(filters.Filters) == 0 {
+		return true
+	}
+
+	// Evaluate each filter based on condition (AND by default)
+	condition := filters.Condition
+	if condition == "" {
+		condition = schema.FilterConditionAnd
+	}
+
+	for _, filter := range filters.Filters {
+		match := evaluateFilter(metadata, filter)
+
+		if condition == schema.FilterConditionAnd && !match {
+			return false
+		}
+		if condition == schema.FilterConditionOr && match {
+			return true
+		}
+	}
+
+	// For AND: all passed; for OR: none matched
+	return condition == schema.FilterConditionAnd
+}
+
+// evaluateFilter checks if a single filter matches the metadata.
+func evaluateFilter(metadata map[string]interface{}, f schema.MetadataFilter) bool {
+	val, ok := metadata[f.Key]
+	if !ok {
+		return f.Operator == schema.FilterOperatorIsEmpty
+	}
+
+	valStr := fmt.Sprintf("%v", val)
+	filterValStr := fmt.Sprintf("%v", f.Value)
+
+	switch f.Operator {
+	case schema.FilterOperatorEq:
+		return valStr == filterValStr
+	case schema.FilterOperatorNe:
+		return valStr != filterValStr
+	case schema.FilterOperatorIsEmpty:
+		return false // Key exists, so not empty
+	default:
+		return false
+	}
 }

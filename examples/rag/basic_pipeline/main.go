@@ -32,7 +32,7 @@ func main() {
 	llmInstance := llm.NewOpenAILLM("", "", "")
 
 	// 3. Create vector store (in-memory for this example)
-	vectorStore, err := chromem.NewChromemStore("", "basic_pipeline")
+	vectorStore, err := chromem.NewSimpleChromemStore("", "basic_pipeline")
 	if err != nil {
 		log.Fatalf("Failed to create vector store: %v", err)
 	}

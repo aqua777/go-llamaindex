@@ -158,7 +158,7 @@ func (s *EngineTestSuite) TestFullRAGFlow_Chromem() {
 
 	// Chromem Store (In-Memory)
 	// Empty path = in-memory only
-	chromemStore, err := chromem.NewChromemStore("", "test-engine-collection")
+	chromemStore, err := chromem.NewSimpleChromemStore("", "test-engine-collection")
 	s.NoError(err)
 
 	// 2. Add Documents

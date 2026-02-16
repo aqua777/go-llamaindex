@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -150,7 +151,13 @@ func TestOllamaLLM(t *testing.T) {
 		llm := NewOllamaLLM()
 		assert.NotNil(t, llm)
 		assert.Equal(t, OllamaLlama31, llm.model)
-		assert.Equal(t, OllamaDefaultURL, llm.baseURL)
+
+		// baseURL should respect OLLAMA_HOST env var, or use default
+		expectedURL := os.Getenv("OLLAMA_HOST")
+		if expectedURL == "" {
+			expectedURL = OllamaDefaultURL
+		}
+		assert.Equal(t, expectedURL, llm.baseURL)
 	})
 
 	t.Run("NewOllamaLLM with options", func(t *testing.T) {
