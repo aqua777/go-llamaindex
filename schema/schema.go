@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -291,8 +292,8 @@ func (n *Node) GenerateHash() string {
 	h.Write([]byte("type=" + string(n.Type)))
 	if n.StartCharIdx != nil && n.EndCharIdx != nil {
 		h.Write([]byte(strings.Join([]string{
-			"startCharIdx=", string(rune(*n.StartCharIdx)),
-			" endCharIdx=", string(rune(*n.EndCharIdx)),
+			"startCharIdx=", strconv.Itoa(*n.StartCharIdx),
+			" endCharIdx=", strconv.Itoa(*n.EndCharIdx),
 		}, "")))
 	}
 	h.Write([]byte(n.GetContent(MetadataModeAll)))

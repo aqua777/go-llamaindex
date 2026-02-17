@@ -49,6 +49,11 @@ func (s *SimpleVectorStore) Query(ctx context.Context, query schema.VectorStoreQ
 
 	var scores []scoreResult
 
+	queryEmbedding := query.GetEmbedding()
+	if len(queryEmbedding) == 0 {
+		return nil, fmt.Errorf("query embedding is empty")
+	}
+
 	for id, node := range s.nodes {
 		// Apply filters if present
 		if !matchesFilters(node.Metadata, query.Filters) {
@@ -59,7 +64,7 @@ func (s *SimpleVectorStore) Query(ctx context.Context, query schema.VectorStoreQ
 			continue // Skip nodes without embeddings
 		}
 
-		score, err := cosineSimilarity(query.Embedding, node.Embedding)
+		score, err := cosineSimilarity(queryEmbedding, node.Embedding)
 		if err != nil {
 			return nil, fmt.Errorf("failed to calculate similarity for node %s: %w", id, err)
 		}
@@ -75,7 +80,7 @@ func (s *SimpleVectorStore) Query(ctx context.Context, query schema.VectorStoreQ
 		}
 	}
 
-	topK := query.TopK
+	topK := query.GetTopK()
 	if topK > len(scores) {
 		topK = len(scores)
 	}

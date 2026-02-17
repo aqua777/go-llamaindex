@@ -429,7 +429,10 @@ func (o *OllamaLLM) convertMessages(messages []ChatMessage) []ollamaMessage {
 		if msg.HasToolCalls() {
 			for _, tc := range msg.GetToolCalls() {
 				var args map[string]interface{}
-				json.Unmarshal([]byte(tc.Arguments), &args)
+				if err := json.Unmarshal([]byte(tc.Arguments), &args); err != nil {
+					o.logger.Error("Failed to unmarshal tool call arguments", "error", err, "arguments", tc.Arguments)
+					continue
+				}
 				ollamaMsg.ToolCalls = append(ollamaMsg.ToolCalls, ollamaToolCall{
 					Function: struct {
 						Name      string                 `json:"name"`
@@ -490,20 +493,20 @@ func (o *OllamaLLM) convertChatResponse(resp *ollamaChatResponse) CompletionResp
 	}
 }
 
-// doGenerateRequest performs a generate request to the Ollama API.
-func (o *OllamaLLM) doGenerateRequest(ctx context.Context, body ollamaGenerateRequest) (*ollamaGenerateResponse, error) {
+// doRequest performs a generic HTTP POST request to the Ollama API.
+func doRequest[TReq, TResp any](ctx context.Context, client *http.Client, baseURL, path string, body TReq) (*TResp, error) {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", o.baseURL+"/api/generate", bytes.NewReader(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", baseURL+path, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := o.httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
@@ -514,164 +517,110 @@ func (o *OllamaLLM) doGenerateRequest(ctx context.Context, body ollamaGenerateRe
 		return nil, fmt.Errorf("ollama API error (%d): %s", resp.StatusCode, string(respBody))
 	}
 
-	var result ollamaGenerateResponse
+	var result TResp
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
 	return &result, nil
+}
+
+// doGenerateRequest performs a generate request to the Ollama API.
+func (o *OllamaLLM) doGenerateRequest(ctx context.Context, body ollamaGenerateRequest) (*ollamaGenerateResponse, error) {
+	return doRequest[ollamaGenerateRequest, ollamaGenerateResponse](ctx, o.httpClient, o.baseURL, "/api/generate", body)
 }
 
 // doChatRequest performs a chat request to the Ollama API.
 func (o *OllamaLLM) doChatRequest(ctx context.Context, body ollamaChatRequest) (*ollamaChatResponse, error) {
+	return doRequest[ollamaChatRequest, ollamaChatResponse](ctx, o.httpClient, o.baseURL, "/api/chat", body)
+}
+
+// doStreamRequest performs a generic streaming HTTP POST request to the Ollama API.
+// The extractContent function extracts the text content from each streaming response.
+// The isDone function checks if the response indicates streaming is complete.
+func doStreamRequest[TReq, TResp any](
+	ctx context.Context,
+	client *http.Client,
+	baseURL, path string,
+	body TReq,
+	extractContent func(*TResp) string,
+	isDone func(*TResp) bool,
+) (<-chan string, error) {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", o.baseURL+"/api/chat", bytes.NewReader(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", baseURL+path, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := o.httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		return nil, fmt.Errorf("ollama API error (%d): %s", resp.StatusCode, string(respBody))
 	}
 
-	var result ollamaChatResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
+	tokenChan := make(chan string)
 
-	return &result, nil
+	go func() {
+		defer close(tokenChan)
+		defer resp.Body.Close()
+
+		scanner := bufio.NewScanner(resp.Body)
+		for scanner.Scan() {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			var streamResp TResp
+			if err := json.Unmarshal(scanner.Bytes(), &streamResp); err != nil {
+				continue
+			}
+
+			content := extractContent(&streamResp)
+			if content != "" {
+				select {
+				case tokenChan <- content:
+				case <-ctx.Done():
+					return
+				}
+			}
+
+			if isDone(&streamResp) {
+				return
+			}
+		}
+	}()
+
+	return tokenChan, nil
 }
 
 // doStreamGenerateRequest performs a streaming generate request.
 func (o *OllamaLLM) doStreamGenerateRequest(ctx context.Context, body ollamaGenerateRequest) (<-chan string, error) {
-	jsonBody, err := json.Marshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", o.baseURL+"/api/generate", bytes.NewReader(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := o.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("request failed: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		return nil, fmt.Errorf("ollama API error (%d): %s", resp.StatusCode, string(respBody))
-	}
-
-	tokenChan := make(chan string)
-
-	go func() {
-		defer close(tokenChan)
-		defer resp.Body.Close()
-
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-			}
-
-			var streamResp ollamaGenerateResponse
-			if err := json.Unmarshal(scanner.Bytes(), &streamResp); err != nil {
-				continue
-			}
-
-			if streamResp.Response != "" {
-				select {
-				case tokenChan <- streamResp.Response:
-				case <-ctx.Done():
-					return
-				}
-			}
-
-			if streamResp.Done {
-				return
-			}
-		}
-	}()
-
-	return tokenChan, nil
+	return doStreamRequest(
+		ctx, o.httpClient, o.baseURL, "/api/generate", body,
+		func(resp *ollamaGenerateResponse) string { return resp.Response },
+		func(resp *ollamaGenerateResponse) bool { return resp.Done },
+	)
 }
 
 // doStreamChatRequest performs a streaming chat request.
 func (o *OllamaLLM) doStreamChatRequest(ctx context.Context, body ollamaChatRequest) (<-chan string, error) {
-	jsonBody, err := json.Marshal(body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", o.baseURL+"/api/chat", bytes.NewReader(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := o.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("request failed: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		respBody, _ := io.ReadAll(resp.Body)
-		resp.Body.Close()
-		return nil, fmt.Errorf("ollama API error (%d): %s", resp.StatusCode, string(respBody))
-	}
-
-	tokenChan := make(chan string)
-
-	go func() {
-		defer close(tokenChan)
-		defer resp.Body.Close()
-
-		scanner := bufio.NewScanner(resp.Body)
-		for scanner.Scan() {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-			}
-
-			var streamResp ollamaChatResponse
-			if err := json.Unmarshal(scanner.Bytes(), &streamResp); err != nil {
-				continue
-			}
-
-			if streamResp.Message.Content != "" {
-				select {
-				case tokenChan <- streamResp.Message.Content:
-				case <-ctx.Done():
-					return
-				}
-			}
-
-			if streamResp.Done {
-				return
-			}
-		}
-	}()
-
-	return tokenChan, nil
+	return doStreamRequest(
+		ctx, o.httpClient, o.baseURL, "/api/chat", body,
+		func(resp *ollamaChatResponse) string { return resp.Message.Content },
+		func(resp *ollamaChatResponse) bool { return resp.Done },
+	)
 }
 
 // getOllamaModelMetadata returns metadata for Ollama models.

@@ -4,6 +4,23 @@ import (
 	"fmt"
 )
 
+// validateChunkConfig performs common chunk size and overlap validation.
+// Returns a validator with errors added if validation fails.
+func validateChunkConfig(chunkSize, chunkOverlap int) *Validator {
+	v := NewValidator()
+
+	v.RequirePositive(chunkSize, "chunk_size")
+	v.RequireNonNegative(chunkOverlap, "chunk_overlap")
+
+	if chunkOverlap >= chunkSize && chunkSize > 0 {
+		v.AddError("chunk_overlap",
+			fmt.Sprintf("must be less than chunk_size (%d)", chunkSize),
+			chunkOverlap)
+	}
+
+	return v
+}
+
 // SentenceSplitterConfig holds configuration for SentenceSplitter validation.
 type SentenceSplitterConfig struct {
 	ChunkSize              int
@@ -15,22 +32,7 @@ type SentenceSplitterConfig struct {
 
 // ValidateSentenceSplitterConfig validates SentenceSplitter configuration.
 func ValidateSentenceSplitterConfig(cfg SentenceSplitterConfig) error {
-	v := NewValidator()
-
-	v.RequirePositive(cfg.ChunkSize, "chunk_size")
-	v.RequireNonNegative(cfg.ChunkOverlap, "chunk_overlap")
-
-	if cfg.ChunkOverlap >= cfg.ChunkSize && cfg.ChunkSize > 0 {
-		v.AddError("chunk_overlap", 
-			fmt.Sprintf("must be less than chunk_size (%d)", cfg.ChunkSize), 
-			cfg.ChunkOverlap)
-	}
-
-	// Warn if overlap is more than 50% of chunk size (not an error, but unusual)
-	if cfg.ChunkSize > 0 && cfg.ChunkOverlap > cfg.ChunkSize/2 {
-		// This is a warning, not an error - we don't add it to validator
-	}
-
+	v := validateChunkConfig(cfg.ChunkSize, cfg.ChunkOverlap)
 	return v.Error()
 }
 
@@ -43,17 +45,7 @@ type TokenSplitterConfig struct {
 
 // ValidateTokenSplitterConfig validates TokenTextSplitter configuration.
 func ValidateTokenSplitterConfig(cfg TokenSplitterConfig) error {
-	v := NewValidator()
-
-	v.RequirePositive(cfg.ChunkSize, "chunk_size")
-	v.RequireNonNegative(cfg.ChunkOverlap, "chunk_overlap")
-
-	if cfg.ChunkOverlap >= cfg.ChunkSize && cfg.ChunkSize > 0 {
-		v.AddError("chunk_overlap",
-			fmt.Sprintf("must be less than chunk_size (%d)", cfg.ChunkSize),
-			cfg.ChunkOverlap)
-	}
-
+	v := validateChunkConfig(cfg.ChunkSize, cfg.ChunkOverlap)
 	return v.Error()
 }
 
@@ -65,17 +57,7 @@ type MarkdownSplitterConfig struct {
 
 // ValidateMarkdownSplitterConfig validates MarkdownSplitter configuration.
 func ValidateMarkdownSplitterConfig(cfg MarkdownSplitterConfig) error {
-	v := NewValidator()
-
-	v.RequirePositive(cfg.ChunkSize, "chunk_size")
-	v.RequireNonNegative(cfg.ChunkOverlap, "chunk_overlap")
-
-	if cfg.ChunkOverlap >= cfg.ChunkSize && cfg.ChunkSize > 0 {
-		v.AddError("chunk_overlap",
-			fmt.Sprintf("must be less than chunk_size (%d)", cfg.ChunkSize),
-			cfg.ChunkOverlap)
-	}
-
+	v := validateChunkConfig(cfg.ChunkSize, cfg.ChunkOverlap)
 	return v.Error()
 }
 
@@ -114,11 +96,7 @@ func ValidateMetadataAwareSplit(cfg MetadataAwareSplitConfig) error {
 			cfg.MetadataLength, cfg.ChunkSize)
 	}
 
-	if effectiveSize < 50 {
-		// This is a warning condition - effective size is very small
-		// We return nil but callers may want to log this
-	}
-
+	// Note: effective size < 50 is a warning condition but we don't return an error
 	return nil
 }
 

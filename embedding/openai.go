@@ -145,7 +145,7 @@ func (o *OpenAIEmbedding) SupportsMultiModal() bool {
 }
 
 // GetImageEmbedding is not supported by standard OpenAI embedding models.
-func (o *OpenAIEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float64, error) {
+func (o *OpenAIEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float32, error) {
 	return nil, fmt.Errorf("image embedding not supported by model %s", o.model)
 }
 

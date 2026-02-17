@@ -154,3 +154,48 @@ func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_WithNotEqualOperator() {
 	s.NoError(err)
 	s.Equal(2, remainingCount)
 }
+
+// TestQuery_UsesGetEmbedding tests the bug fix where Query should use
+// GetEmbedding() accessor instead of directly accessing query.Embedding field
+func (s *SimpleVectorStoreTestSuite) TestQuery_UsesGetEmbedding() {
+	// Add test nodes
+	nodes := []schema.Node{
+		{ID: "1", Text: "doc1", Embedding: []float32{1.0, 0.0, 0.0}},
+		{ID: "2", Text: "doc2", Embedding: []float32{0.0, 1.0, 0.0}},
+		{ID: "3", Text: "doc3", Embedding: []float32{0.0, 0.0, 1.0}},
+	}
+	_, err := s.store.Add(s.ctx, nodes)
+	s.NoError(err)
+
+	// Test with QueryEmbedding field set (preferred)
+	query := schema.VectorStoreQuery{
+		QueryEmbedding: []float32{1.0, 0.0, 0.0},
+		Embedding:      nil, // Empty - should not be used
+		SimilarityTopK: 2,
+	}
+	results, err := s.store.Query(s.ctx, query)
+	s.NoError(err)
+	s.Len(results, 2)
+	s.Equal("1", results[0].Node.ID) // Should match doc1
+
+	// Test with only Embedding field set (backward compatibility)
+	query2 := schema.VectorStoreQuery{
+		QueryEmbedding: nil,
+		Embedding:      []float32{0.0, 1.0, 0.0},
+		SimilarityTopK: 2,
+	}
+	results2, err := s.store.Query(s.ctx, query2)
+	s.NoError(err)
+	s.Len(results2, 2)
+	s.Equal("2", results2[0].Node.ID) // Should match doc2
+
+	// Test with empty embedding returns error
+	query3 := schema.VectorStoreQuery{
+		QueryEmbedding: nil,
+		Embedding:      nil,
+		SimilarityTopK: 2,
+	}
+	_, err = s.store.Query(s.ctx, query3)
+	s.Error(err)
+	s.Contains(err.Error(), "query embedding is empty")
+}

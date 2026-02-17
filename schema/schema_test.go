@@ -104,6 +104,33 @@ func TestNodeHash(t *testing.T) {
 	assert.NotEqual(t, node1.GetHash(), node3.GetHash())
 }
 
+// TestNodeHashWithCharIndices tests the bug fix for GenerateHash
+// where character indices were incorrectly converted using rune()
+func TestNodeHashWithCharIndicesCorrectConversion(t *testing.T) {
+	node1 := NewTextNode("Test content")
+	startIdx := 65 // Should be "65" not "A" in hash
+	endIdx := 100  // Should be "100" not "d" in hash
+	node1.StartCharIdx = &startIdx
+	node1.EndCharIdx = &endIdx
+	hash1 := node1.GenerateHash()
+
+	node2 := NewTextNode("Test content")
+	node2.StartCharIdx = &startIdx
+	node2.EndCharIdx = &endIdx
+	hash2 := node2.GenerateHash()
+
+	// Same indices should produce same hash
+	assert.Equal(t, hash1, hash2)
+
+	// Different indices should produce different hash
+	differentStart := 66
+	node3 := NewTextNode("Test content")
+	node3.StartCharIdx = &differentStart
+	node3.EndCharIdx = &endIdx
+	hash3 := node3.GenerateHash()
+	assert.NotEqual(t, hash1, hash3)
+}
+
 func TestNodeToJSON(t *testing.T) {
 	node := NewTextNode("Test content")
 	node.Metadata = map[string]interface{}{"key": "value"}
