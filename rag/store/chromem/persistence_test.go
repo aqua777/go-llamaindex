@@ -28,7 +28,7 @@ func TestChromemPersistence(t *testing.T) {
 		Text:      "Hello persistence",
 		Type:      schema.ObjectTypeText,
 		Metadata:  map[string]interface{}{"foo": "bar"},
-		Embedding: []float64{0.1, 0.2, 0.3},
+		Embedding: []float32{0.1, 0.2, 0.3},
 	}
 	_, err = store.Add(context.Background(), []schema.Node{node})
 	if err != nil {
@@ -48,7 +48,7 @@ func TestChromemPersistence(t *testing.T) {
 	// 5. Query from the new instance
 	// We use the same embedding to find it
 	query := schema.VectorStoreQuery{
-		Embedding: []float64{0.1, 0.2, 0.3},
+		Embedding: []float32{0.1, 0.2, 0.3},
 		TopK:      1,
 	}
 	results, err := store2.Query(context.Background(), query)

@@ -91,17 +91,17 @@ type ollamaEmbeddingResponse struct {
 }
 
 // GetTextEmbedding generates an embedding for a given text.
-func (o *OllamaEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (o *OllamaEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	return o.getEmbedding(ctx, text)
 }
 
 // GetQueryEmbedding generates an embedding for a given query.
-func (o *OllamaEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (o *OllamaEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return o.getEmbedding(ctx, query)
 }
 
 // getEmbedding performs the actual embedding request.
-func (o *OllamaEmbedding) getEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (o *OllamaEmbedding) getEmbedding(ctx context.Context, text string) ([]float32, error) {
 	reqBody := ollamaEmbeddingRequest{
 		Model:  o.model,
 		Prompt: text,
@@ -134,7 +134,13 @@ func (o *OllamaEmbedding) getEmbedding(ctx context.Context, text string) ([]floa
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	return result.Embedding, nil
+	// Ollama API returns float64 in JSON - convert to float32
+	embedding32 := make([]float32, len(result.Embedding))
+	for i, v := range result.Embedding {
+		embedding32[i] = float32(v)
+	}
+
+	return embedding32, nil
 }
 
 // Info returns information about the model's capabilities.
@@ -143,14 +149,14 @@ func (o *OllamaEmbedding) Info() EmbeddingInfo {
 }
 
 // GetTextEmbeddingsBatch generates embeddings for multiple texts.
-func (o *OllamaEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float64, error) {
+func (o *OllamaEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float32, error) {
 	if len(texts) == 0 {
 		return nil, nil
 	}
 
 	o.logger.Info("GetTextEmbeddingsBatch called", "model", o.model, "count", len(texts))
 
-	results := make([][]float64, len(texts))
+	results := make([][]float32, len(texts))
 	for i, text := range texts {
 		embedding, err := o.getEmbedding(ctx, text)
 		if err != nil {
@@ -172,7 +178,7 @@ func (o *OllamaEmbedding) SupportsMultiModal() bool {
 }
 
 // GetImageEmbedding is not supported by Ollama embedding models.
-func (o *OllamaEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float64, error) {
+func (o *OllamaEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float32, error) {
 	return nil, fmt.Errorf("image embedding not supported by Ollama model %s", o.model)
 }
 

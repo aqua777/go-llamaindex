@@ -26,9 +26,9 @@ func (s *SimpleVectorStoreTestSuite) SetupTest() {
 func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_RemovesMatchingNodes() {
 	// Add nodes with different metadata
 	nodes := []schema.Node{
-		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"chat_id": "chat1"}, Embedding: []float64{1, 0}},
-		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"chat_id": "chat1"}, Embedding: []float64{0, 1}},
-		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"chat_id": "chat2"}, Embedding: []float64{1, 1}},
+		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"chat_id": "chat1"}, Embedding: []float32{1, 0}},
+		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"chat_id": "chat1"}, Embedding: []float32{0, 1}},
+		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"chat_id": "chat2"}, Embedding: []float32{1, 1}},
 	}
 	_, err := s.store.Add(s.ctx, nodes)
 	s.NoError(err)
@@ -60,10 +60,10 @@ func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_EmptyFilterReturnsError(
 
 func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_ReturnsCorrectCount() {
 	nodes := []schema.Node{
-		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float64{1, 0}},
-		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float64{0, 1}},
-		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float64{1, 1}},
-		{ID: "4", Text: "doc4", Metadata: map[string]interface{}{"type": "b"}, Embedding: []float64{0, 0}},
+		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float32{1, 0}},
+		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float32{0, 1}},
+		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float32{1, 1}},
+		{ID: "4", Text: "doc4", Metadata: map[string]interface{}{"type": "b"}, Embedding: []float32{0, 0}},
 	}
 	_, err := s.store.Add(s.ctx, nodes)
 	s.NoError(err)
@@ -77,8 +77,8 @@ func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_ReturnsCorrectCount() {
 
 func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_NonMatchingFilterDeletesNothing() {
 	nodes := []schema.Node{
-		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float64{1, 0}},
-		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"type": "b"}, Embedding: []float64{0, 1}},
+		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"type": "a"}, Embedding: []float32{1, 0}},
+		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"type": "b"}, Embedding: []float32{0, 1}},
 	}
 	_, err := s.store.Add(s.ctx, nodes)
 	s.NoError(err)
@@ -97,9 +97,9 @@ func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_NonMatchingFilterDeletes
 
 func (s *SimpleVectorStoreTestSuite) TestCount_NilFilterReturnsTotalCount() {
 	nodes := []schema.Node{
-		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{}, Embedding: []float64{1, 0}},
-		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{}, Embedding: []float64{0, 1}},
-		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{}, Embedding: []float64{1, 1}},
+		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{}, Embedding: []float32{1, 0}},
+		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{}, Embedding: []float32{0, 1}},
+		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{}, Embedding: []float32{1, 1}},
 	}
 	_, err := s.store.Add(s.ctx, nodes)
 	s.NoError(err)
@@ -111,9 +111,9 @@ func (s *SimpleVectorStoreTestSuite) TestCount_NilFilterReturnsTotalCount() {
 
 func (s *SimpleVectorStoreTestSuite) TestCount_WithFilterReturnsFilteredCount() {
 	nodes := []schema.Node{
-		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"category": "x"}, Embedding: []float64{1, 0}},
-		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"category": "x"}, Embedding: []float64{0, 1}},
-		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"category": "y"}, Embedding: []float64{1, 1}},
+		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"category": "x"}, Embedding: []float32{1, 0}},
+		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"category": "x"}, Embedding: []float32{0, 1}},
+		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"category": "y"}, Embedding: []float32{1, 1}},
 	}
 	_, err := s.store.Add(s.ctx, nodes)
 	s.NoError(err)
@@ -133,9 +133,9 @@ func (s *SimpleVectorStoreTestSuite) TestCount_EmptyStoreReturnsZero() {
 
 func (s *SimpleVectorStoreTestSuite) TestDeleteByFilter_WithNotEqualOperator() {
 	nodes := []schema.Node{
-		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"status": "active"}, Embedding: []float64{1, 0}},
-		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"status": "inactive"}, Embedding: []float64{0, 1}},
-		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"status": "active"}, Embedding: []float64{1, 1}},
+		{ID: "1", Text: "doc1", Metadata: map[string]interface{}{"status": "active"}, Embedding: []float32{1, 0}},
+		{ID: "2", Text: "doc2", Metadata: map[string]interface{}{"status": "inactive"}, Embedding: []float32{0, 1}},
+		{ID: "3", Text: "doc3", Metadata: map[string]interface{}{"status": "active"}, Embedding: []float32{1, 1}},
 	}
 	_, err := s.store.Add(s.ctx, nodes)
 	s.NoError(err)

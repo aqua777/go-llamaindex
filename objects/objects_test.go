@@ -42,28 +42,28 @@ func (t *MockTool) Call(ctx context.Context, input interface{}) (*tools.ToolOutp
 
 // MockEmbeddingModel implements embedding.EmbeddingModel for testing.
 type MockEmbeddingModel struct {
-	embeddings map[string][]float64
+	embeddings map[string][]float32
 }
 
 func NewMockEmbeddingModel() *MockEmbeddingModel {
 	return &MockEmbeddingModel{
-		embeddings: make(map[string][]float64),
+		embeddings: make(map[string][]float32),
 	}
 }
 
-func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	// Return a simple hash-based embedding for testing
-	emb := make([]float64, 8)
+	emb := make([]float32, 8)
 	for i, c := range text {
 		if i >= len(emb) {
 			break
 		}
-		emb[i] = float64(c) / 255.0
+		emb[i] = float32(c) / 255.0
 	}
 	return emb, nil
 }
 
-func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return m.GetTextEmbedding(ctx, query)
 }
 

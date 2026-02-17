@@ -320,7 +320,7 @@ func (r *KGTableRetriever) getKeywords(ctx context.Context, text string) ([]stri
 }
 
 // getTopKEmbeddings returns the top-k most similar triplet texts.
-func (r *KGTableRetriever) getTopKEmbeddings(queryEmbedding []float64, topK int) []string {
+func (r *KGTableRetriever) getTopKEmbeddings(queryEmbedding []float32, topK int) []string {
 	type embeddingScore struct {
 		text  string
 		score float64
@@ -502,16 +502,16 @@ func sortByCount(counts map[string]int, n int) []string {
 }
 
 // kgCosineSimilarity calculates cosine similarity between two vectors.
-func kgCosineSimilarity(a, b []float64) float64 {
+func kgCosineSimilarity(a, b []float32) float64 {
 	if len(a) != len(b) || len(a) == 0 {
 		return 0
 	}
 
 	var dotProduct, normA, normB float64
 	for i := range a {
-		dotProduct += a[i] * b[i]
-		normA += a[i] * a[i]
-		normB += b[i] * b[i]
+		dotProduct += float64(a[i]) * float64(b[i])
+		normA += float64(a[i]) * float64(a[i])
+		normB += float64(b[i]) * float64(b[i])
 	}
 
 	if normA == 0 || normB == 0 {

@@ -137,7 +137,7 @@ type cohereEmbedResponse struct {
 }
 
 // GetTextEmbedding generates an embedding for a given text.
-func (c *CohereEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (c *CohereEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	embeddings, err := c.getEmbeddings(ctx, []string{text}, CohereInputTypeSearchDocument)
 	if err != nil {
 		return nil, err
@@ -149,7 +149,7 @@ func (c *CohereEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]
 }
 
 // GetQueryEmbedding generates an embedding for a given query.
-func (c *CohereEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (c *CohereEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	embeddings, err := c.getEmbeddings(ctx, []string{query}, CohereInputTypeSearchQuery)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (c *CohereEmbedding) GetQueryEmbedding(ctx context.Context, query string) (
 }
 
 // getEmbeddings performs the actual embedding request.
-func (c *CohereEmbedding) getEmbeddings(ctx context.Context, texts []string, inputType CohereInputType) ([][]float64, error) {
+func (c *CohereEmbedding) getEmbeddings(ctx context.Context, texts []string, inputType CohereInputType) ([][]float32, error) {
 	reqBody := cohereEmbedRequest{
 		Model:     c.model,
 		Texts:     texts,
@@ -201,7 +201,17 @@ func (c *CohereEmbedding) getEmbeddings(ctx context.Context, texts []string, inp
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	return result.Embeddings, nil
+	// Cohere API returns float64 in JSON - convert to float32
+	embeddings32 := make([][]float32, len(result.Embeddings))
+	for i, emb64 := range result.Embeddings {
+		emb32 := make([]float32, len(emb64))
+		for j, v := range emb64 {
+			emb32[j] = float32(v)
+		}
+		embeddings32[i] = emb32
+	}
+
+	return embeddings32, nil
 }
 
 // Info returns information about the model's capabilities.
@@ -210,7 +220,7 @@ func (c *CohereEmbedding) Info() EmbeddingInfo {
 }
 
 // GetTextEmbeddingsBatch generates embeddings for multiple texts.
-func (c *CohereEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float64, error) {
+func (c *CohereEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float32, error) {
 	if len(texts) == 0 {
 		return nil, nil
 	}
@@ -219,7 +229,7 @@ func (c *CohereEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []st
 
 	// Cohere supports batch embedding natively (up to 96 texts per request)
 	const batchSize = 96
-	results := make([][]float64, 0, len(texts))
+	results := make([][]float32, 0, len(texts))
 	processed := 0
 
 	for i := 0; i < len(texts); i += batchSize {
@@ -251,7 +261,7 @@ func (c *CohereEmbedding) SupportsMultiModal() bool {
 }
 
 // GetImageEmbedding is not supported by Cohere embedding models.
-func (c *CohereEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float64, error) {
+func (c *CohereEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float32, error) {
 	return nil, fmt.Errorf("image embedding not supported by Cohere model %s", c.model)
 }
 

@@ -83,7 +83,7 @@ func NomicEmbedTextInfo() EmbeddingInfo {
 // EmbeddingResult represents the result of an embedding operation.
 type EmbeddingResult struct {
 	// Embedding is the vector representation.
-	Embedding []float64 `json:"embedding"`
+	Embedding []float32 `json:"embedding"`
 	// Text is the original text that was embedded.
 	Text string `json:"text,omitempty"`
 	// TokenCount is the number of tokens in the text.

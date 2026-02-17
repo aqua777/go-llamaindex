@@ -150,16 +150,16 @@ func (s *SimpleVectorStore) Count(ctx context.Context, filters *schema.MetadataF
 	return count, nil
 }
 
-func cosineSimilarity(a, b []float64) (float64, error) {
+func cosineSimilarity(a, b []float32) (float64, error) {
 	if len(a) != len(b) {
 		return 0, errors.New("vector lengths do not match")
 	}
 
 	var dotProduct, normA, normB float64
 	for i := 0; i < len(a); i++ {
-		dotProduct += a[i] * b[i]
-		normA += a[i] * a[i]
-		normB += b[i] * b[i]
+		dotProduct += float64(a[i]) * float64(b[i])
+		normA += float64(a[i]) * float64(a[i])
+		normB += float64(b[i]) * float64(b[i])
 	}
 
 	if normA == 0 || normB == 0 {

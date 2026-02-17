@@ -13,28 +13,28 @@ import (
 
 // MockEmbeddingModel is a mock embedding model for testing.
 type MockEmbeddingModel struct {
-	embeddings map[string][]float64
+	embeddings map[string][]float32
 }
 
 func NewMockEmbeddingModel() *MockEmbeddingModel {
 	return &MockEmbeddingModel{
-		embeddings: make(map[string][]float64),
+		embeddings: make(map[string][]float32),
 	}
 }
 
-func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	if emb, ok := m.embeddings[text]; ok {
 		return emb, nil
 	}
 	// Return a simple hash-based embedding for testing
-	embedding := make([]float64, 128)
+	embedding := make([]float32, 128)
 	for i, c := range text {
-		embedding[i%128] += float64(c) / 1000.0
+		embedding[i%128] += float32(c) / 1000.0
 	}
 	return embedding, nil
 }
 
-func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return m.GetTextEmbedding(ctx, query)
 }
 

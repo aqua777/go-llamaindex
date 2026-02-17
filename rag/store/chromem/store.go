@@ -152,13 +152,9 @@ func (s *ChromemStore) Add(ctx context.Context, nodes []schema.Node) ([]string, 
 		ids = append(ids, node.ID)
 		contents = append(contents, node.Text)
 
-		// Convert float64 embedding to float32
+		// Node.Embedding is now float32 - no conversion needed
 		if len(node.Embedding) > 0 {
-			emb32 := make([]float32, len(node.Embedding))
-			for i, v := range node.Embedding {
-				emb32[i] = float32(v)
-			}
-			embeddings = append(embeddings, emb32)
+			embeddings = append(embeddings, node.Embedding)
 		} else {
 			// No embedding provided - chromem will compute it
 			embeddings = append(embeddings, nil)
@@ -219,15 +215,8 @@ func (s *ChromemStore) Query(ctx context.Context, query schema.VectorStoreQuery)
 		where = nil
 	}
 
-	// Convert float64 embedding to float32
-	var queryEmb []float32
-	emb := query.GetEmbedding()
-	if len(emb) > 0 {
-		queryEmb = make([]float32, len(emb))
-		for i, v := range emb {
-			queryEmb[i] = float32(v)
-		}
-	}
+	// Query.GetEmbedding() now returns float32 - no conversion needed
+	queryEmb := query.GetEmbedding()
 
 	// Query using embedding
 	results, err := s.collection.QueryEmbedding(ctx, queryEmb, topK, where, nil)
@@ -249,21 +238,13 @@ func (s *ChromemStore) Query(ctx context.Context, query schema.VectorStoreQuery)
 			meta[k] = v
 		}
 
-		// Convert float32 embedding to float64
-		var emb64 []float64
-		if len(r.Embedding) > 0 {
-			emb64 = make([]float64, len(r.Embedding))
-			for i, v := range r.Embedding {
-				emb64[i] = float64(v)
-			}
-		}
-
+		// Chromem returns float32 embeddings - matches schema.Node now
 		node := schema.Node{
 			ID:        r.ID,
 			Text:      r.Content,
 			Type:      schema.ObjectTypeText,
 			Metadata:  meta,
-			Embedding: emb64,
+			Embedding: r.Embedding,
 		}
 
 		output = append(output, schema.NodeWithScore{

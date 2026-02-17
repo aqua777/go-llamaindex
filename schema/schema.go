@@ -54,9 +54,9 @@ type BaseNode interface {
 	// GetMetadataStr returns the metadata as a formatted string based on mode.
 	GetMetadataStr(mode MetadataMode) string
 	// GetEmbedding returns the embedding of the node.
-	GetEmbedding() []float64
+	GetEmbedding() []float32
 	// SetEmbedding sets the embedding of the node.
-	SetEmbedding(embedding []float64)
+	SetEmbedding(embedding []float32)
 	// GetRelationships returns the relationships of the node.
 	GetRelationships() NodeRelationships
 	// SetRelationships sets the relationships of the node.
@@ -76,7 +76,7 @@ type Node struct {
 	Text                      string                 `json:"text"`
 	Type                      NodeType               `json:"type"`
 	Metadata                  map[string]interface{} `json:"metadata,omitempty"`
-	Embedding                 []float64              `json:"embedding,omitempty"`
+	Embedding                 []float32              `json:"embedding,omitempty"`
 	Relationships             NodeRelationships      `json:"relationships,omitempty"`
 	Hash                      string                 `json:"hash,omitempty"`
 	ExcludedEmbedMetadataKeys []string               `json:"excluded_embed_metadata_keys,omitempty"`
@@ -255,12 +255,12 @@ func formatValue(v interface{}) string {
 }
 
 // GetEmbedding returns the embedding.
-func (n *Node) GetEmbedding() []float64 {
+func (n *Node) GetEmbedding() []float32 {
 	return n.Embedding
 }
 
 // SetEmbedding sets the embedding.
-func (n *Node) SetEmbedding(embedding []float64) {
+func (n *Node) SetEmbedding(embedding []float32) {
 	n.Embedding = embedding
 }
 
@@ -499,9 +499,9 @@ type StreamingEngineResponse struct {
 // VectorStoreQuery represents a query to the vector store.
 type VectorStoreQuery struct {
 	// QueryEmbedding is the embedding vector for similarity search.
-	QueryEmbedding []float64 `json:"query_embedding,omitempty"`
+	QueryEmbedding []float32 `json:"query_embedding,omitempty"`
 	// Embedding is an alias for QueryEmbedding (for backward compatibility).
-	Embedding []float64 `json:"embedding,omitempty"`
+	Embedding []float32 `json:"embedding,omitempty"`
 	// SimilarityTopK is the number of top results to return.
 	SimilarityTopK int `json:"similarity_top_k"`
 	// TopK is an alias for SimilarityTopK (for backward compatibility).
@@ -531,7 +531,7 @@ type VectorStoreQuery struct {
 }
 
 // NewVectorStoreQuery creates a new VectorStoreQuery with defaults.
-func NewVectorStoreQuery(embedding []float64, topK int) *VectorStoreQuery {
+func NewVectorStoreQuery(embedding []float32, topK int) *VectorStoreQuery {
 	return &VectorStoreQuery{
 		QueryEmbedding: embedding,
 		Embedding:      embedding,
@@ -566,7 +566,7 @@ func (q *VectorStoreQuery) WithMMRThreshold(threshold float64) *VectorStoreQuery
 }
 
 // GetEmbedding returns the query embedding (prefers QueryEmbedding over Embedding).
-func (q *VectorStoreQuery) GetEmbedding() []float64 {
+func (q *VectorStoreQuery) GetEmbedding() []float32 {
 	if len(q.QueryEmbedding) > 0 {
 		return q.QueryEmbedding
 	}

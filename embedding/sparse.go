@@ -12,13 +12,13 @@ type SparseEmbedding struct {
 	// Indices are the positions of non-zero values.
 	Indices []int `json:"indices"`
 	// Values are the non-zero values at the corresponding indices.
-	Values []float64 `json:"values"`
+	Values []float32 `json:"values"`
 	// Dimension is the total dimension of the sparse vector.
 	Dimension int `json:"dimension,omitempty"`
 }
 
 // NewSparseEmbedding creates a new sparse embedding.
-func NewSparseEmbedding(indices []int, values []float64) *SparseEmbedding {
+func NewSparseEmbedding(indices []int, values []float32) *SparseEmbedding {
 	return &SparseEmbedding{
 		Indices: indices,
 		Values:  values,
@@ -26,7 +26,7 @@ func NewSparseEmbedding(indices []int, values []float64) *SparseEmbedding {
 }
 
 // NewSparseEmbeddingWithDimension creates a sparse embedding with explicit dimension.
-func NewSparseEmbeddingWithDimension(indices []int, values []float64, dimension int) *SparseEmbedding {
+func NewSparseEmbeddingWithDimension(indices []int, values []float32, dimension int) *SparseEmbedding {
 	return &SparseEmbedding{
 		Indices:   indices,
 		Values:    values,
@@ -35,12 +35,12 @@ func NewSparseEmbeddingWithDimension(indices []int, values []float64, dimension 
 }
 
 // FromDense converts a dense vector to sparse embedding.
-func FromDense(dense []float64, threshold float64) *SparseEmbedding {
+func FromDense(dense []float32, threshold float32) *SparseEmbedding {
 	var indices []int
-	var values []float64
+	var values []float32
 
 	for i, v := range dense {
-		if v != 0 && (threshold == 0 || abs(v) >= threshold) {
+		if v != 0 && (threshold == 0 || abs32(v) >= threshold) {
 			indices = append(indices, i)
 			values = append(values, v)
 		}
@@ -54,7 +54,7 @@ func FromDense(dense []float64, threshold float64) *SparseEmbedding {
 }
 
 // ToDense converts sparse embedding to dense vector.
-func (s *SparseEmbedding) ToDense() []float64 {
+func (s *SparseEmbedding) ToDense() []float32 {
 	dim := s.Dimension
 	if dim == 0 && len(s.Indices) > 0 {
 		// Infer dimension from max index
@@ -65,7 +65,7 @@ func (s *SparseEmbedding) ToDense() []float64 {
 		}
 	}
 
-	dense := make([]float64, dim)
+	dense := make([]float32, dim)
 	for i, idx := range s.Indices {
 		if idx < dim {
 			dense[idx] = s.Values[i]
@@ -81,7 +81,7 @@ func (s *SparseEmbedding) Len() int {
 }
 
 // Get returns the value at a specific index.
-func (s *SparseEmbedding) Get(index int) float64 {
+func (s *SparseEmbedding) Get(index int) float32 {
 	for i, idx := range s.Indices {
 		if idx == index {
 			return s.Values[i]
@@ -93,7 +93,7 @@ func (s *SparseEmbedding) Get(index int) float64 {
 // DotProduct computes the dot product of two sparse embeddings.
 func (s *SparseEmbedding) DotProduct(other *SparseEmbedding) float64 {
 	// Create a map for faster lookup
-	otherMap := make(map[int]float64)
+	otherMap := make(map[int]float32)
 	for i, idx := range other.Indices {
 		otherMap[idx] = other.Values[i]
 	}
@@ -101,7 +101,7 @@ func (s *SparseEmbedding) DotProduct(other *SparseEmbedding) float64 {
 	var result float64
 	for i, idx := range s.Indices {
 		if val, exists := otherMap[idx]; exists {
-			result += s.Values[i] * val
+			result += float64(s.Values[i]) * float64(val)
 		}
 	}
 
@@ -112,7 +112,7 @@ func (s *SparseEmbedding) DotProduct(other *SparseEmbedding) float64 {
 func (s *SparseEmbedding) Magnitude() float64 {
 	var sum float64
 	for _, v := range s.Values {
-		sum += v * v
+		sum += float64(v) * float64(v)
 	}
 	return sqrt(sum)
 }
@@ -137,9 +137,9 @@ func (s *SparseEmbedding) Normalize() *SparseEmbedding {
 		return s
 	}
 
-	values := make([]float64, len(s.Values))
+	values := make([]float32, len(s.Values))
 	for i, v := range s.Values {
-		values[i] = v / mag
+		values[i] = float32(float64(v) / mag)
 	}
 
 	return &SparseEmbedding{
@@ -151,7 +151,7 @@ func (s *SparseEmbedding) Normalize() *SparseEmbedding {
 
 // Add adds two sparse embeddings.
 func (s *SparseEmbedding) Add(other *SparseEmbedding) *SparseEmbedding {
-	result := make(map[int]float64)
+	result := make(map[int]float32)
 
 	for i, idx := range s.Indices {
 		result[idx] = s.Values[i]
@@ -168,7 +168,7 @@ func (s *SparseEmbedding) Add(other *SparseEmbedding) *SparseEmbedding {
 	}
 	sort.Ints(indices)
 
-	values := make([]float64, len(indices))
+	values := make([]float32, len(indices))
 	for i, idx := range indices {
 		values[i] = result[idx]
 	}
@@ -205,17 +205,17 @@ type HybridEmbeddingModel interface {
 	EmbeddingModel
 	SparseEmbeddingModel
 	// GetHybridEmbedding generates both dense and sparse embeddings.
-	GetHybridEmbedding(ctx context.Context, text string) (dense []float64, sparse *SparseEmbedding, err error)
+	GetHybridEmbedding(ctx context.Context, text string) (dense []float32, sparse *SparseEmbedding, err error)
 }
 
 // HybridEmbedding combines dense and sparse embeddings.
 type HybridEmbedding struct {
-	Dense  []float64        `json:"dense"`
+	Dense  []float32        `json:"dense"`
 	Sparse *SparseEmbedding `json:"sparse"`
 }
 
 // NewHybridEmbedding creates a new hybrid embedding.
-func NewHybridEmbedding(dense []float64, sparse *SparseEmbedding) *HybridEmbedding {
+func NewHybridEmbedding(dense []float32, sparse *SparseEmbedding) *HybridEmbedding {
 	return &HybridEmbedding{
 		Dense:  dense,
 		Sparse: sparse,
@@ -241,6 +241,13 @@ func HybridSimilarity(h1, h2 *HybridEmbedding, alpha float64) (float64, error) {
 
 // Helper functions
 func abs(x float64) float64 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func abs32(x float32) float32 {
 	if x < 0 {
 		return -x
 	}

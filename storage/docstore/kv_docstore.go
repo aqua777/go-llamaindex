@@ -94,10 +94,10 @@ func jsonToDoc(docDict map[string]interface{}) (schema.BaseNode, error) {
 		node.Metadata = metadata
 	}
 	if embedding, ok := dataDict["embedding"].([]interface{}); ok {
-		node.Embedding = make([]float64, len(embedding))
+		node.Embedding = make([]float32, len(embedding))
 		for i, v := range embedding {
 			if f, ok := v.(float64); ok {
-				node.Embedding[i] = f
+				node.Embedding[i] = float32(f)
 			}
 		}
 	}

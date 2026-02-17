@@ -105,7 +105,7 @@ func (e *SemanticSimilarityEvaluator) Evaluate(ctx context.Context, input *Evalu
 }
 
 // computeSimilarity computes the similarity between two embedding vectors.
-func computeSimilarity(vec1, vec2 []float64, mode SimilarityMode) float64 {
+func computeSimilarity(vec1, vec2 []float32, mode SimilarityMode) float64 {
 	switch mode {
 	case SimilarityModeCosine:
 		return cosineSimilarity(vec1, vec2)
@@ -119,16 +119,16 @@ func computeSimilarity(vec1, vec2 []float64, mode SimilarityMode) float64 {
 }
 
 // cosineSimilarity computes the cosine similarity between two vectors.
-func cosineSimilarity(vec1, vec2 []float64) float64 {
+func cosineSimilarity(vec1, vec2 []float32) float64 {
 	if len(vec1) != len(vec2) {
 		return 0
 	}
 
 	var dot, norm1, norm2 float64
 	for i := range vec1 {
-		dot += vec1[i] * vec2[i]
-		norm1 += vec1[i] * vec1[i]
-		norm2 += vec2[i] * vec2[i]
+		dot += float64(vec1[i]) * float64(vec2[i])
+		norm1 += float64(vec1[i]) * float64(vec1[i])
+		norm2 += float64(vec2[i]) * float64(vec2[i])
 	}
 
 	if norm1 == 0 || norm2 == 0 {
@@ -139,14 +139,14 @@ func cosineSimilarity(vec1, vec2 []float64) float64 {
 }
 
 // dotProduct computes the dot product between two vectors.
-func dotProduct(vec1, vec2 []float64) float64 {
+func dotProduct(vec1, vec2 []float32) float64 {
 	if len(vec1) != len(vec2) {
 		return 0
 	}
 
 	var dot float64
 	for i := range vec1 {
-		dot += vec1[i] * vec2[i]
+		dot += float64(vec1[i]) * float64(vec2[i])
 	}
 
 	return dot
@@ -154,14 +154,14 @@ func dotProduct(vec1, vec2 []float64) float64 {
 
 // negativeEuclideanDistance computes the negative euclidean distance.
 // Negative because smaller distance = more similar.
-func negativeEuclideanDistance(vec1, vec2 []float64) float64 {
+func negativeEuclideanDistance(vec1, vec2 []float32) float64 {
 	if len(vec1) != len(vec2) {
 		return math.Inf(-1)
 	}
 
 	var sumSquares float64
 	for i := range vec1 {
-		diff := vec1[i] - vec2[i]
+		diff := float64(vec1[i]) - float64(vec2[i])
 		sumSquares += diff * diff
 	}
 
@@ -169,16 +169,16 @@ func negativeEuclideanDistance(vec1, vec2 []float64) float64 {
 }
 
 // CosineSimilarity is a public helper function for computing cosine similarity.
-func CosineSimilarity(vec1, vec2 []float64) float64 {
+func CosineSimilarity(vec1, vec2 []float32) float64 {
 	return cosineSimilarity(vec1, vec2)
 }
 
 // DotProduct is a public helper function for computing dot product.
-func DotProduct(vec1, vec2 []float64) float64 {
+func DotProduct(vec1, vec2 []float32) float64 {
 	return dotProduct(vec1, vec2)
 }
 
 // EuclideanDistance computes the euclidean distance between two vectors.
-func EuclideanDistance(vec1, vec2 []float64) float64 {
+func EuclideanDistance(vec1, vec2 []float32) float64 {
 	return -negativeEuclideanDistance(vec1, vec2)
 }

@@ -336,7 +336,7 @@ type scoredNode struct {
 }
 
 // retrieveLevel recursively retrieves nodes using embeddings.
-func (r *TreeSelectLeafEmbeddingRetriever) retrieveLevel(ctx context.Context, nodeIDs map[int]string, queryEmbedding []float64, level int) ([]scoredNode, error) {
+func (r *TreeSelectLeafEmbeddingRetriever) retrieveLevel(ctx context.Context, nodeIDs map[int]string, queryEmbedding []float32, level int) ([]scoredNode, error) {
 	nodes, err := r.getSortedNodes(ctx, nodeIDs)
 	if err != nil {
 		return nil, err

@@ -54,15 +54,15 @@ func NewOpenAIEmbeddingWithClient(client *openai.Client, modelName string) *Open
 	}
 }
 
-func (o *OpenAIEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (o *OpenAIEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	return o.getEmbedding(ctx, text, "text")
 }
 
-func (o *OpenAIEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (o *OpenAIEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return o.getEmbedding(ctx, query, "query")
 }
 
-func (o *OpenAIEmbedding) getEmbedding(ctx context.Context, input string, typeLabel string) ([]float64, error) {
+func (o *OpenAIEmbedding) getEmbedding(ctx context.Context, input string, typeLabel string) ([]float32, error) {
 	// o.logger.Info("GetEmbedding called", "type", typeLabel, "model", o.model)
 
 	resp, err := o.client.CreateEmbeddings(
@@ -82,14 +82,8 @@ func (o *OpenAIEmbedding) getEmbedding(ctx context.Context, input string, typeLa
 		return nil, fmt.Errorf("openai returned no embeddings")
 	}
 
-	// Convert float32 to float64
-	embedding32 := resp.Data[0].Embedding
-	embedding64 := make([]float64, len(embedding32))
-	for i, v := range embedding32 {
-		embedding64[i] = float64(v)
-	}
-
-	return embedding64, nil
+	// OpenAI SDK returns float32 directly - no conversion needed
+	return resp.Data[0].Embedding, nil
 }
 
 // Info returns information about the model's capabilities.
@@ -98,7 +92,7 @@ func (o *OpenAIEmbedding) Info() EmbeddingInfo {
 }
 
 // GetTextEmbeddingsBatch generates embeddings for multiple texts.
-func (o *OpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float64, error) {
+func (o *OpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float32, error) {
 	if len(texts) == 0 {
 		return nil, nil
 	}
@@ -108,7 +102,7 @@ func (o *OpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []st
 	// OpenAI supports batch embedding natively
 	// Process in chunks of 2048 (OpenAI's limit)
 	const batchSize = 2048
-	results := make([][]float64, len(texts))
+	results := make([][]float32, len(texts))
 	processed := 0
 
 	for i := 0; i < len(texts); i += batchSize {
@@ -131,13 +125,9 @@ func (o *OpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []st
 			return nil, fmt.Errorf("openai batch embedding failed: %w", err)
 		}
 
-		// Process results
+		// Process results - OpenAI SDK returns float32 directly
 		for j, data := range resp.Data {
-			embedding64 := make([]float64, len(data.Embedding))
-			for k, v := range data.Embedding {
-				embedding64[k] = float64(v)
-			}
-			results[i+j] = embedding64
+			results[i+j] = data.Embedding
 		}
 
 		processed += len(batch)
