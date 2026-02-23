@@ -65,86 +65,86 @@ func TestImageType(t *testing.T) {
 
 func TestCosineSimilarity(t *testing.T) {
 	// Identical vectors
-	a := []float64{1, 0, 0}
-	b := []float64{1, 0, 0}
+	a := []float32{1, 0, 0}
+	b := []float32{1, 0, 0}
 	sim, err := CosineSimilarity(a, b)
 	require.NoError(t, err)
 	assert.InDelta(t, 1.0, sim, 0.0001)
 
 	// Orthogonal vectors
-	c := []float64{1, 0, 0}
-	d := []float64{0, 1, 0}
+	c := []float32{1, 0, 0}
+	d := []float32{0, 1, 0}
 	sim, err = CosineSimilarity(c, d)
 	require.NoError(t, err)
 	assert.InDelta(t, 0.0, sim, 0.0001)
 
 	// Opposite vectors
-	e := []float64{1, 0, 0}
-	f := []float64{-1, 0, 0}
+	e := []float32{1, 0, 0}
+	f := []float32{-1, 0, 0}
 	sim, err = CosineSimilarity(e, f)
 	require.NoError(t, err)
 	assert.InDelta(t, -1.0, sim, 0.0001)
 
 	// Different lengths - should error
-	_, err = CosineSimilarity([]float64{1, 2}, []float64{1, 2, 3})
+	_, err = CosineSimilarity([]float32{1, 2}, []float32{1, 2, 3})
 	assert.Error(t, err)
 
 	// Empty vectors - should error
-	_, err = CosineSimilarity([]float64{}, []float64{})
+	_, err = CosineSimilarity([]float32{}, []float32{})
 	assert.Error(t, err)
 }
 
 func TestDotProduct(t *testing.T) {
-	a := []float64{1, 2, 3}
-	b := []float64{4, 5, 6}
+	a := []float32{1, 2, 3}
+	b := []float32{4, 5, 6}
 	dot, err := DotProduct(a, b)
 	require.NoError(t, err)
 	assert.InDelta(t, 32.0, dot, 0.0001) // 1*4 + 2*5 + 3*6 = 32
 
 	// Different lengths - should error
-	_, err = DotProduct([]float64{1, 2}, []float64{1, 2, 3})
+	_, err = DotProduct([]float32{1, 2}, []float32{1, 2, 3})
 	assert.Error(t, err)
 }
 
 func TestEuclideanDistance(t *testing.T) {
 	// Same point
-	a := []float64{1, 2, 3}
-	b := []float64{1, 2, 3}
+	a := []float32{1, 2, 3}
+	b := []float32{1, 2, 3}
 	dist, err := EuclideanDistance(a, b)
 	require.NoError(t, err)
 	assert.InDelta(t, 0.0, dist, 0.0001)
 
 	// Known distance
-	c := []float64{0, 0, 0}
-	d := []float64{3, 4, 0}
+	c := []float32{0, 0, 0}
+	d := []float32{3, 4, 0}
 	dist, err = EuclideanDistance(c, d)
 	require.NoError(t, err)
 	assert.InDelta(t, 5.0, dist, 0.0001) // 3-4-5 triangle
 
 	// Different lengths - should error
-	_, err = EuclideanDistance([]float64{1, 2}, []float64{1, 2, 3})
+	_, err = EuclideanDistance([]float32{1, 2}, []float32{1, 2, 3})
 	assert.Error(t, err)
 }
 
 func TestEuclideanSimilarity(t *testing.T) {
 	// Same point - similarity should be 1
-	a := []float64{1, 2, 3}
-	b := []float64{1, 2, 3}
+	a := []float32{1, 2, 3}
+	b := []float32{1, 2, 3}
 	sim, err := EuclideanSimilarity(a, b)
 	require.NoError(t, err)
 	assert.InDelta(t, 1.0, sim, 0.0001)
 
 	// Far apart - similarity should be low
-	c := []float64{0, 0}
-	d := []float64{100, 100}
+	c := []float32{0, 0}
+	d := []float32{100, 100}
 	sim, err = EuclideanSimilarity(c, d)
 	require.NoError(t, err)
 	assert.Less(t, sim, 0.1)
 }
 
 func TestSimilarity(t *testing.T) {
-	a := []float64{1, 0, 0}
-	b := []float64{1, 0, 0}
+	a := []float32{1, 0, 0}
+	b := []float32{1, 0, 0}
 
 	// Cosine
 	sim, err := Similarity(a, b, SimilarityTypeCosine)
@@ -168,7 +168,7 @@ func TestSimilarity(t *testing.T) {
 }
 
 func TestNormalize(t *testing.T) {
-	v := []float64{3, 4}
+	v := []float32{3, 4}
 	normalized, err := Normalize(v)
 	require.NoError(t, err)
 
@@ -181,20 +181,20 @@ func TestNormalize(t *testing.T) {
 	assert.InDelta(t, 0.8, normalized[1], 0.0001) // 4/5
 
 	// Original should be unchanged
-	assert.Equal(t, 3.0, v[0])
-	assert.Equal(t, 4.0, v[1])
+	assert.Equal(t, float32(3.0), v[0])
+	assert.Equal(t, float32(4.0), v[1])
 
 	// Empty vector - should error
-	_, err = Normalize([]float64{})
+	_, err = Normalize([]float32{})
 	assert.Error(t, err)
 
 	// Zero vector - should error
-	_, err = Normalize([]float64{0, 0, 0})
+	_, err = Normalize([]float32{0, 0, 0})
 	assert.Error(t, err)
 }
 
 func TestNormalizeInPlace(t *testing.T) {
-	v := []float64{3, 4}
+	v := []float32{3, 4}
 	err := NormalizeInPlace(v)
 	require.NoError(t, err)
 
@@ -204,70 +204,70 @@ func TestNormalizeInPlace(t *testing.T) {
 }
 
 func TestMagnitude(t *testing.T) {
-	v := []float64{3, 4}
+	v := []float32{3, 4}
 	mag := Magnitude(v)
 	assert.InDelta(t, 5.0, mag, 0.0001)
 
 	// Zero vector
-	zero := []float64{0, 0, 0}
+	zero := []float32{0, 0, 0}
 	assert.Equal(t, 0.0, Magnitude(zero))
 }
 
 func TestAdd(t *testing.T) {
-	a := []float64{1, 2, 3}
-	b := []float64{4, 5, 6}
+	a := []float32{1, 2, 3}
+	b := []float32{4, 5, 6}
 	result, err := Add(a, b)
 	require.NoError(t, err)
-	assert.Equal(t, []float64{5, 7, 9}, result)
+	assert.Equal(t, []float32{5, 7, 9}, result)
 
 	// Different lengths - should error
-	_, err = Add([]float64{1, 2}, []float64{1, 2, 3})
+	_, err = Add([]float32{1, 2}, []float32{1, 2, 3})
 	assert.Error(t, err)
 }
 
 func TestSubtract(t *testing.T) {
-	a := []float64{4, 5, 6}
-	b := []float64{1, 2, 3}
+	a := []float32{4, 5, 6}
+	b := []float32{1, 2, 3}
 	result, err := Subtract(a, b)
 	require.NoError(t, err)
-	assert.Equal(t, []float64{3, 3, 3}, result)
+	assert.Equal(t, []float32{3, 3, 3}, result)
 
 	// Different lengths - should error
-	_, err = Subtract([]float64{1, 2}, []float64{1, 2, 3})
+	_, err = Subtract([]float32{1, 2}, []float32{1, 2, 3})
 	assert.Error(t, err)
 }
 
 func TestScale(t *testing.T) {
-	v := []float64{1, 2, 3}
+	v := []float32{1, 2, 3}
 	result := Scale(v, 2.0)
-	assert.Equal(t, []float64{2, 4, 6}, result)
+	assert.Equal(t, []float32{2, 4, 6}, result)
 
 	// Original unchanged
-	assert.Equal(t, []float64{1, 2, 3}, v)
+	assert.Equal(t, []float32{1, 2, 3}, v)
 }
 
 func TestMean(t *testing.T) {
-	vectors := [][]float64{
+	vectors := [][]float32{
 		{1, 2, 3},
 		{4, 5, 6},
 		{7, 8, 9},
 	}
 	mean, err := Mean(vectors)
 	require.NoError(t, err)
-	assert.Equal(t, []float64{4, 5, 6}, mean)
+	assert.Equal(t, []float32{4, 5, 6}, mean)
 
 	// Empty - should error
-	_, err = Mean([][]float64{})
+	_, err = Mean([][]float32{})
 	assert.Error(t, err)
 
 	// Different dimensions - should error
-	_, err = Mean([][]float64{{1, 2}, {1, 2, 3}})
+	_, err = Mean([][]float32{{1, 2}, {1, 2, 3}})
 	assert.Error(t, err)
 }
 
 func TestTopKSimilar(t *testing.T) {
-	query := []float64{1, 0, 0}
-	vectors := [][]float64{
+	query := []float32{1, 0, 0}
+	vectors := [][]float32{
 		{1, 0, 0},     // Most similar (identical)
 		{0.9, 0.1, 0}, // Second most similar
 		{0, 1, 0},     // Orthogonal
@@ -297,7 +297,7 @@ func TestTopKSimilar(t *testing.T) {
 	assert.Error(t, err)
 
 	// Empty vectors
-	indices, scores, err = TopKSimilar(query, [][]float64{}, 2, SimilarityTypeCosine)
+	indices, scores, err = TopKSimilar(query, [][]float32{}, 2, SimilarityTypeCosine)
 	require.NoError(t, err)
 	assert.Nil(t, indices)
 	assert.Nil(t, scores)
@@ -311,8 +311,8 @@ func TestSimilarityTypes(t *testing.T) {
 
 func TestCosineSimilarityNormalizedVectors(t *testing.T) {
 	// For normalized vectors, cosine similarity equals dot product
-	a := []float64{0.6, 0.8}
-	b := []float64{0.8, 0.6}
+	a := []float32{0.6, 0.8}
+	b := []float32{0.8, 0.6}
 
 	// Verify they're normalized
 	assert.InDelta(t, 1.0, Magnitude(a), 0.0001)
@@ -325,7 +325,7 @@ func TestCosineSimilarityNormalizedVectors(t *testing.T) {
 
 func TestEmbeddingResult(t *testing.T) {
 	result := EmbeddingResult{
-		Embedding:  []float64{0.1, 0.2, 0.3},
+		Embedding:  []float32{0.1, 0.2, 0.3},
 		Text:       "test text",
 		TokenCount: 2,
 	}
@@ -337,8 +337,8 @@ func TestEmbeddingResult(t *testing.T) {
 func TestBatchEmbeddingResult(t *testing.T) {
 	batch := BatchEmbeddingResult{
 		Embeddings: []EmbeddingResult{
-			{Embedding: []float64{0.1, 0.2}, Text: "text1"},
-			{Embedding: []float64{0.3, 0.4}, Text: "text2"},
+			{Embedding: []float32{0.1, 0.2}, Text: "text1"},
+			{Embedding: []float32{0.3, 0.4}, Text: "text2"},
 		},
 		TotalTokens: 10,
 	}
@@ -347,8 +347,8 @@ func TestBatchEmbeddingResult(t *testing.T) {
 }
 
 func TestVectorOperationsPreserveOriginal(t *testing.T) {
-	original := []float64{1, 2, 3}
-	originalCopy := make([]float64, len(original))
+	original := []float32{1, 2, 3}
+	originalCopy := make([]float32, len(original))
 	copy(originalCopy, original)
 
 	// Normalize should not modify original
@@ -360,22 +360,22 @@ func TestVectorOperationsPreserveOriginal(t *testing.T) {
 	assert.Equal(t, originalCopy, original)
 
 	// Add should not modify original
-	_, _ = Add(original, []float64{1, 1, 1})
+	_, _ = Add(original, []float32{1, 1, 1})
 	assert.Equal(t, originalCopy, original)
 
 	// Subtract should not modify original
-	_, _ = Subtract(original, []float64{1, 1, 1})
+	_, _ = Subtract(original, []float32{1, 1, 1})
 	assert.Equal(t, originalCopy, original)
 }
 
 func TestSpecialCases(t *testing.T) {
 	// Very small values
-	small := []float64{1e-10, 1e-10, 1e-10}
+	small := []float32{1e-10, 1e-10, 1e-10}
 	mag := Magnitude(small)
 	assert.Greater(t, mag, 0.0)
 
 	// Very large values
-	large := []float64{1e10, 1e10, 1e10}
+	large := []float32{1e10, 1e10, 1e10}
 	mag = Magnitude(large)
 	assert.False(t, math.IsInf(mag, 0))
 	assert.False(t, math.IsNaN(mag))

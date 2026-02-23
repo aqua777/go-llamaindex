@@ -47,28 +47,28 @@ func (m *MockLLM) getNextResponse() string {
 
 // MockEmbeddingModel implements embedding.EmbeddingModel for testing.
 type MockEmbeddingModel struct {
-	embeddings map[string][]float64
+	embeddings map[string][]float32
 }
 
 func NewMockEmbeddingModel() *MockEmbeddingModel {
 	return &MockEmbeddingModel{
-		embeddings: make(map[string][]float64),
+		embeddings: make(map[string][]float32),
 	}
 }
 
-func (m *MockEmbeddingModel) SetEmbedding(text string, embedding []float64) {
+func (m *MockEmbeddingModel) SetEmbedding(text string, embedding []float32) {
 	m.embeddings[text] = embedding
 }
 
-func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	if emb, ok := m.embeddings[text]; ok {
 		return emb, nil
 	}
 	// Return a default embedding
-	return []float64{0.1, 0.2, 0.3, 0.4, 0.5}, nil
+	return []float32{0.1, 0.2, 0.3, 0.4, 0.5}, nil
 }
 
-func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return m.GetTextEmbedding(ctx, query)
 }
 
@@ -357,8 +357,8 @@ func (s *EvaluationTestSuite) TestSemanticSimilarityEvaluatorCreation() {
 
 func (s *EvaluationTestSuite) TestSemanticSimilarityEvaluatorIdentical() {
 	mockEmbed := NewMockEmbeddingModel()
-	mockEmbed.SetEmbedding("The answer is 4", []float64{1.0, 0.0, 0.0})
-	mockEmbed.SetEmbedding("The answer is four", []float64{1.0, 0.0, 0.0})
+	mockEmbed.SetEmbedding("The answer is 4", []float32{1.0, 0.0, 0.0})
+	mockEmbed.SetEmbedding("The answer is four", []float32{1.0, 0.0, 0.0})
 
 	evaluator := NewSemanticSimilarityEvaluator(
 		WithSemanticSimilarityEmbedModel(mockEmbed),
@@ -377,8 +377,8 @@ func (s *EvaluationTestSuite) TestSemanticSimilarityEvaluatorIdentical() {
 
 func (s *EvaluationTestSuite) TestSemanticSimilarityEvaluatorDifferent() {
 	mockEmbed := NewMockEmbeddingModel()
-	mockEmbed.SetEmbedding("The answer is 4", []float64{1.0, 0.0, 0.0})
-	mockEmbed.SetEmbedding("Completely different", []float64{0.0, 1.0, 0.0})
+	mockEmbed.SetEmbedding("The answer is 4", []float32{1.0, 0.0, 0.0})
+	mockEmbed.SetEmbedding("Completely different", []float32{0.0, 1.0, 0.0})
 
 	evaluator := NewSemanticSimilarityEvaluator(
 		WithSemanticSimilarityEmbedModel(mockEmbed),
@@ -497,26 +497,26 @@ func (s *EvaluationTestSuite) TestBatchEvalResultSummary() {
 // Test Similarity Functions
 
 func (s *EvaluationTestSuite) TestCosineSimilarity() {
-	vec1 := []float64{1.0, 0.0, 0.0}
-	vec2 := []float64{1.0, 0.0, 0.0}
+	vec1 := []float32{1.0, 0.0, 0.0}
+	vec2 := []float32{1.0, 0.0, 0.0}
 	s.Equal(1.0, CosineSimilarity(vec1, vec2))
 
-	vec3 := []float64{0.0, 1.0, 0.0}
+	vec3 := []float32{0.0, 1.0, 0.0}
 	s.Equal(0.0, CosineSimilarity(vec1, vec3))
 
-	vec4 := []float64{0.707, 0.707, 0.0}
+	vec4 := []float32{0.707, 0.707, 0.0}
 	s.InDelta(0.707, CosineSimilarity(vec1, vec4), 0.01)
 }
 
 func (s *EvaluationTestSuite) TestDotProduct() {
-	vec1 := []float64{1.0, 2.0, 3.0}
-	vec2 := []float64{4.0, 5.0, 6.0}
+	vec1 := []float32{1.0, 2.0, 3.0}
+	vec2 := []float32{4.0, 5.0, 6.0}
 	s.Equal(32.0, DotProduct(vec1, vec2)) // 1*4 + 2*5 + 3*6 = 32
 }
 
 func (s *EvaluationTestSuite) TestEuclideanDistance() {
-	vec1 := []float64{0.0, 0.0, 0.0}
-	vec2 := []float64{3.0, 4.0, 0.0}
+	vec1 := []float32{0.0, 0.0, 0.0}
+	vec2 := []float32{3.0, 4.0, 0.0}
 	s.Equal(5.0, EuclideanDistance(vec1, vec2)) // sqrt(9 + 16) = 5
 }
 
@@ -653,11 +653,11 @@ func TestCompareResults(t *testing.T) {
 // Benchmark Tests
 
 func BenchmarkCosineSimilarity(b *testing.B) {
-	vec1 := make([]float64, 1536)
-	vec2 := make([]float64, 1536)
+	vec1 := make([]float32, 1536)
+	vec2 := make([]float32, 1536)
 	for i := range vec1 {
-		vec1[i] = float64(i) / 1536.0
-		vec2[i] = float64(1536-i) / 1536.0
+		vec1[i] = float32(i) / 1536.0
+		vec2[i] = float32(1536-i) / 1536.0
 	}
 
 	b.ResetTimer()
@@ -687,20 +687,20 @@ func BenchmarkFaithfulnessEvaluator(b *testing.B) {
 // Test edge cases
 
 func (s *EvaluationTestSuite) TestEmptyVectors() {
-	s.Equal(0.0, CosineSimilarity([]float64{}, []float64{}))
-	s.Equal(0.0, DotProduct([]float64{}, []float64{}))
+	s.Equal(0.0, CosineSimilarity([]float32{}, []float32{}))
+	s.Equal(0.0, DotProduct([]float32{}, []float32{}))
 }
 
 func (s *EvaluationTestSuite) TestMismatchedVectorLengths() {
-	vec1 := []float64{1.0, 2.0}
-	vec2 := []float64{1.0, 2.0, 3.0}
+	vec1 := []float32{1.0, 2.0}
+	vec2 := []float32{1.0, 2.0, 3.0}
 	s.Equal(0.0, CosineSimilarity(vec1, vec2))
 	s.Equal(0.0, DotProduct(vec1, vec2))
 }
 
 func (s *EvaluationTestSuite) TestZeroVectors() {
-	vec1 := []float64{0.0, 0.0, 0.0}
-	vec2 := []float64{1.0, 2.0, 3.0}
+	vec1 := []float32{0.0, 0.0, 0.0}
+	vec2 := []float32{1.0, 2.0, 3.0}
 	s.Equal(0.0, CosineSimilarity(vec1, vec2))
 }
 
@@ -798,8 +798,8 @@ func (s *EvaluationTestSuite) TestEvaluateStatements() {
 
 func (s *EvaluationTestSuite) TestSemanticSimilarityModes() {
 	mockEmbed := NewMockEmbeddingModel()
-	mockEmbed.SetEmbedding("text1", []float64{1.0, 2.0, 3.0})
-	mockEmbed.SetEmbedding("text2", []float64{1.0, 2.0, 3.0})
+	mockEmbed.SetEmbedding("text1", []float32{1.0, 2.0, 3.0})
+	mockEmbed.SetEmbedding("text2", []float32{1.0, 2.0, 3.0})
 
 	ctx := context.Background()
 	input := NewEvaluateInput().
@@ -929,8 +929,8 @@ func (s *EvaluationTestSuite) TestCorrectnessNoReference() {
 
 func (s *EvaluationTestSuite) TestSemanticSimilarityThreshold() {
 	mockEmbed := NewMockEmbeddingModel()
-	mockEmbed.SetEmbedding("text1", []float64{1.0, 0.0, 0.0})
-	mockEmbed.SetEmbedding("text2", []float64{0.8, 0.6, 0.0}) // cosine ~ 0.8
+	mockEmbed.SetEmbedding("text1", []float32{1.0, 0.0, 0.0})
+	mockEmbed.SetEmbedding("text2", []float32{0.8, 0.6, 0.0}) // cosine ~ 0.8
 
 	evaluator := NewSemanticSimilarityEvaluator(
 		WithSemanticSimilarityEmbedModel(mockEmbed),

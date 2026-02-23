@@ -14,32 +14,32 @@ import (
 
 // MockEmbeddingModel is a mock embedding model for testing.
 type MockEmbeddingModel struct {
-	embeddings map[string][]float64
+	embeddings map[string][]float32
 }
 
 func NewMockEmbeddingModel() *MockEmbeddingModel {
 	return &MockEmbeddingModel{
-		embeddings: make(map[string][]float64),
+		embeddings: make(map[string][]float32),
 	}
 }
 
-func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	if emb, ok := m.embeddings[text]; ok {
 		return emb, nil
 	}
 	// Return a simple hash-based embedding for testing
-	embedding := make([]float64, 128)
+	embedding := make([]float32, 128)
 	for i, c := range text {
-		embedding[i%128] += float64(c) / 1000.0
+		embedding[i%128] += float32(c) / 1000.0
 	}
 	return embedding, nil
 }
 
-func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return m.GetTextEmbedding(ctx, query)
 }
 
-func (m *MockEmbeddingModel) SetEmbedding(text string, embedding []float64) {
+func (m *MockEmbeddingModel) SetEmbedding(text string, embedding []float32) {
 	m.embeddings[text] = embedding
 }
 
@@ -387,9 +387,9 @@ func TestVectorIndexRetriever(t *testing.T) {
 
 		embedModel := NewMockEmbeddingModel()
 		// Set specific embeddings for testing
-		embedModel.SetEmbedding("Hello world", []float64{1.0, 0.0, 0.0})
-		embedModel.SetEmbedding("Goodbye world", []float64{0.0, 1.0, 0.0})
-		embedModel.SetEmbedding("Hello", []float64{0.9, 0.1, 0.0})
+		embedModel.SetEmbedding("Hello world", []float32{1.0, 0.0, 0.0})
+		embedModel.SetEmbedding("Goodbye world", []float32{0.0, 1.0, 0.0})
+		embedModel.SetEmbedding("Hello", []float32{0.9, 0.1, 0.0})
 
 		nodes := []schema.Node{
 			*schema.NewTextNode("Hello world"),
@@ -1361,12 +1361,12 @@ func TestKGHelperFunctions(t *testing.T) {
 	})
 
 	t.Run("kgCosineSimilarity", func(t *testing.T) {
-		a := []float64{1, 0, 0}
-		b := []float64{1, 0, 0}
+		a := []float32{1, 0, 0}
+		b := []float32{1, 0, 0}
 		sim := kgCosineSimilarity(a, b)
 		assert.InDelta(t, 1.0, sim, 0.001)
 
-		c := []float64{0, 1, 0}
+		c := []float32{0, 1, 0}
 		sim = kgCosineSimilarity(a, c)
 		assert.InDelta(t, 0.0, sim, 0.001)
 	})
@@ -1375,7 +1375,7 @@ func TestKGHelperFunctions(t *testing.T) {
 		sim := kgCosineSimilarity(nil, nil)
 		assert.Equal(t, 0.0, sim)
 
-		sim = kgCosineSimilarity([]float64{1}, []float64{1, 2})
+		sim = kgCosineSimilarity([]float32{1}, []float32{1, 2})
 		assert.Equal(t, 0.0, sim)
 	})
 

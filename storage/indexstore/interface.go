@@ -52,7 +52,7 @@ type IndexStruct struct {
 	NodeIDToChildrenIDs map[string][]string `json:"node_id_to_children_ids,omitempty"`
 
 	// For KG index - stores embeddings for triplets
-	EmbeddingDict map[string][]float64 `json:"embedding_dict,omitempty"`
+	EmbeddingDict map[string][]float32 `json:"embedding_dict,omitempty"`
 }
 
 // NewIndexStruct creates a new IndexStruct with a generated ID.
@@ -63,7 +63,7 @@ func NewIndexStruct(structType IndexStructType) *IndexStruct {
 		NodesDict:     make(map[string]string),
 		Nodes:         make([]string, 0),
 		Table:         make(map[string][]string),
-		EmbeddingDict: make(map[string][]float64),
+		EmbeddingDict: make(map[string][]float32),
 	}
 }
 

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,13 @@ func TestOllamaEmbedding(t *testing.T) {
 		e := NewOllamaEmbedding()
 		assert.NotNil(t, e)
 		assert.Equal(t, OllamaNomicEmbedText, e.model)
-		assert.Equal(t, OllamaDefaultURL, e.baseURL)
+		
+		// baseURL should respect OLLAMA_HOST env var, or use default
+		expectedURL := os.Getenv("OLLAMA_HOST")
+		if expectedURL == "" {
+			expectedURL = OllamaDefaultURL
+		}
+		assert.Equal(t, expectedURL, e.baseURL)
 	})
 
 	t.Run("NewOllamaEmbedding with options", func(t *testing.T) {
@@ -76,7 +83,7 @@ func TestOllamaEmbedding(t *testing.T) {
 
 		embedding, err := e.GetTextEmbedding(context.Background(), "test text")
 		require.NoError(t, err)
-		assert.Equal(t, []float64{0.1, 0.2, 0.3, 0.4, 0.5}, embedding)
+		assert.Equal(t, []float32{0.1, 0.2, 0.3, 0.4, 0.5}, embedding)
 	})
 
 	t.Run("GetQueryEmbedding with mock server", func(t *testing.T) {
@@ -190,7 +197,7 @@ func TestCohereEmbedding(t *testing.T) {
 
 		embedding, err := e.GetTextEmbedding(context.Background(), "test text")
 		require.NoError(t, err)
-		assert.Equal(t, []float64{0.1, 0.2, 0.3}, embedding)
+		assert.Equal(t, []float32{0.1, 0.2, 0.3}, embedding)
 	})
 
 	t.Run("GetQueryEmbedding uses search_query input type", func(t *testing.T) {
@@ -327,7 +334,7 @@ func TestHuggingFaceEmbedding(t *testing.T) {
 
 		embedding, err := e.GetTextEmbedding(context.Background(), "test text")
 		require.NoError(t, err)
-		assert.Equal(t, []float64{0.1, 0.2, 0.3, 0.4}, embedding)
+		assert.Equal(t, []float32{0.1, 0.2, 0.3, 0.4}, embedding)
 	})
 
 	t.Run("GetTextEmbedding with TEI mock", func(t *testing.T) {
@@ -423,13 +430,13 @@ func TestMeanPool(t *testing.T) {
 			{3.0, 6.0, 9.0},
 		}
 		result := meanPool(tokens)
-		assert.Equal(t, []float64{2.0, 4.0, 6.0}, result)
+		assert.Equal(t, []float32{2.0, 4.0, 6.0}, result)
 	})
 
 	t.Run("Handles single token", func(t *testing.T) {
 		tokens := [][]float64{{1.0, 2.0, 3.0}}
 		result := meanPool(tokens)
-		assert.Equal(t, []float64{1.0, 2.0, 3.0}, result)
+		assert.Equal(t, []float32{1.0, 2.0, 3.0}, result)
 	})
 
 	t.Run("Handles empty input", func(t *testing.T) {

@@ -577,8 +577,7 @@ func (m *MistralLLM) doRequest(ctx context.Context, path string, body interface{
 		var apiErr struct {
 			Error mistralError `json:"error"`
 		}
-		json.Unmarshal(respBody, &apiErr)
-		if apiErr.Error.Message != "" {
+		if err := json.Unmarshal(respBody, &apiErr); err == nil && apiErr.Error.Message != "" {
 			return nil, fmt.Errorf("mistral API error (%d): %s", resp.StatusCode, apiErr.Error.Message)
 		}
 		return nil, fmt.Errorf("mistral API error (%d): %s", resp.StatusCode, string(respBody))
@@ -619,8 +618,7 @@ func (m *MistralLLM) doStreamRequest(ctx context.Context, path string, body inte
 		var apiErr struct {
 			Error mistralError `json:"error"`
 		}
-		json.Unmarshal(respBody, &apiErr)
-		if apiErr.Error.Message != "" {
+		if err := json.Unmarshal(respBody, &apiErr); err == nil && apiErr.Error.Message != "" {
 			return nil, fmt.Errorf("mistral API error (%d): %s", resp.StatusCode, apiErr.Error.Message)
 		}
 		return nil, fmt.Errorf("mistral API error (%d): %s", resp.StatusCode, string(respBody))

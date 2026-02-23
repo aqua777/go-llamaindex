@@ -62,17 +62,17 @@ func NewAzureOpenAIEmbeddingWithConfig(endpoint, apiKey, deployment string) *Azu
 }
 
 // GetTextEmbedding generates an embedding for a given text.
-func (a *AzureOpenAIEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (a *AzureOpenAIEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	return a.getEmbedding(ctx, text)
 }
 
 // GetQueryEmbedding generates an embedding for a given query.
-func (a *AzureOpenAIEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (a *AzureOpenAIEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return a.getEmbedding(ctx, query)
 }
 
 // getEmbedding performs the actual embedding request.
-func (a *AzureOpenAIEmbedding) getEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (a *AzureOpenAIEmbedding) getEmbedding(ctx context.Context, text string) ([]float32, error) {
 	resp, err := a.client.CreateEmbeddings(
 		ctx,
 		openai.EmbeddingRequest{
@@ -90,14 +90,8 @@ func (a *AzureOpenAIEmbedding) getEmbedding(ctx context.Context, text string) ([
 		return nil, fmt.Errorf("azure openai returned no embeddings")
 	}
 
-	// Convert float32 to float64
-	embedding32 := resp.Data[0].Embedding
-	embedding64 := make([]float64, len(embedding32))
-	for i, v := range embedding32 {
-		embedding64[i] = float64(v)
-	}
-
-	return embedding64, nil
+	// Azure OpenAI SDK returns float32 directly - no conversion needed
+	return resp.Data[0].Embedding, nil
 }
 
 // Info returns information about the model's capabilities.
@@ -111,7 +105,7 @@ func (a *AzureOpenAIEmbedding) Info() EmbeddingInfo {
 }
 
 // GetTextEmbeddingsBatch generates embeddings for multiple texts.
-func (a *AzureOpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float64, error) {
+func (a *AzureOpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float32, error) {
 	if len(texts) == 0 {
 		return nil, nil
 	}
@@ -120,7 +114,7 @@ func (a *AzureOpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts
 
 	// Process in chunks of 2048 (Azure OpenAI's limit)
 	const batchSize = 2048
-	results := make([][]float64, len(texts))
+	results := make([][]float32, len(texts))
 	processed := 0
 
 	for i := 0; i < len(texts); i += batchSize {
@@ -143,13 +137,9 @@ func (a *AzureOpenAIEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts
 			return nil, fmt.Errorf("azure openai batch embedding failed: %w", err)
 		}
 
-		// Process results
+		// Process results - Azure OpenAI SDK returns float32 directly
 		for j, data := range resp.Data {
-			embedding64 := make([]float64, len(data.Embedding))
-			for k, v := range data.Embedding {
-				embedding64[k] = float64(v)
-			}
-			results[i+j] = embedding64
+			results[i+j] = data.Embedding
 		}
 
 		processed += len(batch)
@@ -167,7 +157,7 @@ func (a *AzureOpenAIEmbedding) SupportsMultiModal() bool {
 }
 
 // GetImageEmbedding is not supported by Azure OpenAI embedding models.
-func (a *AzureOpenAIEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float64, error) {
+func (a *AzureOpenAIEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float32, error) {
 	return nil, fmt.Errorf("image embedding not supported by Azure OpenAI deployment %s", a.deployment)
 }
 

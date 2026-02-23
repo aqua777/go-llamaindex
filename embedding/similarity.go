@@ -20,7 +20,7 @@ const (
 // CosineSimilarity calculates the cosine similarity between two vectors.
 // Returns a value between -1 and 1, where 1 means identical direction.
 // For normalized vectors, this is equivalent to dot product.
-func CosineSimilarity(a, b []float64) (float64, error) {
+func CosineSimilarity(a, b []float32) (float64, error) {
 	if len(a) != len(b) {
 		return 0, fmt.Errorf("vectors must have same length: %d != %d", len(a), len(b))
 	}
@@ -30,9 +30,9 @@ func CosineSimilarity(a, b []float64) (float64, error) {
 
 	var dotProduct, normA, normB float64
 	for i := range a {
-		dotProduct += a[i] * b[i]
-		normA += a[i] * a[i]
-		normB += b[i] * b[i]
+		dotProduct += float64(a[i]) * float64(b[i])
+		normA += float64(a[i]) * float64(a[i])
+		normB += float64(b[i]) * float64(b[i])
 	}
 
 	if normA == 0 || normB == 0 {
@@ -44,7 +44,7 @@ func CosineSimilarity(a, b []float64) (float64, error) {
 
 // DotProduct calculates the dot product between two vectors.
 // For normalized vectors, this equals cosine similarity.
-func DotProduct(a, b []float64) (float64, error) {
+func DotProduct(a, b []float32) (float64, error) {
 	if len(a) != len(b) {
 		return 0, fmt.Errorf("vectors must have same length: %d != %d", len(a), len(b))
 	}
@@ -54,14 +54,14 @@ func DotProduct(a, b []float64) (float64, error) {
 
 	var result float64
 	for i := range a {
-		result += a[i] * b[i]
+		result += float64(a[i]) * float64(b[i])
 	}
 	return result, nil
 }
 
 // EuclideanDistance calculates the Euclidean distance between two vectors.
 // Returns a non-negative value where 0 means identical vectors.
-func EuclideanDistance(a, b []float64) (float64, error) {
+func EuclideanDistance(a, b []float32) (float64, error) {
 	if len(a) != len(b) {
 		return 0, fmt.Errorf("vectors must have same length: %d != %d", len(a), len(b))
 	}
@@ -71,7 +71,7 @@ func EuclideanDistance(a, b []float64) (float64, error) {
 
 	var sum float64
 	for i := range a {
-		diff := a[i] - b[i]
+		diff := float64(a[i]) - float64(b[i])
 		sum += diff * diff
 	}
 	return math.Sqrt(sum), nil
@@ -79,7 +79,7 @@ func EuclideanDistance(a, b []float64) (float64, error) {
 
 // EuclideanSimilarity converts Euclidean distance to a similarity score.
 // Returns a value between 0 and 1, where 1 means identical vectors.
-func EuclideanSimilarity(a, b []float64) (float64, error) {
+func EuclideanSimilarity(a, b []float32) (float64, error) {
 	dist, err := EuclideanDistance(a, b)
 	if err != nil {
 		return 0, err
@@ -89,7 +89,7 @@ func EuclideanSimilarity(a, b []float64) (float64, error) {
 }
 
 // Similarity calculates similarity between two vectors using the specified metric.
-func Similarity(a, b []float64, simType SimilarityType) (float64, error) {
+func Similarity(a, b []float32, simType SimilarityType) (float64, error) {
 	switch simType {
 	case SimilarityTypeCosine:
 		return CosineSimilarity(a, b)
@@ -104,14 +104,14 @@ func Similarity(a, b []float64, simType SimilarityType) (float64, error) {
 
 // Normalize normalizes a vector to unit length (L2 norm = 1).
 // Returns a new normalized vector without modifying the original.
-func Normalize(v []float64) ([]float64, error) {
+func Normalize(v []float32) ([]float32, error) {
 	if len(v) == 0 {
 		return nil, fmt.Errorf("vector must not be empty")
 	}
 
 	var norm float64
 	for _, val := range v {
-		norm += val * val
+		norm += float64(val) * float64(val)
 	}
 	norm = math.Sqrt(norm)
 
@@ -119,22 +119,22 @@ func Normalize(v []float64) ([]float64, error) {
 		return nil, fmt.Errorf("cannot normalize zero vector")
 	}
 
-	result := make([]float64, len(v))
+	result := make([]float32, len(v))
 	for i, val := range v {
-		result[i] = val / norm
+		result[i] = float32(float64(val) / norm)
 	}
 	return result, nil
 }
 
 // NormalizeInPlace normalizes a vector in place.
-func NormalizeInPlace(v []float64) error {
+func NormalizeInPlace(v []float32) error {
 	if len(v) == 0 {
 		return fmt.Errorf("vector must not be empty")
 	}
 
 	var norm float64
 	for _, val := range v {
-		norm += val * val
+		norm += float64(val) * float64(val)
 	}
 	norm = math.Sqrt(norm)
 
@@ -143,27 +143,27 @@ func NormalizeInPlace(v []float64) error {
 	}
 
 	for i := range v {
-		v[i] /= norm
+		v[i] = float32(float64(v[i]) / norm)
 	}
 	return nil
 }
 
 // Magnitude calculates the magnitude (L2 norm) of a vector.
-func Magnitude(v []float64) float64 {
+func Magnitude(v []float32) float64 {
 	var sum float64
 	for _, val := range v {
-		sum += val * val
+		sum += float64(val) * float64(val)
 	}
 	return math.Sqrt(sum)
 }
 
 // Add adds two vectors element-wise.
-func Add(a, b []float64) ([]float64, error) {
+func Add(a, b []float32) ([]float32, error) {
 	if len(a) != len(b) {
 		return nil, fmt.Errorf("vectors must have same length: %d != %d", len(a), len(b))
 	}
 
-	result := make([]float64, len(a))
+	result := make([]float32, len(a))
 	for i := range a {
 		result[i] = a[i] + b[i]
 	}
@@ -171,12 +171,12 @@ func Add(a, b []float64) ([]float64, error) {
 }
 
 // Subtract subtracts vector b from vector a element-wise.
-func Subtract(a, b []float64) ([]float64, error) {
+func Subtract(a, b []float32) ([]float32, error) {
 	if len(a) != len(b) {
 		return nil, fmt.Errorf("vectors must have same length: %d != %d", len(a), len(b))
 	}
 
-	result := make([]float64, len(a))
+	result := make([]float32, len(a))
 	for i := range a {
 		result[i] = a[i] - b[i]
 	}
@@ -184,8 +184,8 @@ func Subtract(a, b []float64) ([]float64, error) {
 }
 
 // Scale multiplies a vector by a scalar.
-func Scale(v []float64, scalar float64) []float64 {
-	result := make([]float64, len(v))
+func Scale(v []float32, scalar float32) []float32 {
+	result := make([]float32, len(v))
 	for i, val := range v {
 		result[i] = val * scalar
 	}
@@ -193,7 +193,7 @@ func Scale(v []float64, scalar float64) []float64 {
 }
 
 // Mean calculates the element-wise mean of multiple vectors.
-func Mean(vectors [][]float64) ([]float64, error) {
+func Mean(vectors [][]float32) ([]float32, error) {
 	if len(vectors) == 0 {
 		return nil, fmt.Errorf("must provide at least one vector")
 	}
@@ -205,14 +205,14 @@ func Mean(vectors [][]float64) ([]float64, error) {
 		}
 	}
 
-	result := make([]float64, dim)
+	result := make([]float32, dim)
 	for _, v := range vectors {
 		for i, val := range v {
 			result[i] += val
 		}
 	}
 
-	n := float64(len(vectors))
+	n := float32(len(vectors))
 	for i := range result {
 		result[i] /= n
 	}
@@ -222,7 +222,7 @@ func Mean(vectors [][]float64) ([]float64, error) {
 
 // TopKSimilar finds the top K most similar vectors to a query vector.
 // Returns indices and similarity scores sorted by similarity (descending).
-func TopKSimilar(query []float64, vectors [][]float64, k int, simType SimilarityType) ([]int, []float64, error) {
+func TopKSimilar(query []float32, vectors [][]float32, k int, simType SimilarityType) ([]int, []float64, error) {
 	if k <= 0 {
 		return nil, nil, fmt.Errorf("k must be positive")
 	}

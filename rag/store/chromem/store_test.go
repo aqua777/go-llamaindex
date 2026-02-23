@@ -20,7 +20,7 @@ func TestChromemStore(t *testing.T) {
 	collectionName := "test-collection"
 
 	// 1. Initialize Store (Persistent)
-	store, err := NewChromemStore(tmpDir, collectionName)
+	store, err := NewSimpleChromemStore(tmpDir, collectionName)
 	require.NoError(t, err)
 	require.NotNil(t, store)
 
@@ -33,7 +33,7 @@ func TestChromemStore(t *testing.T) {
 			Metadata: map[string]interface{}{
 				"category": "fruit",
 			},
-			Embedding: []float64{1.0, 0.0, 0.0},
+			Embedding: []float32{1.0, 0.0, 0.0},
 		},
 		{
 			ID:   "2",
@@ -42,7 +42,7 @@ func TestChromemStore(t *testing.T) {
 			Metadata: map[string]interface{}{
 				"category": "vehicle",
 			},
-			Embedding: []float64{0.0, 1.0, 0.0},
+			Embedding: []float32{0.0, 1.0, 0.0},
 		},
 	}
 
@@ -51,7 +51,7 @@ func TestChromemStore(t *testing.T) {
 	assert.Len(t, ids, 2)
 
 	// 3. Query (Exact match for Apple)
-	queryVec := []float64{1.0, 0.0, 0.0}
+	queryVec := []float32{1.0, 0.0, 0.0}
 	query := schema.VectorStoreQuery{
 		Embedding: queryVec,
 		TopK:      1,
@@ -67,7 +67,7 @@ func TestChromemStore(t *testing.T) {
 	assert.InDelta(t, 1.0, results[0].Score, 0.0001)
 
 	// 4. Query (Exact match for Car)
-	queryVecCar := []float64{0.0, 1.0, 0.0}
+	queryVecCar := []float32{0.0, 1.0, 0.0}
 	queryCar := schema.VectorStoreQuery{
 		Embedding: queryVecCar,
 		TopK:      1,
@@ -79,7 +79,7 @@ func TestChromemStore(t *testing.T) {
 
 	// 5. Test Persistence (Re-open store)
 	// Re-initialize store pointing to same dir
-	store2, err := NewChromemStore(tmpDir, collectionName)
+	store2, err := NewSimpleChromemStore(tmpDir, collectionName)
 	require.NoError(t, err)
 
 	// Query again
@@ -93,16 +93,16 @@ func TestChromemStore(t *testing.T) {
 func TestChromemStore_InMemory(t *testing.T) {
 	ctx := context.Background()
 	// Empty path = in-memory
-	store, err := NewChromemStore("", "mem-collection")
+	store, err := NewSimpleChromemStore("", "mem-collection")
 	require.NoError(t, err)
 
-	nodes := []schema.Node{{ID: "A", Text: "Alpha", Embedding: []float64{0.5}}}
+	nodes := []schema.Node{{ID: "A", Text: "Alpha", Embedding: []float32{0.5}}}
 
 	_, err = store.Add(ctx, nodes)
 	require.NoError(t, err)
 
 	query := schema.VectorStoreQuery{
-		Embedding: []float64{0.5},
+		Embedding: []float32{0.5},
 		TopK:      1,
 	}
 	res, err := store.Query(ctx, query)

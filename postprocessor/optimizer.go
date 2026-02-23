@@ -135,7 +135,7 @@ func (p *SentenceOptimizerPostprocessor) PostprocessNodes(
 }
 
 // optimizeText selects the most relevant sentences from text.
-func (p *SentenceOptimizerPostprocessor) optimizeText(ctx context.Context, text string, queryEmb []float64) (string, error) {
+func (p *SentenceOptimizerPostprocessor) optimizeText(ctx context.Context, text string, queryEmb []float32) (string, error) {
 	sentences := splitSentences(text)
 	if len(sentences) == 0 {
 		return text, nil

@@ -150,7 +150,7 @@ type teiEmbedRequest struct {
 }
 
 // GetTextEmbedding generates an embedding for a given text.
-func (h *HuggingFaceEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (h *HuggingFaceEmbedding) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	// Add document prefix if configured
 	if h.docPrefix != "" {
 		text = h.docPrefix + text
@@ -159,7 +159,7 @@ func (h *HuggingFaceEmbedding) GetTextEmbedding(ctx context.Context, text string
 }
 
 // GetQueryEmbedding generates an embedding for a given query.
-func (h *HuggingFaceEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (h *HuggingFaceEmbedding) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	// Add query prefix if configured
 	if h.queryPrefix != "" {
 		query = h.queryPrefix + query
@@ -168,7 +168,7 @@ func (h *HuggingFaceEmbedding) GetQueryEmbedding(ctx context.Context, query stri
 }
 
 // getEmbedding performs the actual embedding request.
-func (h *HuggingFaceEmbedding) getEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (h *HuggingFaceEmbedding) getEmbedding(ctx context.Context, text string) ([]float32, error) {
 	if h.useTEI {
 		embeddings, err := h.getTEIEmbeddings(ctx, []string{text})
 		if err != nil {
@@ -184,7 +184,7 @@ func (h *HuggingFaceEmbedding) getEmbedding(ctx context.Context, text string) ([
 }
 
 // getInferenceAPIEmbedding gets embedding from HuggingFace Inference API.
-func (h *HuggingFaceEmbedding) getInferenceAPIEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (h *HuggingFaceEmbedding) getInferenceAPIEmbedding(ctx context.Context, text string) ([]float32, error) {
 	reqBody := hfInferenceRequest{
 		Inputs: text,
 	}
@@ -222,31 +222,31 @@ func (h *HuggingFaceEmbedding) getInferenceAPIEmbedding(ctx context.Context, tex
 
 	// Response can be nested arrays for sentence-transformers models
 	// Try to parse as []float64 first, then as [][]float64
-	var embedding []float64
-	if err := json.Unmarshal(respBody, &embedding); err == nil {
-		return embedding, nil
+	var embedding64 []float64
+	if err := json.Unmarshal(respBody, &embedding64); err == nil {
+		return convertFloat64ToFloat32(embedding64), nil
 	}
 
 	// Try nested format (common for sentence-transformers)
-	var nestedEmbedding [][]float64
-	if err := json.Unmarshal(respBody, &nestedEmbedding); err == nil && len(nestedEmbedding) > 0 {
+	var nestedEmbedding64 [][]float64
+	if err := json.Unmarshal(respBody, &nestedEmbedding64); err == nil && len(nestedEmbedding64) > 0 {
 		// For sentence-transformers, we typically want the mean of token embeddings
 		// But the API usually returns the pooled output directly
-		return nestedEmbedding[0], nil
+		return convertFloat64ToFloat32(nestedEmbedding64[0]), nil
 	}
 
 	// Try triple nested (token-level embeddings)
-	var tokenEmbeddings [][][]float64
-	if err := json.Unmarshal(respBody, &tokenEmbeddings); err == nil && len(tokenEmbeddings) > 0 && len(tokenEmbeddings[0]) > 0 {
+	var tokenEmbeddings64 [][][]float64
+	if err := json.Unmarshal(respBody, &tokenEmbeddings64); err == nil && len(tokenEmbeddings64) > 0 && len(tokenEmbeddings64[0]) > 0 {
 		// Mean pooling over tokens
-		return meanPool(tokenEmbeddings[0]), nil
+		return meanPool(tokenEmbeddings64[0]), nil
 	}
 
 	return nil, fmt.Errorf("failed to parse embedding response: %s", string(respBody))
 }
 
 // getTEIEmbeddings gets embeddings from Text Embeddings Inference.
-func (h *HuggingFaceEmbedding) getTEIEmbeddings(ctx context.Context, texts []string) ([][]float64, error) {
+func (h *HuggingFaceEmbedding) getTEIEmbeddings(ctx context.Context, texts []string) ([][]float32, error) {
 	reqBody := teiEmbedRequest{
 		Inputs:   texts,
 		Truncate: true,
@@ -278,16 +278,22 @@ func (h *HuggingFaceEmbedding) getTEIEmbeddings(ctx context.Context, texts []str
 		return nil, fmt.Errorf("TEI API error (%d): %s", resp.StatusCode, string(respBody))
 	}
 
-	var embeddings [][]float64
-	if err := json.Unmarshal(respBody, &embeddings); err != nil {
+	var embeddings64 [][]float64
+	if err := json.Unmarshal(respBody, &embeddings64); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	return embeddings, nil
+	// Convert from float64 to float32
+	embeddings32 := make([][]float32, len(embeddings64))
+	for i, emb64 := range embeddings64 {
+		embeddings32[i] = convertFloat64ToFloat32(emb64)
+	}
+
+	return embeddings32, nil
 }
 
 // meanPool computes mean pooling over token embeddings.
-func meanPool(tokenEmbeddings [][]float64) []float64 {
+func meanPool(tokenEmbeddings [][]float64) []float32 {
 	if len(tokenEmbeddings) == 0 {
 		return nil
 	}
@@ -306,7 +312,16 @@ func meanPool(tokenEmbeddings [][]float64) []float64 {
 		result[i] /= numTokens
 	}
 
-	return result
+	return convertFloat64ToFloat32(result)
+}
+
+// convertFloat64ToFloat32 converts a float64 slice to float32.
+func convertFloat64ToFloat32(f64 []float64) []float32 {
+	f32 := make([]float32, len(f64))
+	for i, v := range f64 {
+		f32[i] = float32(v)
+	}
+	return f32
 }
 
 // Info returns information about the model's capabilities.
@@ -315,7 +330,7 @@ func (h *HuggingFaceEmbedding) Info() EmbeddingInfo {
 }
 
 // GetTextEmbeddingsBatch generates embeddings for multiple texts.
-func (h *HuggingFaceEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float64, error) {
+func (h *HuggingFaceEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float32, error) {
 	if len(texts) == 0 {
 		return nil, nil
 	}
@@ -334,7 +349,7 @@ func (h *HuggingFaceEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts
 	if h.useTEI {
 		// TEI supports batch natively
 		const batchSize = 32
-		results := make([][]float64, 0, len(prefixedTexts))
+		results := make([][]float32, 0, len(prefixedTexts))
 		processed := 0
 
 		for i := 0; i < len(prefixedTexts); i += batchSize {
@@ -361,7 +376,7 @@ func (h *HuggingFaceEmbedding) GetTextEmbeddingsBatch(ctx context.Context, texts
 	}
 
 	// For Inference API, process one at a time
-	results := make([][]float64, len(prefixedTexts))
+	results := make([][]float32, len(prefixedTexts))
 	for i, text := range prefixedTexts {
 		embedding, err := h.getInferenceAPIEmbedding(ctx, text)
 		if err != nil {
@@ -383,7 +398,7 @@ func (h *HuggingFaceEmbedding) SupportsMultiModal() bool {
 }
 
 // GetImageEmbedding is not supported by HuggingFace text embedding models.
-func (h *HuggingFaceEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float64, error) {
+func (h *HuggingFaceEmbedding) GetImageEmbedding(ctx context.Context, image ImageType) ([]float32, error) {
 	return nil, fmt.Errorf("image embedding not supported by HuggingFace model %s", h.model)
 }
 

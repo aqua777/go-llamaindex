@@ -104,6 +104,33 @@ func TestNodeHash(t *testing.T) {
 	assert.NotEqual(t, node1.GetHash(), node3.GetHash())
 }
 
+// TestNodeHashWithCharIndices tests the bug fix for GenerateHash
+// where character indices were incorrectly converted using rune()
+func TestNodeHashWithCharIndicesCorrectConversion(t *testing.T) {
+	node1 := NewTextNode("Test content")
+	startIdx := 65 // Should be "65" not "A" in hash
+	endIdx := 100  // Should be "100" not "d" in hash
+	node1.StartCharIdx = &startIdx
+	node1.EndCharIdx = &endIdx
+	hash1 := node1.GenerateHash()
+
+	node2 := NewTextNode("Test content")
+	node2.StartCharIdx = &startIdx
+	node2.EndCharIdx = &endIdx
+	hash2 := node2.GenerateHash()
+
+	// Same indices should produce same hash
+	assert.Equal(t, hash1, hash2)
+
+	// Different indices should produce different hash
+	differentStart := 66
+	node3 := NewTextNode("Test content")
+	node3.StartCharIdx = &differentStart
+	node3.EndCharIdx = &endIdx
+	hash3 := node3.GenerateHash()
+	assert.NotEqual(t, hash1, hash3)
+}
+
 func TestNodeToJSON(t *testing.T) {
 	node := NewTextNode("Test content")
 	node.Metadata = map[string]interface{}{"key": "value"}
@@ -214,13 +241,13 @@ func TestMediaResourceBase64(t *testing.T) {
 
 func TestMediaResourceEmbeddings(t *testing.T) {
 	mr := NewMediaResource()
-	embedding := []float64{0.1, 0.2, 0.3}
+	embedding := []float32{0.1, 0.2, 0.3}
 
 	mr.SetEmbedding(EmbeddingKindDense, embedding)
 	assert.Equal(t, embedding, mr.GetDenseEmbedding())
 	assert.Nil(t, mr.GetSparseEmbedding())
 
-	sparseEmbedding := []float64{1.0, 0.0, 0.5}
+	sparseEmbedding := []float32{1.0, 0.0, 0.5}
 	mr.SetEmbedding(EmbeddingKindSparse, sparseEmbedding)
 	assert.Equal(t, sparseEmbedding, mr.GetSparseEmbedding())
 }
@@ -296,7 +323,7 @@ func TestNodeGetSetEmbedding(t *testing.T) {
 	node := NewNode()
 	assert.Nil(t, node.GetEmbedding())
 
-	embedding := []float64{0.1, 0.2, 0.3, 0.4}
+	embedding := []float32{0.1, 0.2, 0.3, 0.4}
 	node.SetEmbedding(embedding)
 	assert.Equal(t, embedding, node.GetEmbedding())
 }
@@ -349,7 +376,7 @@ func TestNodeGetNodeInfo(t *testing.T) {
 func TestNodeToDict(t *testing.T) {
 	node := NewTextNode("Test")
 	node.Metadata = map[string]interface{}{"author": "Jane"}
-	node.Embedding = []float64{0.1, 0.2}
+	node.Embedding = []float32{0.1, 0.2}
 
 	dict := node.ToDict()
 	assert.Equal(t, "TextNode", dict["class_name"])
@@ -546,7 +573,7 @@ func TestImageNodeGetImageSourcePriority(t *testing.T) {
 func TestImageNodeToDict(t *testing.T) {
 	node := NewImageNodeFromPath("/img.png", "image/png")
 	node.Text = "Image description"
-	node.TextEmbedding = []float64{0.1, 0.2}
+	node.TextEmbedding = []float32{0.1, 0.2}
 
 	dict := node.ToDict()
 	assert.Equal(t, "ImageNode", dict["class_name"])
@@ -603,7 +630,7 @@ func TestIndexNodeToDict(t *testing.T) {
 func TestIndexNodeFromTextNodePreservesFields(t *testing.T) {
 	textNode := NewTextNode("Original")
 	textNode.Metadata = map[string]interface{}{"key": "value"}
-	textNode.Embedding = []float64{0.1, 0.2, 0.3}
+	textNode.Embedding = []float32{0.1, 0.2, 0.3}
 	textNode.ExcludedLLMMetadataKeys = []string{"secret"}
 	textNode.ExcludedEmbedMetadataKeys = []string{"internal"}
 	start, end := 10, 20
@@ -773,7 +800,7 @@ func TestNodeTypes(t *testing.T) {
 func TestNodeJSONRoundTrip(t *testing.T) {
 	node := NewTextNode("Test content")
 	node.Metadata = map[string]interface{}{"key": "value"}
-	node.Embedding = []float64{0.1, 0.2, 0.3}
+	node.Embedding = []float32{0.1, 0.2, 0.3}
 
 	// Serialize
 	data, err := json.Marshal(node)
@@ -823,7 +850,7 @@ func TestIndexNodeJSONRoundTrip(t *testing.T) {
 
 func TestMediaResourceJSONRoundTrip(t *testing.T) {
 	mr := NewMediaResourceFromText("Hello world")
-	mr.Embeddings[EmbeddingKindDense] = []float64{0.1, 0.2}
+	mr.Embeddings[EmbeddingKindDense] = []float32{0.1, 0.2}
 
 	data, err := json.Marshal(mr)
 	require.NoError(t, err)
@@ -950,7 +977,7 @@ func TestMetadataFiltersNested(t *testing.T) {
 
 // Tests for VectorStoreQuery
 func TestNewVectorStoreQuery(t *testing.T) {
-	embedding := []float64{0.1, 0.2, 0.3}
+	embedding := []float32{0.1, 0.2, 0.3}
 	query := NewVectorStoreQuery(embedding, 10)
 
 	assert.Equal(t, embedding, query.QueryEmbedding)
@@ -961,7 +988,7 @@ func TestNewVectorStoreQuery(t *testing.T) {
 }
 
 func TestVectorStoreQueryWithMode(t *testing.T) {
-	query := NewVectorStoreQuery([]float64{0.1}, 5).
+	query := NewVectorStoreQuery([]float32{0.1}, 5).
 		WithMode(QueryModeMMR)
 
 	assert.Equal(t, QueryModeMMR, query.Mode)
@@ -969,7 +996,7 @@ func TestVectorStoreQueryWithMode(t *testing.T) {
 
 func TestVectorStoreQueryWithFilters(t *testing.T) {
 	filters := NewMetadataFilters(NewMetadataFilter("category", "tech"))
-	query := NewVectorStoreQuery([]float64{0.1}, 5).
+	query := NewVectorStoreQuery([]float32{0.1}, 5).
 		WithFilters(filters)
 
 	assert.NotNil(t, query.Filters)
@@ -977,7 +1004,7 @@ func TestVectorStoreQueryWithFilters(t *testing.T) {
 }
 
 func TestVectorStoreQueryWithAlpha(t *testing.T) {
-	query := NewVectorStoreQuery([]float64{0.1}, 5).
+	query := NewVectorStoreQuery([]float32{0.1}, 5).
 		WithMode(QueryModeHybrid).
 		WithAlpha(0.7)
 
@@ -986,7 +1013,7 @@ func TestVectorStoreQueryWithAlpha(t *testing.T) {
 }
 
 func TestVectorStoreQueryWithMMRThreshold(t *testing.T) {
-	query := NewVectorStoreQuery([]float64{0.1}, 5).
+	query := NewVectorStoreQuery([]float32{0.1}, 5).
 		WithMode(QueryModeMMR).
 		WithMMRThreshold(0.5)
 
@@ -997,16 +1024,16 @@ func TestVectorStoreQueryWithMMRThreshold(t *testing.T) {
 func TestVectorStoreQueryGetEmbedding(t *testing.T) {
 	// Test with QueryEmbedding set
 	query := &VectorStoreQuery{
-		QueryEmbedding: []float64{0.1, 0.2},
-		Embedding:      []float64{0.3, 0.4},
+		QueryEmbedding: []float32{0.1, 0.2},
+		Embedding:      []float32{0.3, 0.4},
 	}
-	assert.Equal(t, []float64{0.1, 0.2}, query.GetEmbedding())
+	assert.Equal(t, []float32{0.1, 0.2}, query.GetEmbedding())
 
 	// Test with only Embedding set
 	query2 := &VectorStoreQuery{
-		Embedding: []float64{0.3, 0.4},
+		Embedding: []float32{0.3, 0.4},
 	}
-	assert.Equal(t, []float64{0.3, 0.4}, query2.GetEmbedding())
+	assert.Equal(t, []float32{0.3, 0.4}, query2.GetEmbedding())
 }
 
 func TestVectorStoreQueryGetTopK(t *testing.T) {
@@ -1031,7 +1058,7 @@ func TestVectorStoreQueryGetTopK(t *testing.T) {
 func TestVectorStoreQueryJSONRoundTrip(t *testing.T) {
 	alpha := 0.7
 	query := &VectorStoreQuery{
-		QueryEmbedding: []float64{0.1, 0.2, 0.3},
+		QueryEmbedding: []float32{0.1, 0.2, 0.3},
 		SimilarityTopK: 10,
 		QueryStr:       "test query",
 		Mode:           QueryModeHybrid,

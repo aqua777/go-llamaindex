@@ -58,7 +58,7 @@ func NewRAGCommand() (*RAGCommand, error) {
 	// Initialize vector store
 	persistPath := ChromemPersistPath(cacheDir)
 	collection := krait.GetString(KeyCollection)
-	vectorStore, err := chromem.NewChromemStore(persistPath, collection)
+	vectorStore, err := chromem.NewSimpleChromemStore(persistPath, collection)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create vector store: %w", err)
 	}

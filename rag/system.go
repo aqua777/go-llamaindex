@@ -80,7 +80,7 @@ func NewRAGSystem(config RAGConfig) (*RAGSystem, error) {
 
 	// Vector Store
 	// ChromemStore implements VectorStore interface
-	vectorStore, err := chromem.NewChromemStore(config.PersistPath, config.CollectionName)
+	vectorStore, err := chromem.NewSimpleChromemStore(config.PersistPath, config.CollectionName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create vector store: %w", err)
 	}

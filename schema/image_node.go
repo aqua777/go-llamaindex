@@ -20,7 +20,7 @@ type ImageNode struct {
 	// ImageMimeType is the MIME type of the image.
 	ImageMimeType string `json:"image_mimetype,omitempty"`
 	// TextEmbedding is the embedding of the text field if filled out.
-	TextEmbedding []float64 `json:"text_embedding,omitempty"`
+	TextEmbedding []float32 `json:"text_embedding,omitempty"`
 }
 
 // NewImageNode creates a new ImageNode with default values.

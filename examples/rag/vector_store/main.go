@@ -22,7 +22,7 @@ func main() {
 
 	// 2. Create in-memory vector store
 	fmt.Println("\n=== Creating In-Memory Vector Store ===")
-	store, err := chromem.NewChromemStore("", "demo_collection")
+	store, err := chromem.NewSimpleChromemStore("", "demo_collection")
 	if err != nil {
 		log.Fatalf("Failed to create vector store: %v", err)
 	}
@@ -156,7 +156,7 @@ func main() {
 	persistPath := "./chromem_persist"
 	defer os.RemoveAll(persistPath) // Clean up after demo
 
-	persistentStore, err := chromem.NewChromemStore(persistPath, "persistent_collection")
+	persistentStore, err := chromem.NewSimpleChromemStore(persistPath, "persistent_collection")
 	if err != nil {
 		log.Fatalf("Failed to create persistent store: %v", err)
 	}

@@ -109,7 +109,7 @@ func (s *EngineTestSuite) TestFullRAGFlow() {
 	// 1. Setup Components
 	// Mock Embedding Model
 	mockEmbedding := &embedding.MockEmbeddingModel{
-		Embedding: []float64{0.1, 0.2, 0.3}, // Simple mock embedding
+		Embedding: []float32{0.1, 0.2, 0.3}, // Simple mock embedding
 	}
 	// Mock LLM
 	mockLLM := &llm.MockLLM{
@@ -120,8 +120,8 @@ func (s *EngineTestSuite) TestFullRAGFlow() {
 
 	// 2. Add Documents
 	nodes := []schema.Node{
-		{ID: "1", Text: "The capital of France is Paris.", Type: schema.ObjectTypeText, Embedding: []float64{0.1, 0.2, 0.3}},
-		{ID: "2", Text: "The capital of Germany is Berlin.", Type: schema.ObjectTypeText, Embedding: []float64{0.9, 0.8, 0.7}},
+		{ID: "1", Text: "The capital of France is Paris.", Type: schema.ObjectTypeText, Embedding: []float32{0.1, 0.2, 0.3}},
+		{ID: "2", Text: "The capital of Germany is Berlin.", Type: schema.ObjectTypeText, Embedding: []float32{0.9, 0.8, 0.7}},
 	}
 	_, err := vectorStore.Add(ctx, nodes)
 	s.NoError(err)
@@ -149,7 +149,7 @@ func (s *EngineTestSuite) TestFullRAGFlow_Chromem() {
 	// 1. Setup Components
 	// Mock Embedding Model (same as before)
 	mockEmbedding := &embedding.MockEmbeddingModel{
-		Embedding: []float64{0.1, 0.2, 0.3},
+		Embedding: []float32{0.1, 0.2, 0.3},
 	}
 	// Mock LLM (same as before)
 	mockLLM := &llm.MockLLM{
@@ -158,13 +158,13 @@ func (s *EngineTestSuite) TestFullRAGFlow_Chromem() {
 
 	// Chromem Store (In-Memory)
 	// Empty path = in-memory only
-	chromemStore, err := chromem.NewChromemStore("", "test-engine-collection")
+	chromemStore, err := chromem.NewSimpleChromemStore("", "test-engine-collection")
 	s.NoError(err)
 
 	// 2. Add Documents
 	nodes := []schema.Node{
-		{ID: "1", Text: "The capital of France is Paris.", Type: schema.ObjectTypeText, Embedding: []float64{0.1, 0.2, 0.3}},
-		{ID: "2", Text: "The capital of Germany is Berlin.", Type: schema.ObjectTypeText, Embedding: []float64{0.9, 0.8, 0.7}},
+		{ID: "1", Text: "The capital of France is Paris.", Type: schema.ObjectTypeText, Embedding: []float32{0.1, 0.2, 0.3}},
+		{ID: "2", Text: "The capital of Germany is Berlin.", Type: schema.ObjectTypeText, Embedding: []float32{0.9, 0.8, 0.7}},
 	}
 	_, err = chromemStore.Add(ctx, nodes)
 	s.NoError(err)

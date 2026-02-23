@@ -17,7 +17,7 @@ func TestChromemPersistence(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// 1. Create store with persistence
-	store, err := NewChromemStore(tmpDir, "test_collection")
+	store, err := NewSimpleChromemStore(tmpDir, "test_collection")
 	if err != nil {
 		t.Fatalf("failed to create persistent store: %v", err)
 	}
@@ -28,7 +28,7 @@ func TestChromemPersistence(t *testing.T) {
 		Text:      "Hello persistence",
 		Type:      schema.ObjectTypeText,
 		Metadata:  map[string]interface{}{"foo": "bar"},
-		Embedding: []float64{0.1, 0.2, 0.3},
+		Embedding: []float32{0.1, 0.2, 0.3},
 	}
 	_, err = store.Add(context.Background(), []schema.Node{node})
 	if err != nil {
@@ -40,7 +40,7 @@ func TestChromemPersistence(t *testing.T) {
 	// So we just create a new instance pointing to the same dir.
 
 	// 4. Create a NEW store instance pointing to the SAME directory
-	store2, err := NewChromemStore(tmpDir, "test_collection")
+	store2, err := NewSimpleChromemStore(tmpDir, "test_collection")
 	if err != nil {
 		t.Fatalf("failed to create second persistent store: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestChromemPersistence(t *testing.T) {
 	// 5. Query from the new instance
 	// We use the same embedding to find it
 	query := schema.VectorStoreQuery{
-		Embedding: []float64{0.1, 0.2, 0.3},
+		Embedding: []float32{0.1, 0.2, 0.3},
 		TopK:      1,
 	}
 	results, err := store2.Query(context.Background(), query)

@@ -6,9 +6,9 @@ import "context"
 // It can be configured to return specific embeddings or errors.
 type MockEmbeddingModel struct {
 	// Embedding is the embedding to return for single text requests.
-	Embedding []float64
+	Embedding []float32
 	// Embeddings is the embeddings to return for batch requests.
-	Embeddings [][]float64
+	Embeddings [][]float32
 	// Err is the error to return (if any).
 	Err error
 	// ModelInfo is the embedding info to return.
@@ -18,7 +18,7 @@ type MockEmbeddingModel struct {
 }
 
 // NewMockEmbeddingModel creates a new MockEmbeddingModel with a fixed embedding.
-func NewMockEmbeddingModel(embedding []float64) *MockEmbeddingModel {
+func NewMockEmbeddingModel(embedding []float32) *MockEmbeddingModel {
 	return &MockEmbeddingModel{Embedding: embedding}
 }
 
@@ -27,11 +27,11 @@ func NewMockEmbeddingModelWithError(err error) *MockEmbeddingModel {
 	return &MockEmbeddingModel{Err: err}
 }
 
-func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	return m.Embedding, m.Err
 }
 
-func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (m *MockEmbeddingModel) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return m.Embedding, m.Err
 }
 
@@ -44,7 +44,7 @@ func (m *MockEmbeddingModel) Info() EmbeddingInfo {
 }
 
 // GetTextEmbeddingsBatch returns mock embeddings for batch requests.
-func (m *MockEmbeddingModel) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float64, error) {
+func (m *MockEmbeddingModel) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback ProgressCallback) ([][]float32, error) {
 	if m.Err != nil {
 		return nil, m.Err
 	}
@@ -58,7 +58,7 @@ func (m *MockEmbeddingModel) GetTextEmbeddingsBatch(ctx context.Context, texts [
 	}
 
 	// Otherwise, return the same embedding for each text
-	results := make([][]float64, len(texts))
+	results := make([][]float32, len(texts))
 	for i := range texts {
 		results[i] = m.Embedding
 		if callback != nil {
@@ -74,7 +74,7 @@ func (m *MockEmbeddingModel) SupportsMultiModal() bool {
 }
 
 // GetImageEmbedding returns a mock image embedding.
-func (m *MockEmbeddingModel) GetImageEmbedding(ctx context.Context, image ImageType) ([]float64, error) {
+func (m *MockEmbeddingModel) GetImageEmbedding(ctx context.Context, image ImageType) ([]float32, error) {
 	if !m.MultiModalSupported {
 		return nil, ErrMultiModalNotSupported
 	}

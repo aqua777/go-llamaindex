@@ -135,7 +135,7 @@ type ToolRetriever struct {
 	// embedModel is the embedding model for similarity search.
 	embedModel embedding.EmbeddingModel
 	// nodeEmbeddings stores embeddings for each node.
-	nodeEmbeddings map[string][]float64
+	nodeEmbeddings map[string][]float32
 	// topK is the number of tools to retrieve.
 	topK int
 }
@@ -155,7 +155,7 @@ func NewToolRetriever(mapping *ToolNodeMapping, embedModel embedding.EmbeddingMo
 	r := &ToolRetriever{
 		mapping:        mapping,
 		embedModel:     embedModel,
-		nodeEmbeddings: make(map[string][]float64),
+		nodeEmbeddings: make(map[string][]float32),
 		topK:           3,
 	}
 

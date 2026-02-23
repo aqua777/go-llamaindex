@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -367,7 +368,10 @@ func (a *AnthropicLLM) convertMessages(messages []ChatMessage) ([]anthropicMessa
 			case ContentBlockTypeToolCall:
 				if block.ToolCall != nil {
 					var input map[string]interface{}
-					json.Unmarshal([]byte(block.ToolCall.Arguments), &input)
+					if err := json.Unmarshal([]byte(block.ToolCall.Arguments), &input); err != nil {
+						a.logger.Error("Failed to unmarshal tool call arguments", "error", err)
+						continue
+					}
 					content = append(content, anthropicContent{
 						Type:  "tool_use",
 						ID:    block.ToolCall.ID,
@@ -477,8 +481,10 @@ func (a *AnthropicLLM) doRequest(ctx context.Context, path string, body interfac
 		var apiErr struct {
 			Error anthropicError `json:"error"`
 		}
-		json.Unmarshal(respBody, &apiErr)
-		return nil, fmt.Errorf("anthropic API error (%d): %s", resp.StatusCode, apiErr.Error.Message)
+		if err := json.Unmarshal(respBody, &apiErr); err == nil && apiErr.Error.Message != "" {
+			return nil, fmt.Errorf("anthropic API error (%d): %s", resp.StatusCode, apiErr.Error.Message)
+		}
+		return nil, fmt.Errorf("anthropic API error (%d): %s", resp.StatusCode, string(respBody))
 	}
 
 	var result anthropicResponse
@@ -517,8 +523,10 @@ func (a *AnthropicLLM) doStreamRequest(ctx context.Context, path string, body in
 		var apiErr struct {
 			Error anthropicError `json:"error"`
 		}
-		json.Unmarshal(respBody, &apiErr)
-		return nil, fmt.Errorf("anthropic API error (%d): %s", resp.StatusCode, apiErr.Error.Message)
+		if err := json.Unmarshal(respBody, &apiErr); err == nil && apiErr.Error.Message != "" {
+			return nil, fmt.Errorf("anthropic API error (%d): %s", resp.StatusCode, apiErr.Error.Message)
+		}
+		return nil, fmt.Errorf("anthropic API error (%d): %s", resp.StatusCode, string(respBody))
 	}
 
 	tokenChan := make(chan string)
@@ -527,24 +535,17 @@ func (a *AnthropicLLM) doStreamRequest(ctx context.Context, path string, body in
 		defer close(tokenChan)
 		defer resp.Body.Close()
 
-		decoder := json.NewDecoder(resp.Body)
-		for {
+		scanner := bufio.NewScanner(resp.Body)
+		for scanner.Scan() {
 			select {
 			case <-ctx.Done():
 				return
 			default:
 			}
 
-			// Read SSE events
-			var line string
-			if _, err := fmt.Fscanln(resp.Body, &line); err != nil {
-				if err == io.EOF {
-					return
-				}
-				continue
-			}
+			line := scanner.Text()
 
-			// Parse event data
+			// Parse SSE event data
 			if len(line) > 6 && line[:6] == "data: " {
 				data := line[6:]
 				if data == "[DONE]" {
@@ -565,7 +566,6 @@ func (a *AnthropicLLM) doStreamRequest(ctx context.Context, path string, body in
 				}
 			}
 		}
-		_ = decoder // Silence unused variable warning
 	}()
 
 	return tokenChan, nil

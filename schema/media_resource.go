@@ -23,7 +23,7 @@ const (
 // It also supports storing vector embeddings for the media content.
 type MediaResource struct {
 	// Embeddings is a multi-vector dict representation for embedding-based search/retrieval.
-	Embeddings map[EmbeddingKind][]float64 `json:"embeddings,omitempty"`
+	Embeddings map[EmbeddingKind][]float32 `json:"embeddings,omitempty"`
 	// Data is the raw binary data of the media content (base64 encoded).
 	Data []byte `json:"data,omitempty"`
 	// Text is the plain text representation of this resource.
@@ -39,7 +39,7 @@ type MediaResource struct {
 // NewMediaResource creates a new empty MediaResource.
 func NewMediaResource() *MediaResource {
 	return &MediaResource{
-		Embeddings: make(map[EmbeddingKind][]float64),
+		Embeddings: make(map[EmbeddingKind][]float32),
 	}
 }
 
@@ -48,7 +48,7 @@ func NewMediaResourceFromText(text string) *MediaResource {
 	return &MediaResource{
 		Text:       text,
 		MimeType:   "text/plain",
-		Embeddings: make(map[EmbeddingKind][]float64),
+		Embeddings: make(map[EmbeddingKind][]float32),
 	}
 }
 
@@ -57,7 +57,7 @@ func NewMediaResourceFromData(data []byte, mimeType string) *MediaResource {
 	return &MediaResource{
 		Data:       data,
 		MimeType:   mimeType,
-		Embeddings: make(map[EmbeddingKind][]float64),
+		Embeddings: make(map[EmbeddingKind][]float32),
 	}
 }
 
@@ -66,7 +66,7 @@ func NewMediaResourceFromPath(path string, mimeType string) *MediaResource {
 	return &MediaResource{
 		Path:       path,
 		MimeType:   mimeType,
-		Embeddings: make(map[EmbeddingKind][]float64),
+		Embeddings: make(map[EmbeddingKind][]float32),
 	}
 }
 
@@ -75,7 +75,7 @@ func NewMediaResourceFromURL(urlStr string, mimeType string) *MediaResource {
 	return &MediaResource{
 		URL:        urlStr,
 		MimeType:   mimeType,
-		Embeddings: make(map[EmbeddingKind][]float64),
+		Embeddings: make(map[EmbeddingKind][]float32),
 	}
 }
 
@@ -170,15 +170,15 @@ func (m *MediaResource) GetParsedURL() *url.URL {
 }
 
 // SetEmbedding sets an embedding for the given kind.
-func (m *MediaResource) SetEmbedding(kind EmbeddingKind, embedding []float64) {
+func (m *MediaResource) SetEmbedding(kind EmbeddingKind, embedding []float32) {
 	if m.Embeddings == nil {
-		m.Embeddings = make(map[EmbeddingKind][]float64)
+		m.Embeddings = make(map[EmbeddingKind][]float32)
 	}
 	m.Embeddings[kind] = embedding
 }
 
 // GetEmbedding returns the embedding for the given kind, or nil if not set.
-func (m *MediaResource) GetEmbedding(kind EmbeddingKind) []float64 {
+func (m *MediaResource) GetEmbedding(kind EmbeddingKind) []float32 {
 	if m.Embeddings == nil {
 		return nil
 	}
@@ -186,11 +186,11 @@ func (m *MediaResource) GetEmbedding(kind EmbeddingKind) []float64 {
 }
 
 // GetDenseEmbedding returns the dense embedding, or nil if not set.
-func (m *MediaResource) GetDenseEmbedding() []float64 {
+func (m *MediaResource) GetDenseEmbedding() []float32 {
 	return m.GetEmbedding(EmbeddingKindDense)
 }
 
 // GetSparseEmbedding returns the sparse embedding, or nil if not set.
-func (m *MediaResource) GetSparseEmbedding() []float64 {
+func (m *MediaResource) GetSparseEmbedding() []float32 {
 	return m.GetEmbedding(EmbeddingKindSparse)
 }

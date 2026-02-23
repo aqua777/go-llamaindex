@@ -28,7 +28,7 @@ func main() {
 
 	// 2. Create a persistent Vector Store
 	persistPath := "./chromem-db"
-	vectorStore, err := chromem.NewChromemStore(persistPath, "documents")
+	vectorStore, err := chromem.NewSimpleChromemStore(persistPath, "documents")
 	if err != nil {
 		log.Fatalf("Failed to create vector store: %v", err)
 	}

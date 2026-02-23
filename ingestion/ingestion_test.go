@@ -322,7 +322,7 @@ func TestIngestionPipeline(t *testing.T) {
 
 		// Create nodes with embeddings
 		inputNodes := []schema.Node{
-			{ID: "node1", Text: "Test", Embedding: []float64{0.1, 0.2, 0.3}},
+			{ID: "node1", Text: "Test", Embedding: []float32{0.1, 0.2, 0.3}},
 		}
 
 		_, err := pipeline.Run(ctx, nil, inputNodes)

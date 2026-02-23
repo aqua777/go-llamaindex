@@ -153,7 +153,7 @@ type TypedObjectRetriever[T any] struct {
 	// embedModel is the embedding model for similarity search.
 	embedModel embedding.EmbeddingModel
 	// nodeEmbeddings stores embeddings for each node.
-	nodeEmbeddings map[string][]float64
+	nodeEmbeddings map[string][]float32
 	// topK is the number of objects to retrieve.
 	topK int
 }
@@ -173,7 +173,7 @@ func NewTypedObjectRetriever[T any](mapping *TypedObjectNodeMapping[T], embedMod
 	r := &TypedObjectRetriever[T]{
 		mapping:        mapping,
 		embedModel:     embedModel,
-		nodeEmbeddings: make(map[string][]float64),
+		nodeEmbeddings: make(map[string][]float32),
 		topK:           3,
 	}
 

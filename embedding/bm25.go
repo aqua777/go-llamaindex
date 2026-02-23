@@ -183,7 +183,7 @@ func (bm *BM25) transform(text string) *SparseEmbedding {
 
 	// Calculate BM25 scores
 	var indices []int
-	var values []float64
+	var values []float32
 
 	for term, freq := range tf {
 		idx, exists := bm.vocabulary[term]
@@ -203,7 +203,7 @@ func (bm *BM25) transform(text string) *SparseEmbedding {
 
 		if score > 0 {
 			indices = append(indices, idx)
-			values = append(values, score)
+			values = append(values, float32(score))
 		}
 	}
 
@@ -221,7 +221,7 @@ func (b *BM25) transformQuery(query string) *SparseEmbedding {
 	// For queries, use IDF-weighted binary presence
 	seen := make(map[string]bool)
 	var indices []int
-	var values []float64
+	var values []float32
 
 	for _, token := range tokens {
 		if seen[token] {
@@ -237,7 +237,7 @@ func (b *BM25) transformQuery(query string) *SparseEmbedding {
 		idf := b.idf[token]
 		if idf > 0 {
 			indices = append(indices, idx)
-			values = append(values, idf)
+			values = append(values, float32(idf))
 		}
 	}
 
@@ -360,7 +360,7 @@ func (bp *BM25Plus) GetSparseEmbedding(ctx context.Context, text string) (*Spars
 	}
 
 	var indices []int
-	var values []float64
+	var values []float32
 
 	for term, freq := range tf {
 		idx, exists := bp.vocabulary[term]
@@ -380,7 +380,7 @@ func (bp *BM25Plus) GetSparseEmbedding(ctx context.Context, text string) (*Spars
 
 		if score > 0 {
 			indices = append(indices, idx)
-			values = append(values, score)
+			values = append(values, float32(score))
 		}
 	}
 
