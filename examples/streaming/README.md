@@ -134,7 +134,7 @@ startTime := time.Now()
 for token := range streamChan {
     response.WriteString(token)
     tokenCount++
-    
+
     // Update progress
     elapsed := time.Since(startTime)
     fmt.Printf("\r[Tokens: %d, Rate: %.1f/s]", tokenCount, float64(tokenCount)/elapsed.Seconds())

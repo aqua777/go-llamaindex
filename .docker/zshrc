@@ -1,0 +1,39 @@
+# --- History Configuration ---
+HISTSIZE=5000
+SAVEHIST=5000
+DEV_USER_HOME=/home/${DEV_USER_NAME}
+HISTFILE=${DEV_USER_HOME}/.zsh_history
+
+setopt SHARE_HISTORY
+setopt APPEND_HISTORY
+setopt INC_APPEND_HISTORY
+setopt HIST_IGNORE_ALL_DUPS # Don't record the same command twice
+
+# --- History Substring Search ---
+# This allows you to type 'ls' and press Up to see only previous 'ls' commands
+autoload -Uz up-line-or-beginning-search
+autoload -Uz down-line-or-beginning-search
+zle -N up-line-or-beginning-search
+zle -N down-line-or-beginning-search
+
+# Bind the keys (standard ANSI escape codes for Up/Down arrows)
+# Bind both common escape sequences for Up/Down
+bindkey "^[[A" up-line-or-beginning-search # Normal mode
+bindkey "^[OA" up-line-or-beginning-search # Application mode
+bindkey "^[[B" down-line-or-beginning-search # Normal mode
+bindkey "^[OB" down-line-or-beginning-search # Application mode
+
+# If you use a Mac or specific terminal that uses different codes:
+# bindkey "$terminfo[kcuu1]" up-line-or-beginning-search
+# bindkey "$terminfo[kcud1]" down-line-or-beginning-search
+
+# --- The Prompt ---
+PROMPT='%~ %(#.#.$) '
+
+alias ll='ls -l --color=auto'
+alias gs='git status'
+
+CARGO_ENV_FILE="${DEV_USER_HOME}/.cargo/env"
+if [ -f "${CARGO_ENV_FILE}" ]; then
+    . "${CARGO_ENV_FILE}"
+fi

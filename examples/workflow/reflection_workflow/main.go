@@ -118,7 +118,7 @@ Response:`, task)
 			fmt.Printf("[Critique] Evaluating draft (iteration %d)\n", iteration+1)
 
 			// Critique the draft
-			prompt := fmt.Sprintf(`Evaluate the following response to a task. 
+			prompt := fmt.Sprintf(`Evaluate the following response to a task.
 Provide a critique and a score from 1-10 (10 being perfect).
 
 Task: %s

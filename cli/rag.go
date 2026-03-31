@@ -236,7 +236,7 @@ func (r *RAGCommand) Query(ctx context.Context, question string) error {
 	context := strings.Join(contextParts, "\n\n---\n\n")
 
 	// Build prompt
-	systemPrompt := `You are a helpful assistant that answers questions based on the provided context. 
+	systemPrompt := `You are a helpful assistant that answers questions based on the provided context.
 If the context doesn't contain relevant information, say so. Be concise and accurate.`
 
 	userPrompt := fmt.Sprintf(`Context:

@@ -126,13 +126,13 @@ func NewMyComponent() *MyComponent {
     c := &MyComponent{
         BasePromptMixin: prompts.NewBasePromptMixin(),
     }
-    
+
     // Set prompts
     c.SetPrompt("main_prompt", prompts.NewPromptTemplate(...))
-    
+
     // Add sub-modules
     c.AddModule("retriever", retrieverComponent)
-    
+
     return c
 }
 

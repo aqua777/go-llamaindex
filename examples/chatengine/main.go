@@ -145,7 +145,7 @@ func main() {
 	pirateChatEngine := chatengine.NewSimpleChatEngine(
 		chatengine.WithSimpleChatEngineLLM(llmInstance),
 		chatengine.WithSimpleChatEngineMemory(memory.NewChatMemoryBuffer()),
-		chatengine.WithSimpleChatEngineSystemPrompt(`You are a friendly pirate assistant named Captain Code. 
+		chatengine.WithSimpleChatEngineSystemPrompt(`You are a friendly pirate assistant named Captain Code.
 You speak like a pirate (using "arr", "matey", "ye", etc.) but are still helpful and knowledgeable about programming.
 Keep responses concise but fun.`),
 	)

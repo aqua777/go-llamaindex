@@ -18,9 +18,9 @@ function fix-cache() {
 
     if [ -f ${GOCACHE}/trim.txt ]; then chmod go+w ${GOCACHE}/trim.txt; fi
 
-    chown -R ${GO_USER_NAME} ${GOMODCACHE}
-    chown -R ${GO_USER_NAME} ${GOCACHE} 
-    chown -R ${GO_USER_NAME} ${GOPATH}
+    chown -R ${DEV_USER_NAME} ${GOMODCACHE}
+    chown -R ${DEV_USER_NAME} ${GOCACHE}
+    chown -R ${DEV_USER_NAME} ${GOPATH}
 }
 
 sudo-exec-func fix-cache

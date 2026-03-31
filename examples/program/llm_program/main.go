@@ -134,8 +134,8 @@ Create a comprehensive summary.`,
 			prompts.PromptTypeCustom,
 		))
 
-	longText := `Artificial intelligence has transformed numerous industries over the past decade. 
-In healthcare, AI systems now assist doctors in diagnosing diseases from medical images with remarkable accuracy. 
+	longText := `Artificial intelligence has transformed numerous industries over the past decade.
+In healthcare, AI systems now assist doctors in diagnosing diseases from medical images with remarkable accuracy.
 The financial sector uses AI for fraud detection, algorithmic trading, and customer service automation.
 Manufacturing has embraced AI for quality control and predictive maintenance.
 However, these advances come with challenges including job displacement concerns, ethical considerations around bias in AI systems, and questions about data privacy.

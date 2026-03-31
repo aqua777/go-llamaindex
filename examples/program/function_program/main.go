@@ -184,8 +184,8 @@ Provide a thorough analysis.`,
 		analysisSchema,
 	).WithPrompt(analysisPrompt)
 
-	sampleText := `The new AI features in the latest smartphone are impressive. 
-The camera quality has improved significantly, and battery life is excellent. 
+	sampleText := `The new AI features in the latest smartphone are impressive.
+The camera quality has improved significantly, and battery life is excellent.
 However, the price increase is disappointing for many consumers.`
 
 	fmt.Println("\nAnalyzing text with custom prompt...")

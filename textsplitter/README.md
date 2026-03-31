@@ -96,10 +96,10 @@ func main() {
 	}
 
 	splitter := textsplitter.NewSentenceSplitter(1024, 200, nil, strategy)
-	
+
 	text := "Mr. Smith went to Washington. He bought a 5.5 in. display."
 	chunks := splitter.SplitText(text)
-	
+
 	// Should correctly handle "Mr." and "5.5 in." without splitting
 	fmt.Println(chunks)
 }
@@ -111,9 +111,9 @@ func main() {
 
 ```go
 func NewSentenceSplitter(
-    chunkSize int, 
-    chunkOverlap int, 
-    tokenizer Tokenizer, 
+    chunkSize int,
+    chunkOverlap int,
+    tokenizer Tokenizer,
     splitterStrategy SentenceSplitterStrategy,
 ) *SentenceSplitter
 ```
