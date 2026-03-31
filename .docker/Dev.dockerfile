@@ -9,7 +9,7 @@ ENV DEV_USER_NAME=${DEV_USER_NAME}
 
 COPY --chmod=0755 .docker/scripts/go-* /usr/local/bin/
 
-RUN apt-get update && apt-get install -y net-tools sqlite3 sudo zsh && \
+RUN apt-get update && apt-get install -y net-tools nodejs npm sqlite3 sudo zsh && \
     \
     groupadd -g "${DEV_USER_ID}" "${DEV_USER_NAME}" && \
     useradd -m -u "${DEV_USER_ID}" -g "${DEV_USER_ID}" "${DEV_USER_NAME}" && \
@@ -27,4 +27,12 @@ CMD ["/bin/zsh"]
 # ------------------------------------------------------------------------------
 FROM golang AS devcontainer
 
-RUN go env && bash /usr/local/bin/go-install-vscode-tools
+RUN go env && bash /usr/local/bin/go-install-vscode-tools && \
+    \
+    curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv* /usr/local/bin/ && \
+    \
+    npm install -g cclsp && \
+    npm install -g typescript-language-server && \
+    \
+    chown -R ${DEV_USER_NAME}:${DEV_USER_ID} /home/${DEV_USER_NAME}/.cache

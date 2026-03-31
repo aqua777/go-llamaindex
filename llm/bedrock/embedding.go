@@ -168,12 +168,12 @@ func NewEmbedding(opts ...EmbeddingOption) *Embedding {
 }
 
 // GetTextEmbedding generates an embedding for a given text.
-func (e *Embedding) GetTextEmbedding(ctx context.Context, text string) ([]float64, error) {
+func (e *Embedding) GetTextEmbedding(ctx context.Context, text string) ([]float32, error) {
 	return e.getEmbedding(ctx, text, "text")
 }
 
 // GetQueryEmbedding generates an embedding for a given query.
-func (e *Embedding) GetQueryEmbedding(ctx context.Context, query string) ([]float64, error) {
+func (e *Embedding) GetQueryEmbedding(ctx context.Context, query string) ([]float32, error) {
 	return e.getEmbedding(ctx, query, "query")
 }
 
@@ -190,7 +190,7 @@ func (e *Embedding) Info() embedding.EmbeddingInfo {
 }
 
 // GetTextEmbeddingsBatch generates embeddings for multiple texts.
-func (e *Embedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback embedding.ProgressCallback) ([][]float64, error) {
+func (e *Embedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, callback embedding.ProgressCallback) ([][]float32, error) {
 	provider := e.getProvider()
 
 	// Cohere supports batch embedding natively
@@ -199,7 +199,7 @@ func (e *Embedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, 
 	}
 
 	// For Amazon Titan, process one at a time
-	results := make([][]float64, len(texts))
+	results := make([][]float32, len(texts))
 	for i, text := range texts {
 		emb, err := e.GetTextEmbedding(ctx, text)
 		if err != nil {
@@ -214,7 +214,7 @@ func (e *Embedding) GetTextEmbeddingsBatch(ctx context.Context, texts []string, 
 }
 
 // getEmbedding generates an embedding for a given text.
-func (e *Embedding) getEmbedding(ctx context.Context, text string, inputType string) ([]float64, error) {
+func (e *Embedding) getEmbedding(ctx context.Context, text string, inputType string) ([]float32, error) {
 	e.logger.Info("getEmbedding called", "model", e.model, "text_len", len(text), "input_type", inputType)
 
 	provider := e.getProvider()
@@ -238,7 +238,7 @@ func (e *Embedding) getEmbedding(ctx context.Context, text string, inputType str
 }
 
 // getCohereBatchEmbeddings gets embeddings for multiple texts using Cohere's batch API.
-func (e *Embedding) getCohereBatchEmbeddings(ctx context.Context, texts []string, inputType string, callback embedding.ProgressCallback) ([][]float64, error) {
+func (e *Embedding) getCohereBatchEmbeddings(ctx context.Context, texts []string, inputType string, callback embedding.ProgressCallback) ([][]float32, error) {
 	e.logger.Info("getCohereBatchEmbeddings called", "model", e.model, "text_count", len(texts))
 
 	// Truncate texts to 2048 chars (Cohere limit)
@@ -343,7 +343,7 @@ func (e *Embedding) buildRequestBody(provider, text, inputType string) ([]byte, 
 }
 
 // parseResponse parses the response based on provider.
-func (e *Embedding) parseResponse(provider string, body []byte) ([]float64, error) {
+func (e *Embedding) parseResponse(provider string, body []byte) ([]float32, error) {
 	switch provider {
 	case "amazon":
 		return e.parseAmazonResponse(body)
@@ -362,9 +362,9 @@ func (e *Embedding) parseResponse(provider string, body []byte) ([]float64, erro
 }
 
 // parseAmazonResponse parses Amazon Titan embedding response.
-func (e *Embedding) parseAmazonResponse(body []byte) ([]float64, error) {
+func (e *Embedding) parseAmazonResponse(body []byte) ([]float32, error) {
 	var response struct {
-		Embedding []float64 `json:"embedding"`
+		Embedding []float32 `json:"embedding"`
 	}
 
 	if err := json.Unmarshal(body, &response); err != nil {
@@ -376,7 +376,7 @@ func (e *Embedding) parseAmazonResponse(body []byte) ([]float64, error) {
 
 // parseCohereResponse parses Cohere embedding response.
 // Handles both v3 and v4 response formats.
-func (e *Embedding) parseCohereResponse(body []byte, isBatch bool) ([][]float64, error) {
+func (e *Embedding) parseCohereResponse(body []byte, isBatch bool) ([][]float32, error) {
 	var response map[string]interface{}
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
@@ -394,7 +394,7 @@ func (e *Embedding) parseCohereResponse(body []byte, isBatch bool) ([][]float64,
 // extractCohereEmbeddings extracts embeddings from Cohere response.
 // Handles v3 format: {"embeddings": [[...]]}
 // Handles v4 format: {"embeddings": {"float": [[...]]}}
-func (e *Embedding) extractCohereEmbeddings(response map[string]interface{}) [][]float64 {
+func (e *Embedding) extractCohereEmbeddings(response map[string]interface{}) [][]float32 {
 	embeddings, ok := response["embeddings"]
 	if !ok {
 		return nil
@@ -403,39 +403,39 @@ func (e *Embedding) extractCohereEmbeddings(response map[string]interface{}) [][
 	// Check if it's a nested dict (v4 format)
 	if embMap, ok := embeddings.(map[string]interface{}); ok {
 		if floatEmb, ok := embMap["float"]; ok {
-			return e.convertToFloat64Slice(floatEmb)
+			return e.convertToFloat32Slice(floatEmb)
 		}
 		if nestedEmb, ok := embMap["embeddings"]; ok {
 			if nestedMap, ok := nestedEmb.(map[string]interface{}); ok {
 				if floatEmb, ok := nestedMap["float"]; ok {
-					return e.convertToFloat64Slice(floatEmb)
+					return e.convertToFloat32Slice(floatEmb)
 				}
 			}
-			return e.convertToFloat64Slice(nestedEmb)
+			return e.convertToFloat32Slice(nestedEmb)
 		}
 	}
 
 	// Direct array format (v3)
-	return e.convertToFloat64Slice(embeddings)
+	return e.convertToFloat32Slice(embeddings)
 }
 
-// convertToFloat64Slice converts interface{} to [][]float64.
-func (e *Embedding) convertToFloat64Slice(data interface{}) [][]float64 {
+// convertToFloat32Slice converts interface{} to [][]float32.
+func (e *Embedding) convertToFloat32Slice(data interface{}) [][]float32 {
 	arr, ok := data.([]interface{})
 	if !ok {
 		return nil
 	}
 
-	result := make([][]float64, len(arr))
+	result := make([][]float32, len(arr))
 	for i, item := range arr {
 		embArr, ok := item.([]interface{})
 		if !ok {
 			return nil
 		}
-		result[i] = make([]float64, len(embArr))
+		result[i] = make([]float32, len(embArr))
 		for j, val := range embArr {
 			if f, ok := val.(float64); ok {
-				result[i][j] = f
+				result[i][j] = float32(f)
 			}
 		}
 	}
