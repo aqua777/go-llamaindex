@@ -28,6 +28,15 @@ Demonstrates embedding-based semantic chunking with a mock embedding model (topi
 go run ./textsplitter/semantic-splitter/
 ```
 
+### 3. Semantic Double Merging (`semantic-double-merging/`)
+
+Splits a multi-topic document with the double-merging Jaccard similarity splitter, comparing two threshold presets (tighter vs looser).
+
+**Run (from `examples/`):**
+```bash
+go run ./textsplitter/semantic-double-merging/
+```
+
 ## Prerequisites
 
 - Go 1.21+
