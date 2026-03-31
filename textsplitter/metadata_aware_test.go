@@ -55,7 +55,7 @@ func (s *MetadataAwareTestSuite) TestEffectiveChunkSizeAfterMetadata_NegativeMet
 	s.Equal(100, effective)
 }
 
-func (s *MetadataAwareTestSuite) TestSplitTextMetadataAware_MoreChunksThanPlainSplit() {
+func (s *MetadataAwareTestSuite) TestSplitTextMetadataAware_AtLeastAsManyChunksAsPlainSplit() {
 	// Word tokens; long text so smaller effective chunk yields more chunks.
 	splitter := NewSentenceSplitter(100, 0, nil, nil)
 	meta := strings.Repeat("word ", 30) // 30 tokens; effective 70
