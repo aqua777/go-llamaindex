@@ -33,3 +33,30 @@ func buildNodesFromTextParts(
 	}
 	return base.PostProcessNodes(nodes, parentNode, parentDoc)
 }
+
+func applySourceNodeMetadata(nodes []*schema.Node, key, val string) {
+	for _, n := range nodes {
+		if n == nil {
+			continue
+		}
+		n.Metadata[key] = val
+	}
+}
+
+// appendNodesFromParsedTextParts builds nodes from parts, applies source metadata, appends to
+// allNodes, and emits complete. The caller must emit start (and error) before this when parsing
+// may fail after start.
+func appendNodesFromParsedTextParts(
+	base *BaseNodeParser,
+	allNodes *[]*schema.Node,
+	id string,
+	parts []textPart,
+	parentNode *schema.Node,
+	parentDoc *schema.Document,
+	sourceMetaKey, sourceMetaVal string,
+) {
+	nodes := buildNodesFromTextParts(base, parts, parentNode, parentDoc)
+	applySourceNodeMetadata(nodes, sourceMetaKey, sourceMetaVal)
+	*allNodes = append(*allNodes, nodes...)
+	base.EmitComplete(id, len(nodes))
+}

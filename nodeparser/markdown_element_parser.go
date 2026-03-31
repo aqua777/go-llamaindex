@@ -78,10 +78,7 @@ func (p *MarkdownElementNodeParser) appendMarkdownForSource(
 		p.EmitError(id, err)
 		return
 	}
-	nodes := buildNodesFromTextParts(p.BaseNodeParser, parts, parentNode, parentDoc)
-	applySourceNodeMetadata(nodes, sourceMetaKey, sourceMetaVal)
-	*allNodes = append(*allNodes, nodes...)
-	p.EmitComplete(id, len(nodes))
+	appendNodesFromParsedTextParts(p.BaseNodeParser, allNodes, id, parts, parentNode, parentDoc, sourceMetaKey, sourceMetaVal)
 }
 
 func newMarkdownGoldmark() goldmark.Markdown {

@@ -319,8 +319,12 @@ func TestNodeParserInterface(t *testing.T) {
 	// Verify implementations satisfy the interface
 	var _ NodeParser = &SentenceNodeParser{}
 	var _ NodeParser = &SimpleNodeParser{}
+	var _ NodeParser = &MarkdownElementNodeParser{}
+	var _ NodeParser = &UnstructuredElementNodeParser{}
 	var _ NodeParserWithOptions = &SentenceNodeParser{}
 	var _ NodeParserWithOptions = &SimpleNodeParser{}
+	var _ NodeParserWithOptions = &MarkdownElementNodeParser{}
+	var _ NodeParserWithOptions = &UnstructuredElementNodeParser{}
 }
 
 func TestNodeParserEventTypes(t *testing.T) {

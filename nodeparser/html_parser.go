@@ -93,9 +93,7 @@ func (p *HTMLNodeParser) appendParsedHTMLForSource(
 	}
 
 	nodes := buildNodesFromHTMLFragments(p.BaseNodeParser, frags, parentNode, parentDoc)
-	for _, n := range nodes {
-		n.Metadata[sourceMetaKey] = sourceMetaVal
-	}
+	applySourceNodeMetadata(nodes, sourceMetaKey, sourceMetaVal)
 
 	*allNodes = append(*allNodes, nodes...)
 	p.EmitComplete(id, len(nodes))
