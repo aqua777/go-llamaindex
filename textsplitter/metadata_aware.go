@@ -29,3 +29,11 @@ func EffectiveChunkSizeAfterMetadata(chunkSize, metadataTokenCount int) (int, er
 	}
 	return effective, nil
 }
+
+// EffectiveChunkSizeForMetadataAwareSplit returns the content chunk size (in tokenizer units)
+// after reserving space for metadata. It is shared by splitters that clone themselves with a
+// reduced ChunkSize for metadata-aware splitting.
+func EffectiveChunkSizeForMetadataAwareSplit(chunkSize int, tokenizer Tokenizer, metadata string) (int, error) {
+	mt := MetadataTokenCount(tokenizer, metadata)
+	return EffectiveChunkSizeAfterMetadata(chunkSize, mt)
+}

@@ -61,12 +61,14 @@ func TestTokenTextSplitter_WithKeepSeparator(t *testing.T) {
 }
 
 func TestTokenTextSplitter_MetadataAware(t *testing.T) {
-	splitter := NewTokenTextSplitter(20, 0)
+	// Chunk size must leave an effective window >= MinEffectiveContentChunkTokens after metadata.
+	splitter := NewTokenTextSplitter(100, 0)
 
 	text := "This is some text that should be split into chunks."
 	metadata := "filename: test.txt, author: John"
 
-	chunksWithMeta := splitter.SplitTextMetadataAware(text, metadata)
+	chunksWithMeta, err := splitter.SplitTextMetadataAware(text, metadata)
+	require.NoError(t, err)
 	chunksWithoutMeta := splitter.SplitText(text)
 
 	// With metadata, chunks should be smaller or equal
@@ -211,12 +213,13 @@ func TestMarkdownSplitter_NoHeaders(t *testing.T) {
 }
 
 func TestMarkdownSplitter_MetadataAware(t *testing.T) {
-	splitter := NewMarkdownSplitter(50, 0)
+	splitter := NewMarkdownSplitter(100, 0)
 
 	text := "# Header\n\nSome content that should be split based on available space."
 	metadata := "source: document.md"
 
-	chunks := splitter.SplitTextMetadataAware(text, metadata)
+	chunks, err := splitter.SplitTextMetadataAware(text, metadata)
+	require.NoError(t, err)
 
 	require.NotEmpty(t, chunks)
 }

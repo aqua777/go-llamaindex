@@ -19,6 +19,14 @@ func (s *MetadataAwareTestSuite) TestCompileTime_SentenceSplitterIsMetadataAware
 	var _ MetadataAwareTextSplitter = (*SentenceSplitter)(nil)
 }
 
+func (s *MetadataAwareTestSuite) TestCompileTime_TokenTextSplitterIsMetadataAware() {
+	var _ MetadataAwareTextSplitter = (*TokenTextSplitter)(nil)
+}
+
+func (s *MetadataAwareTestSuite) TestCompileTime_MarkdownSplitterIsMetadataAware() {
+	var _ MetadataAwareTextSplitter = (*MarkdownSplitter)(nil)
+}
+
 func (s *MetadataAwareTestSuite) TestMetadataTokenCount_NilTokenizer() {
 	s.Equal(0, MetadataTokenCount(nil, "hello world"))
 }

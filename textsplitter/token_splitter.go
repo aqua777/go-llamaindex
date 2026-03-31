@@ -269,15 +269,12 @@ func (s *TokenTextSplitter) postProcess(chunks []string) []string {
 }
 
 // SplitTextMetadataAware splits text accounting for metadata token usage.
-func (s *TokenTextSplitter) SplitTextMetadataAware(text string, metadata string) []string {
-	metadataTokens := s.tokenLength(metadata)
-	effectiveChunkSize := s.ChunkSize - metadataTokens
-
-	if effectiveChunkSize < 1 {
-		effectiveChunkSize = 1
+func (s *TokenTextSplitter) SplitTextMetadataAware(text string, metadata string) ([]string, error) {
+	effectiveChunkSize, err := EffectiveChunkSizeForMetadataAwareSplit(s.ChunkSize, s.Tokenizer, metadata)
+	if err != nil {
+		return nil, err
 	}
 
-	// Create a temporary splitter with reduced chunk size
 	tempSplitter := &TokenTextSplitter{
 		ChunkSize:     effectiveChunkSize,
 		ChunkOverlap:  s.ChunkOverlap,
@@ -286,5 +283,5 @@ func (s *TokenTextSplitter) SplitTextMetadataAware(text string, metadata string)
 		KeepSeparator: s.KeepSeparator,
 	}
 
-	return tempSplitter.SplitText(text)
+	return tempSplitter.SplitText(text), nil
 }
