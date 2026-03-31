@@ -19,6 +19,15 @@ Demonstrates splitting text into chunks using sentence boundaries.
 cd sentence-splitter && go run main.go
 ```
 
+### 2. Semantic Splitter (`semantic-splitter/`)
+
+Demonstrates embedding-based semantic chunking with a mock embedding model (topic vectors).
+
+**Run (from `examples/`):**
+```bash
+go run ./textsplitter/semantic-splitter/
+```
+
 ## Prerequisites
 
 - Go 1.21+

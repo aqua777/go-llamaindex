@@ -367,6 +367,7 @@ func TestTextSplitterInterface(t *testing.T) {
 	var _ TextSplitter = &SentenceWindowSplitter{}
 	var _ TextSplitter = &SentenceSplitter{}
 	var _ TextSplitter = &CodeSplitter{}
+	var _ TextSplitter = &SemanticSplitterNodeParser{}
 }
 
 // ============================================================================
