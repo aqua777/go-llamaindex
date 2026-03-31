@@ -5,6 +5,15 @@ type TextSplitter interface {
 	SplitText(text string) []string
 }
 
+// MetadataAwareTextSplitter splits text while accounting for metadata length
+// (e.g. reserved context window for metadata in RAG).
+type MetadataAwareTextSplitter interface {
+	TextSplitter
+
+	// SplitTextMetadataAware splits text into chunks, accounting for metadata length.
+	SplitTextMetadataAware(text string, metadata string) ([]string, error)
+}
+
 // Tokenizer is the interface for tokenizing text.
 // It encodes text into a list of string tokens.
 type Tokenizer interface {
