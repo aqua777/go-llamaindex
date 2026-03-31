@@ -202,21 +202,12 @@ func buildNodesFromHTMLFragments(
 	if len(fragments) == 0 {
 		return nil
 	}
-	splits := make([]string, len(fragments))
+	parts := make([]textPart, len(fragments))
 	for i := range fragments {
-		splits[i] = fragments[i].Text
+		parts[i] = textPart{
+			Text: fragments[i].Text,
+			Meta: map[string]interface{}{MetadataKeyHTMLTag: fragments[i].Tag},
+		}
 	}
-	nodes := make([]*schema.Node, len(splits))
-	for i, text := range splits {
-		node := schema.NewNode()
-		node.ID = base.GenerateID()
-		node.Text = text
-		node.Type = schema.ObjectTypeText
-		node.Metadata[MetadataKeyHTMLTag] = fragments[i].Tag
-		node.Metadata["chunk_index"] = i
-		node.Metadata["chunk_count"] = len(splits)
-		node.Hash = node.GenerateHash()
-		nodes[i] = node
-	}
-	return base.PostProcessNodes(nodes, parentNode, parentDoc)
+	return buildNodesFromTextParts(base, parts, parentNode, parentDoc)
 }
