@@ -56,7 +56,7 @@ func (s *SimpleVectorStore) Query(ctx context.Context, query schema.VectorStoreQ
 
 	for id, node := range s.nodes {
 		// Apply filters if present
-		if !matchesFilters(node.Metadata, query.Filters) {
+		if !MatchesFilters(node.Metadata, query.Filters) {
 			continue
 		}
 
@@ -125,7 +125,7 @@ func (s *SimpleVectorStore) DeleteByFilter(ctx context.Context, filters *schema.
 
 	var toDelete []string
 	for id, node := range s.nodes {
-		if matchesFilters(node.Metadata, filters) {
+		if MatchesFilters(node.Metadata, filters) {
 			toDelete = append(toDelete, id)
 		}
 	}
@@ -148,7 +148,7 @@ func (s *SimpleVectorStore) Count(ctx context.Context, filters *schema.MetadataF
 
 	count := 0
 	for _, node := range s.nodes {
-		if matchesFilters(node.Metadata, filters) {
+		if MatchesFilters(node.Metadata, filters) {
 			count++
 		}
 	}
@@ -174,52 +174,3 @@ func cosineSimilarity(a, b []float32) (float64, error) {
 	return dotProduct / (math.Sqrt(normA) * math.Sqrt(normB)), nil
 }
 
-// matchesFilters checks if node metadata matches the filter criteria.
-// Supports AND/OR conditions and comparison operators.
-func matchesFilters(metadata map[string]interface{}, filters *schema.MetadataFilters) bool {
-	if filters == nil || len(filters.Filters) == 0 {
-		return true
-	}
-
-	// Evaluate each filter based on condition (AND by default)
-	condition := filters.Condition
-	if condition == "" {
-		condition = schema.FilterConditionAnd
-	}
-
-	for _, filter := range filters.Filters {
-		match := evaluateFilter(metadata, filter)
-
-		if condition == schema.FilterConditionAnd && !match {
-			return false
-		}
-		if condition == schema.FilterConditionOr && match {
-			return true
-		}
-	}
-
-	// For AND: all passed; for OR: none matched
-	return condition == schema.FilterConditionAnd
-}
-
-// evaluateFilter checks if a single filter matches the metadata.
-func evaluateFilter(metadata map[string]interface{}, f schema.MetadataFilter) bool {
-	val, ok := metadata[f.Key]
-	if !ok {
-		return f.Operator == schema.FilterOperatorIsEmpty
-	}
-
-	valStr := fmt.Sprintf("%v", val)
-	filterValStr := fmt.Sprintf("%v", f.Value)
-
-	switch f.Operator {
-	case schema.FilterOperatorEq:
-		return valStr == filterValStr
-	case schema.FilterOperatorNe:
-		return valStr != filterValStr
-	case schema.FilterOperatorIsEmpty:
-		return false // Key exists, so not empty
-	default:
-		return false
-	}
-}
