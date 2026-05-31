@@ -107,20 +107,19 @@ func run() error {
 	printResults(hybridResults)
 
 	// End-to-end with VectorRetriever in hybrid mode.
+	// VectorRetriever does not expose alpha directly, so we wrap the store
+	// with a thin alphaStore that injects the desired alpha into every Query.
 	fmt.Println(sep)
 	fmt.Println("VectorRetriever — hybrid mode (alpha=0.7, denser weight)")
 	fmt.Println(sep)
 	a := 0.7
 	mockEmb := embedding.NewMockEmbeddingModel(queryEmb)
 	vr := retriever.NewVectorRetriever(
-		vs,
+		&alphaStore{VectorStore: vs, alpha: a},
 		mockEmb,
 		retriever.WithTopK(4),
 		retriever.WithQueryMode(schema.QueryModeHybrid),
 	)
-	// Alpha must be set on the store query; VectorRetriever does not expose
-	// alpha directly — pass it through a thin wrapper store.
-	_ = a
 	retrieverResults, err := vr.Retrieve(ctx, schema.QueryBundle{QueryString: query})
 	if err != nil {
 		return fmt.Errorf("retriever hybrid query: %w", err)
@@ -176,4 +175,17 @@ func truncate(s string, maxLen int) string {
 		return s
 	}
 	return s[:maxLen] + "..."
+}
+
+// alphaStore wraps a VectorStore and injects a fixed alpha value into every
+// hybrid Query call. VectorRetriever does not expose alpha directly, so this
+// thin wrapper is used in the demo to demonstrate a specific alpha value.
+type alphaStore struct {
+	store.VectorStore
+	alpha float64
+}
+
+func (a *alphaStore) Query(ctx context.Context, query schema.VectorStoreQuery) ([]schema.NodeWithScore, error) {
+	query.Alpha = &a.alpha
+	return a.VectorStore.Query(ctx, query)
 }

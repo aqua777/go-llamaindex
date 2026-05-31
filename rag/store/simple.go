@@ -393,7 +393,8 @@ func (s *SimpleVectorStore) Count(ctx context.Context, filters *schema.MetadataF
 }
 
 // sortScoresDesc sorts a slice of {id, score} pairs in descending score order
-// using a stable bubble sort (corpus sizes are small).
+// using a selection sort. Equal scores are broken by node ID ascending so that
+// results are deterministic regardless of map iteration order.
 type scoreResult struct {
 	id    string
 	score float64
@@ -402,7 +403,9 @@ type scoreResult struct {
 func sortScoresDesc(scores []scoreResult) {
 	for i := 0; i < len(scores); i++ {
 		for j := i + 1; j < len(scores); j++ {
-			if scores[j].score > scores[i].score {
+			less := scores[j].score > scores[i].score ||
+				(scores[j].score == scores[i].score && scores[j].id < scores[i].id)
+			if less {
 				scores[i], scores[j] = scores[j], scores[i]
 			}
 		}
