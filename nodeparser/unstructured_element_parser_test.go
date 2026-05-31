@@ -67,3 +67,26 @@ func TestUnstructuredElementNodeParser_ParseNodes(t *testing.T) {
 	assert.Equal(t, "paragraph", out[0].Metadata[MetadataKeyUnstructuredElement])
 	assert.True(t, strings.Contains(out[0].Text, "Line one"))
 }
+
+func TestUnstructuredElementNodeParser_Options(t *testing.T) {
+	p := NewUnstructuredElementNodeParser().
+		WithIncludeMetadata(false).
+		WithIncludePrevNextRel(false)
+
+	docs := []schema.Document{
+		{
+			ID: "doc-opts", 
+			Text: "A\n\nB\n\nC\n",
+			Metadata: map[string]interface{}{"parent_meta": "value"},
+		},
+	}
+	nodes := p.GetNodesFromDocuments(docs)
+	require.Len(t, nodes, 3)
+
+	// Check metadata from parent is not included
+	assert.NotContains(t, nodes[0].Metadata, "parent_meta")
+
+	// Check prev/next rels are not included
+	assert.Nil(t, nodes[0].Relationships.GetNext())
+	assert.Nil(t, nodes[1].Relationships.GetPrevious())
+}

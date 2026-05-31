@@ -73,3 +73,19 @@ func (s *MetadataAwareTestSuite) TestSplitTextMetadataAware_MetadataTooLarge() {
 	_, err := splitter.SplitTextMetadataAware("short text here", meta)
 	s.Error(err)
 }
+
+func (s *MetadataAwareTestSuite) TestEffectiveChunkSizeForMetadataAwareSplit_OK() {
+	tokenizer, _ := NewTikTokenTokenizer("gpt-3.5-turbo")
+	// "hello world" is 2 tokens
+	effective, err := EffectiveChunkSizeForMetadataAwareSplit(100, tokenizer, "hello world")
+	s.NoError(err)
+	s.Equal(98, effective)
+}
+
+func (s *MetadataAwareTestSuite) TestEffectiveChunkSizeForMetadataAwareSplit_TooLarge() {
+	tokenizer, _ := NewTikTokenTokenizer("gpt-3.5-turbo")
+	// "hello world" is 2 tokens
+	_, err := EffectiveChunkSizeForMetadataAwareSplit(50, tokenizer, "hello world")
+	s.Error(err)
+	s.Contains(err.Error(), "metadata length")
+}

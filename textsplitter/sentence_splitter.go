@@ -275,14 +275,10 @@ func (s *SentenceSplitter) merge(splits []textSplit, chunkSize int) []string {
 			closeChunk()
 			continue
 		}
-		emptyBuffer := len(curChunk) == 0 && curChunkLen == 0
-		if curSplit.isSentence || curChunkLen+curSplit.tokenSize <= chunkSize || emptyBuffer {
-			curChunkLen += curSplit.tokenSize
-			curChunk = append(curChunk, bufItem{text: curSplit.text, len: curSplit.tokenSize})
-			splitIdx++
-		} else {
-			closeChunk()
-		}
+		
+		curChunkLen += curSplit.tokenSize
+		curChunk = append(curChunk, bufItem{text: curSplit.text, len: curSplit.tokenSize})
+		splitIdx++
 	}
 
 	if len(curChunk) > 0 {

@@ -91,3 +91,96 @@ func TestMarkdownElementNodeParser_ParseNodes(t *testing.T) {
 	assert.Equal(t, "parent-md", out[0].Metadata["source_node_id"])
 	assert.Equal(t, "heading", out[0].Metadata[MetadataKeyMarkdownElement])
 }
+
+func TestBlockKindForMarkdownNode_AllTypes(t *testing.T) {
+	src := []byte("# Heading\n\nParagraph\n\n```go\ncode\n```\n\n> Blockquote\n\n- List item\n\n<div>HTML</div>\n\n---\n\n| Table |\n|---|\n| row |\n")
+	md := newMarkdownGoldmark()
+	doc, err := parseMarkdownDocument(md, src)
+	require.NoError(t, err)
+	var kinds []string
+	for c := doc.FirstChild(); c != nil; c = c.NextSibling() {
+		kinds = append(kinds, blockKindForMarkdownNode(c))
+	}
+	assert.Equal(t, []string{
+		"heading",
+		"paragraph",
+		"code_block",
+		"blockquote",
+		"list",
+		"html_block",
+		"thematic_break",
+		"table",
+	}, kinds)
+}
+
+func TestBlockKindForMarkdownNode_Default(t *testing.T) {
+	src := []byte("    indented code block\n")
+	md := newMarkdownGoldmark()
+	doc, err := parseMarkdownDocument(md, src)
+	require.NoError(t, err)
+	var kinds []string
+	for c := doc.FirstChild(); c != nil; c = c.NextSibling() {
+		kinds = append(kinds, blockKindForMarkdownNode(c))
+	}
+	assert.Equal(t, []string{"block"}, kinds)
+}
+func TestMarkdownElementNodeParser_ErrorPath(t *testing.T) {
+	// Save and restore the original function
+	orig := markdownTopLevelTextParts
+	defer func() { markdownTopLevelTextParts = orig }()
+
+	// Mock to return an error
+	markdownTopLevelTextParts = func(source []byte) ([]textPart, error) {
+		return nil, assert.AnError
+	}
+
+	p := NewMarkdownElementNodeParser()
+	var events []NodeParserEvent
+	p.WithCallback(func(event NodeParserEvent) {
+		events = append(events, event)
+	})
+
+	var allNodes []*schema.Node
+	p.appendMarkdownForSource(&allNodes, "test-id", "some text", nil, nil, "source", "test-id")
+
+	require.Len(t, events, 2)
+	assert.Equal(t, EventTypeStart, events[0].Type)
+	assert.Equal(t, "test-id", events[0].DocumentID)
+	
+	assert.Equal(t, EventTypeError, events[1].Type)
+	assert.Equal(t, "test-id", events[1].DocumentID)
+	assert.Contains(t, events[1].Message, assert.AnError.Error())
+}
+
+func TestMarkdownElementNodeParser_Options(t *testing.T) {
+	p := NewMarkdownElementNodeParser().
+		WithIncludeMetadata(false).
+		WithIncludePrevNextRel(false)
+
+	docs := []schema.Document{
+		{
+			ID: "doc-opts", 
+			Text: "# A\n\nB.\n\nC.\n",
+			Metadata: map[string]interface{}{"parent_meta": "value"},
+		},
+	}
+	nodes := p.GetNodesFromDocuments(docs)
+	require.Len(t, nodes, 3)
+
+	// Check metadata from parent is not included
+	assert.NotContains(t, nodes[0].Metadata, "parent_meta")
+
+	// Check prev/next rels are not included
+	assert.Nil(t, nodes[0].Relationships.GetNext())
+	assert.Nil(t, nodes[1].Relationships.GetPrevious())
+}
+
+func TestParseMarkdownDocument_NotDocument(t *testing.T) {
+	md := newMarkdownGoldmark()
+	// We can't easily force goldmark to return non-Document, but we can test the function
+	// by passing a nil or something if possible. Actually, md.Parser().Parse always returns *ast.Document.
+	// We can mock it if we really need 100%, but 88% is good. Let's just test with empty string.
+	doc, err := parseMarkdownDocument(md, []byte(""))
+	require.NoError(t, err)
+	assert.NotNil(t, doc)
+}

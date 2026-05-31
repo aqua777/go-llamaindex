@@ -185,7 +185,7 @@ func tableCellsRowText(source []byte, n ast.Node) string {
 	return strings.Join(cells, " | ")
 }
 
-func markdownTopLevelTextParts(source []byte) ([]textPart, error) {
+var markdownTopLevelTextParts = func(source []byte) ([]textPart, error) {
 	md := newMarkdownGoldmark()
 	doc, err := parseMarkdownDocument(md, source)
 	if err != nil {

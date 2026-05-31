@@ -109,3 +109,26 @@ func TestLangchainNodeParser_SplitError_EmitsAndSkips(t *testing.T) {
 	assert.True(t, gotStart)
 	assert.True(t, gotErr)
 }
+
+func TestLangchainNodeParser_Options(t *testing.T) {
+	p := NewLangchainNodeParser(&mockLangchainSplitter{sep: " | "}).
+		WithIncludeMetadata(false).
+		WithIncludePrevNextRel(false)
+
+	docs := []schema.Document{
+		{
+			ID: "doc-opts", 
+			Text: "A | B | C",
+			Metadata: map[string]interface{}{"parent_meta": "value"},
+		},
+	}
+	nodes := p.GetNodesFromDocuments(docs)
+	require.Len(t, nodes, 3)
+
+	// Check metadata from parent is not included
+	assert.NotContains(t, nodes[0].Metadata, "parent_meta")
+
+	// Check prev/next rels are not included
+	assert.Nil(t, nodes[0].Relationships.GetNext())
+	assert.Nil(t, nodes[1].Relationships.GetPrevious())
+}
