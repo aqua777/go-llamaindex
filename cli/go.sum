@@ -1,7 +1,5 @@
 github.com/aqua777/krait v0.0.1 h1:DX8hGaZWzjyrGgQXHbuDQEl3jjAD/RAchAyYXaunQYE=
-github.com/aqua777/krait v0.0.1/go.mod h1:JNiXYBwXOQ/0r0YarRDdkWZQWRdOa+YpSVIueP+bIOQ=
-github.com/aqua777/krait/testing v0.0.0-20250823172035-5bce5a842776 h1:ezVzfhsmYw6C5rAwwSE0TZ3G5YFUO1/1+gGu8diAn0M=
-github.com/aqua777/krait/testing v0.0.0-20250823172035-5bce5a842776/go.mod h1:uLUmJy3z7mM2ti2KHpd9OVTEZ/M+mJOXZD+PHTG2Wl4=
+github.com/aqua777/krait v0.0.1/go.mod h1:7XVdkUZwZOweqoI94LQJjMzkpWQMZVylBvkPzIUt+iY=
 github.com/cpuguy83/go-md2man/v2 v2.0.6/go.mod h1:oOW0eioCTA6cOiMLiUPZOpcVxMig6NIQQ7OS05n1F4g=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

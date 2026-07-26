@@ -375,24 +375,24 @@ func compactTextChunks(chunks []string, maxSize int) []string {
 // getSampleDocuments returns sample documents for demonstration.
 func getSampleDocuments() []schema.Node {
 	texts := []string{
-		`Artificial Intelligence (AI) is transforming industries worldwide. Machine learning, 
-a subset of AI, enables computers to learn from data without explicit programming. 
-Deep learning, using neural networks with multiple layers, has achieved breakthrough 
+		`Artificial Intelligence (AI) is transforming industries worldwide. Machine learning,
+a subset of AI, enables computers to learn from data without explicit programming.
+Deep learning, using neural networks with multiple layers, has achieved breakthrough
 results in image recognition, natural language processing, and game playing.`,
 
-		`The applications of AI span healthcare, finance, transportation, and entertainment. 
-In healthcare, AI assists in diagnosis and drug discovery. Financial institutions use 
-AI for fraud detection and algorithmic trading. Self-driving cars rely on AI for 
+		`The applications of AI span healthcare, finance, transportation, and entertainment.
+In healthcare, AI assists in diagnosis and drug discovery. Financial institutions use
+AI for fraud detection and algorithmic trading. Self-driving cars rely on AI for
 perception and decision-making.`,
 
-		`Ethical considerations in AI include bias in training data, job displacement, 
-privacy concerns, and the need for explainable AI. Researchers and policymakers are 
-working on frameworks to ensure AI development benefits society while minimizing risks. 
+		`Ethical considerations in AI include bias in training data, job displacement,
+privacy concerns, and the need for explainable AI. Researchers and policymakers are
+working on frameworks to ensure AI development benefits society while minimizing risks.
 Responsible AI practices are becoming industry standards.`,
 
-		`The future of AI includes advances in general artificial intelligence, quantum 
-machine learning, and neuromorphic computing. Edge AI brings intelligence to devices 
-without cloud connectivity. AI is expected to augment human capabilities rather than 
+		`The future of AI includes advances in general artificial intelligence, quantum
+machine learning, and neuromorphic computing. Edge AI brings intelligence to devices
+without cloud connectivity. AI is expected to augment human capabilities rather than
 replace them entirely, leading to new forms of human-AI collaboration.`,
 	}
 

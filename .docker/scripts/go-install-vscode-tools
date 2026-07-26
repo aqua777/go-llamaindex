@@ -27,10 +27,17 @@ function install-tools() {
         ${CMD}
     done
 
+    echo "Installing dlv-dap..."
+    if ! command -v dlv &> /dev/null; then
+        echo "dlv not found!"
+        return 0
+    fi
+
     DLV_BINARY=$(command -v dlv)
+    echo "DLV_BINARY: ${DLV_BINARY}"
     DLV_DAP_BINARY=$(dirname ${DLV_BINARY})/dlv-dap
-    ln -s ${DLV_BINARY} ${DLV_DAP_BINARY}
-    echo "Linked ${DLV_DAP_BINARY} to ${DLV_BINARY};"
+    (ln -s ${DLV_BINARY} ${DLV_DAP_BINARY} && echo "Linked ${DLV_DAP_BINARY} to ${DLV_BINARY};") || \
+    (echo "Failed to link '${DLV_DAP_BINARY}' to '${DLV_BINARY}';")
 }
 
 GO_BINARY=$(command -v go)

@@ -70,7 +70,7 @@ func TestValidator(t *testing.T) {
 		v := NewValidator()
 		v.RequirePositive(10, "field")
 		v.RequireNotEmpty("value", "field")
-		
+
 		if v.HasErrors() {
 			t.Error("expected no errors")
 		}
@@ -83,7 +83,7 @@ func TestValidator(t *testing.T) {
 		v := NewValidator()
 		v.RequirePositive(-1, "field1")
 		v.RequireNotEmpty("", "field2")
-		
+
 		if !v.HasErrors() {
 			t.Error("expected errors")
 		}

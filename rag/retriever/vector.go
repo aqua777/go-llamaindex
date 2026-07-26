@@ -76,6 +76,11 @@ func (vr *VectorRetriever) Retrieve(ctx context.Context, query schema.QueryBundl
 		Mode:      vr.Mode,
 	}
 
+	// Forward QueryStr for modes that require it.
+	if vr.Mode == schema.QueryModeSparse || vr.Mode == schema.QueryModeHybrid {
+		storeQuery.QueryStr = query.QueryString
+	}
+
 	// Query vector store
 	nodes, err := vr.VectorStore.Query(ctx, storeQuery)
 	if err != nil {

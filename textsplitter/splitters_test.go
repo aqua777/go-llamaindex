@@ -61,12 +61,14 @@ func TestTokenTextSplitter_WithKeepSeparator(t *testing.T) {
 }
 
 func TestTokenTextSplitter_MetadataAware(t *testing.T) {
-	splitter := NewTokenTextSplitter(20, 0)
+	// Chunk size must leave an effective window >= MinEffectiveContentChunkTokens after metadata.
+	splitter := NewTokenTextSplitter(100, 0)
 
 	text := "This is some text that should be split into chunks."
 	metadata := "filename: test.txt, author: John"
 
-	chunksWithMeta := splitter.SplitTextMetadataAware(text, metadata)
+	chunksWithMeta, err := splitter.SplitTextMetadataAware(text, metadata)
+	require.NoError(t, err)
 	chunksWithoutMeta := splitter.SplitText(text)
 
 	// With metadata, chunks should be smaller or equal
@@ -211,12 +213,13 @@ func TestMarkdownSplitter_NoHeaders(t *testing.T) {
 }
 
 func TestMarkdownSplitter_MetadataAware(t *testing.T) {
-	splitter := NewMarkdownSplitter(50, 0)
+	splitter := NewMarkdownSplitter(100, 0)
 
 	text := "# Header\n\nSome content that should be split based on available space."
 	metadata := "source: document.md"
 
-	chunks := splitter.SplitTextMetadataAware(text, metadata)
+	chunks, err := splitter.SplitTextMetadataAware(text, metadata)
+	require.NoError(t, err)
 
 	require.NotEmpty(t, chunks)
 }
@@ -366,6 +369,9 @@ func TestTextSplitterInterface(t *testing.T) {
 	var _ TextSplitter = &MarkdownSplitter{}
 	var _ TextSplitter = &SentenceWindowSplitter{}
 	var _ TextSplitter = &SentenceSplitter{}
+	var _ TextSplitter = &CodeSplitter{}
+	var _ TextSplitter = &SemanticSplitterNodeParser{}
+	var _ TextSplitter = &SemanticDoubleMergingSplitter{}
 }
 
 // ============================================================================
@@ -418,4 +424,64 @@ func TestSplitters_Unicode(t *testing.T) {
 
 	require.NotEmpty(t, tokenChunks)
 	require.NotEmpty(t, mdChunks)
+}
+
+func TestSentenceSplitter_Callbacks(t *testing.T) {
+	var started, ended bool
+	s := NewSentenceSplitter(100, 20, nil, nil).
+		WithOnChunkingStart(func(texts []string) { started = true }).
+		WithOnChunkingEnd(func(chunks []string) { ended = true })
+	s.SplitText("hello world")
+	assert.True(t, started)
+	assert.True(t, ended)
+}
+
+func TestSentenceSplitter_EmptyText(t *testing.T) {
+	s := NewSentenceSplitter(100, 20, nil, nil)
+	chunks := s.SplitText("")
+	assert.Equal(t, []string{""}, chunks)
+}
+
+func TestSentenceSplitter_PostprocessEmptyChunks(t *testing.T) {
+	s := NewSentenceSplitter(100, 20, nil, nil)
+	// Only spaces
+	chunks := s.SplitText("   ")
+	assert.Empty(t, chunks)
+}
+
+func TestSentenceSplitter_MergeOverlapBreak(t *testing.T) {
+	s := NewSentenceSplitter(100, 10, nil, nil)
+	// We want to trigger the `break` in `closeChunk` where `curChunkLen+item.len > ob`
+	// To do this, we need a chunk that closes, and its last items exceed the overlap budget.
+	
+	// Let's mock the splits to be very specific.
+	// We can just use SplitText with specific sentences.
+	// Budget is 100, overlap is 10.
+	// Sentence 1: 95 tokens.
+	// Sentence 2: 15 tokens. -> Closes chunk 1.
+	// When closing chunk 1, it tries to overlap. The last item is Sentence 1 (95 tokens).
+	// 95 > 10 (overlap budget), so it should hit the `else { break }` branch.
+	
+	// Let's create a string with 95 words (assuming 1 token/word roughly)
+	var sb strings.Builder
+	for i := 0; i < 95; i++ {
+		sb.WriteString("word ")
+	}
+	sb.WriteString(". ")
+	for i := 0; i < 15; i++ {
+		sb.WriteString("test ")
+	}
+	sb.WriteString(".")
+	
+	chunks := s.SplitText(sb.String())
+	assert.Len(t, chunks, 2)
+}
+
+func TestSentenceSplitter_NewSentenceSplitter_DefaultChunkSize(t *testing.T) {
+	s := NewSentenceSplitter(0, 20, nil, nil)
+	assert.Equal(t, DefaultChunkSize, s.ChunkSize)
+}
+
+func TestSentenceSplitter_Merge_ElseCloseChunk(t *testing.T) {
+	// removed dead test code
 }

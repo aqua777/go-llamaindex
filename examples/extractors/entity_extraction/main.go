@@ -115,9 +115,9 @@ func main() {
 	climateNodes := []*schema.Node{
 		{
 			ID: "climate1",
-			Text: `The Paris Agreement, adopted in 2015, aims to limit global warming to 1.5°C above pre-industrial levels. 
-The Intergovernmental Panel on Climate Change (IPCC) reported that global temperatures have already risen by 1.1°C. 
-Key signatories include the United States, China, and the European Union. The agreement requires countries to submit 
+			Text: `The Paris Agreement, adopted in 2015, aims to limit global warming to 1.5°C above pre-industrial levels.
+The Intergovernmental Panel on Climate Change (IPCC) reported that global temperatures have already risen by 1.1°C.
+Key signatories include the United States, China, and the European Union. The agreement requires countries to submit
 Nationally Determined Contributions (NDCs) every five years.`,
 			Metadata: map[string]interface{}{
 				"source": "Climate Policy Overview",
@@ -126,9 +126,9 @@ Nationally Determined Contributions (NDCs) every five years.`,
 		},
 		{
 			ID: "climate2",
-			Text: `Tesla Inc. announced plans to build a new Gigafactory in Nevada, expected to produce 500,000 electric vehicles annually by 2025. 
-CEO Elon Musk stated that the facility will be powered entirely by renewable energy. The investment of $3.6 billion 
-will create approximately 3,000 jobs. This expansion supports the company's mission to accelerate the world's transition 
+			Text: `Tesla Inc. announced plans to build a new Gigafactory in Nevada, expected to produce 500,000 electric vehicles annually by 2025.
+CEO Elon Musk stated that the facility will be powered entirely by renewable energy. The investment of $3.6 billion
+will create approximately 3,000 jobs. This expansion supports the company's mission to accelerate the world's transition
 to sustainable energy.`,
 			Metadata: map[string]interface{}{
 				"source": "Business News",
@@ -137,9 +137,9 @@ to sustainable energy.`,
 		},
 		{
 			ID: "climate3",
-			Text: `The Amazon rainforest, spanning 5.5 million square kilometers across Brazil, Peru, and Colombia, 
-stores approximately 150-200 billion tons of carbon. Deforestation rates increased by 22% in 2022 according to 
-Brazil's National Institute for Space Research (INPE). Environmental organizations like Greenpeace and WWF 
+			Text: `The Amazon rainforest, spanning 5.5 million square kilometers across Brazil, Peru, and Colombia,
+stores approximately 150-200 billion tons of carbon. Deforestation rates increased by 22% in 2022 according to
+Brazil's National Institute for Space Research (INPE). Environmental organizations like Greenpeace and WWF
 are calling for stronger protection measures.`,
 			Metadata: map[string]interface{}{
 				"source": "Environmental Report",

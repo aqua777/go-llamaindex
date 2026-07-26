@@ -5,16 +5,22 @@
         "target": "devcontainer",
         "context": "..",
         "args": {
-            "GO_USER_NAME": "dev"
+            "DEV_USER_NAME": "dev"
         }
     },
-    "workspaceMount": "source=${localWorkspaceFolder},target=/go-llamaindex,type=bind,consistency=cached",
-    "workspaceFolder": "/go-llamaindex",
+    "mounts": [
+        "source=${localEnv:HOME}/.claude,target=/home/dev/.claude,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.codeium,target=/home/dev/.codeium,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.cursor,target=/home/dev/.cursor,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.gemini,target=/home/dev/.gemini,type=bind,consistency=cached",
+        "source=${localEnv:HOME}/.windsurf,target=/home/dev/.windsurf,type=bind,consistency=cached",
+        "source=${localWorkspaceFolder},target=/ws,type=bind,consistency=cached",
+    ],
+    // "workspaceMount": "source=${localWorkspaceFolder},target=/go-llamaindex,type=bind,consistency=cached",
+    "workspaceFolder": "/ws",
     "remoteUser": "dev",
     "updateRemoteUserUID": true,
     // "overrideCommand": false,
-    "mounts": [
-    ],
     "customizations": {
         "vscode": {
             "extensions": [
@@ -38,8 +44,7 @@
     "forwardPorts": [],
     "containerEnv": {
         "OLLAMA_URL": "http://host.docker.internal:11434",
-        "OLLAMA_MODEL": "jan-v1:q6_k",
-
+        "OLLAMA_MODEL": "llama3",
         "OPENAI_URL": "http://host.docker.internal:11434/v1"
     }
 }

@@ -32,14 +32,14 @@ const (
 
 // Default prompts for tree index.
 const (
-	DefaultSummaryPromptTemplate = `Write a summary of the following. Try to use only the information provided. 
+	DefaultSummaryPromptTemplate = `Write a summary of the following. Try to use only the information provided.
 Try to include as many key details as possible.
 
 {context_str}
 
 SUMMARY:`
 
-	DefaultInsertPromptTemplate = `Context information is below. It is provided in a numbered list (1 to {num_chunks}), 
+	DefaultInsertPromptTemplate = `Context information is below. It is provided in a numbered list (1 to {num_chunks}),
 where each item in the list corresponds to a summary.
 
 ---------------------
@@ -48,11 +48,11 @@ where each item in the list corresponds to a summary.
 
 Given the context information, here is a new piece of information: {new_chunk_text}
 
-Answer with the number corresponding to the summary that should be updated. 
+Answer with the number corresponding to the summary that should be updated.
 The answer should be the number corresponding to the summary that is most relevant to the question.
 `
 
-	DefaultQueryPromptTemplate = `Some choices are given below. It is provided in a numbered list (1 to {num_chunks}), 
+	DefaultQueryPromptTemplate = `Some choices are given below. It is provided in a numbered list (1 to {num_chunks}),
 where each item in the list corresponds to a summary.
 
 ---------------------

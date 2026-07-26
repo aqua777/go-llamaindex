@@ -35,7 +35,7 @@ func TestChromemPersistence(t *testing.T) {
 		t.Fatalf("failed to add node: %v", err)
 	}
 
-	// 3. Close the store (simulating app restart) - Chromem doesn't have Close(), 
+	// 3. Close the store (simulating app restart) - Chromem doesn't have Close(),
 	// but NewPersistentDB loads from disk.
 	// So we just create a new instance pointing to the same dir.
 

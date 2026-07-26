@@ -41,29 +41,29 @@ func main() {
 		// Chat session 1 - user_alice
 		{ID: "msg_1", Text: "Hello, how can I help you today?", Type: schema.ObjectTypeText,
 			Metadata: map[string]interface{}{"chat_id": "chat_001", "user": "alice", "role": "assistant"},
-			Embedding: []float64{0.1, 0.2, 0.3}},
+			Embedding: []float32{0.1, 0.2, 0.3}},
 		{ID: "msg_2", Text: "I need help with my order", Type: schema.ObjectTypeText,
 			Metadata: map[string]interface{}{"chat_id": "chat_001", "user": "alice", "role": "user"},
-			Embedding: []float64{0.2, 0.3, 0.4}},
+			Embedding: []float32{0.2, 0.3, 0.4}},
 		{ID: "msg_3", Text: "Sure, let me look that up for you", Type: schema.ObjectTypeText,
 			Metadata: map[string]interface{}{"chat_id": "chat_001", "user": "alice", "role": "assistant"},
-			Embedding: []float64{0.3, 0.4, 0.5}},
+			Embedding: []float32{0.3, 0.4, 0.5}},
 
 		// Chat session 2 - user_bob
 		{ID: "msg_4", Text: "What's the weather like?", Type: schema.ObjectTypeText,
 			Metadata: map[string]interface{}{"chat_id": "chat_002", "user": "bob", "role": "user"},
-			Embedding: []float64{0.4, 0.5, 0.6}},
+			Embedding: []float32{0.4, 0.5, 0.6}},
 		{ID: "msg_5", Text: "It's sunny and 72 degrees", Type: schema.ObjectTypeText,
 			Metadata: map[string]interface{}{"chat_id": "chat_002", "user": "bob", "role": "assistant"},
-			Embedding: []float64{0.5, 0.6, 0.7}},
+			Embedding: []float32{0.5, 0.6, 0.7}},
 
 		// Chat session 3 - user_alice (another session)
 		{ID: "msg_6", Text: "Can you recommend a restaurant?", Type: schema.ObjectTypeText,
 			Metadata: map[string]interface{}{"chat_id": "chat_003", "user": "alice", "role": "user"},
-			Embedding: []float64{0.6, 0.7, 0.8}},
+			Embedding: []float32{0.6, 0.7, 0.8}},
 		{ID: "msg_7", Text: "I recommend the Italian place downtown", Type: schema.ObjectTypeText,
 			Metadata: map[string]interface{}{"chat_id": "chat_003", "user": "alice", "role": "assistant"},
-			Embedding: []float64{0.7, 0.8, 0.9}},
+			Embedding: []float32{0.7, 0.8, 0.9}},
 	}
 
 	// 4. Add nodes to the store

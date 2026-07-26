@@ -19,6 +19,24 @@ Demonstrates splitting text into chunks using sentence boundaries.
 cd sentence-splitter && go run main.go
 ```
 
+### 2. Semantic Splitter (`semantic-splitter/`)
+
+Demonstrates embedding-based semantic chunking with a mock embedding model (topic vectors).
+
+**Run (from `examples/`):**
+```bash
+go run ./textsplitter/semantic-splitter/
+```
+
+### 3. Semantic Double Merging (`semantic-double-merging/`)
+
+Splits a multi-topic document with the double-merging Jaccard similarity splitter, comparing two threshold presets (tighter vs looser).
+
+**Run (from `examples/`):**
+```bash
+go run ./textsplitter/semantic-double-merging/
+```
+
 ## Prerequisites
 
 - Go 1.21+

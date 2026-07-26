@@ -18,7 +18,7 @@ func TestOllamaEmbedding(t *testing.T) {
 		e := NewOllamaEmbedding()
 		assert.NotNil(t, e)
 		assert.Equal(t, OllamaNomicEmbedText, e.model)
-		
+
 		// baseURL should respect OLLAMA_HOST env var, or use default
 		expectedURL := os.Getenv("OLLAMA_HOST")
 		if expectedURL == "" {

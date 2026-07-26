@@ -172,12 +172,12 @@ func (s *SentenceSplitter) SplitText(text string) []string {
 // SplitTextMetadataAware splits text into chunks, accounting for metadata length.
 // This is useful for RAG applications where metadata consumes context window.
 func (s *SentenceSplitter) SplitTextMetadataAware(text string, metadata string) ([]string, error) {
-	metadataLength := s.getTokenSize(metadata)
-	effectiveChunkSize := s.ChunkSize - metadataLength
-	if effectiveChunkSize < 50 {
-		return nil, fmt.Errorf("metadata length (%d) is too large for chunk size (%d), resulting in insufficient content window (< 50)", metadataLength, s.ChunkSize)
+	metaTokens := MetadataTokenCount(s.Tokenizer, metadata)
+	effective, err := EffectiveChunkSizeAfterMetadata(s.ChunkSize, metaTokens)
+	if err != nil {
+		return nil, err
 	}
-	return s.splitText(text, effectiveChunkSize), nil
+	return s.splitText(text, effective), nil
 }
 
 func (s *SentenceSplitter) splitText(text string, chunkSize int) []string {
@@ -235,7 +235,7 @@ func (s *SentenceSplitter) merge(splits []textSplit, chunkSize int) []string {
 	var curChunk []bufItem
 	var lastChunk []bufItem
 	curChunkLen := 0
-	newChunk := true
+	overlapBudget := min(s.ChunkOverlap, chunkSize)
 
 	closeChunk := func() {
 		var sb strings.Builder
@@ -247,14 +247,15 @@ func (s *SentenceSplitter) merge(splits []textSplit, chunkSize int) []string {
 		lastChunk = curChunk
 		curChunk = nil // reset
 		curChunkLen = 0
-		newChunk = true
 
-		// Add overlap from lastChunk
+		// Add overlap from lastChunk; cap by both ChunkOverlap and chunkSize so the
+		// next chunk's buffer never exceeds the effective content window.
+		ob := overlapBudget
 		if len(lastChunk) > 0 {
 			lastIndex := len(lastChunk) - 1
 			for lastIndex >= 0 {
 				item := lastChunk[lastIndex]
-				if curChunkLen+item.len <= s.ChunkOverlap {
+				if curChunkLen+item.len <= ob {
 					curChunkLen += item.len
 					// Prepend to curChunk
 					curChunk = append([]bufItem{item}, curChunk...)
@@ -269,30 +270,18 @@ func (s *SentenceSplitter) merge(splits []textSplit, chunkSize int) []string {
 	splitIdx := 0
 	for splitIdx < len(splits) {
 		curSplit := splits[splitIdx]
-		// if curSplit.tokenSize > chunkSize {
-		// 	// Should not happen if recursion worked, but safety check
-		// 	// In Python it raises ValueError.
-		// 	// We'll just force it in or panic.
-		// 	// For now, panic to be noticeable during dev.
-		// 	panic(fmt.Sprintf("Single token exceeded chunk size: %d > %d", curSplit.tokenSize, chunkSize))
-		// }
 
-		if curChunkLen+curSplit.tokenSize > chunkSize && !newChunk {
+		if curChunkLen+curSplit.tokenSize > chunkSize && len(curChunk) > 0 {
 			closeChunk()
-		} else {
-			// Add split if it fits or if it is a sentence or if it's a new chunk (must add at least one)
-			if curSplit.isSentence || curChunkLen+curSplit.tokenSize <= chunkSize || newChunk {
-				curChunkLen += curSplit.tokenSize
-				curChunk = append(curChunk, bufItem{text: curSplit.text, len: curSplit.tokenSize})
-				splitIdx++
-				newChunk = false
-			} else {
-				closeChunk()
-			}
+			continue
 		}
+		
+		curChunkLen += curSplit.tokenSize
+		curChunk = append(curChunk, bufItem{text: curSplit.text, len: curSplit.tokenSize})
+		splitIdx++
 	}
 
-	if !newChunk {
+	if len(curChunk) > 0 {
 		var sb strings.Builder
 		for _, item := range curChunk {
 			sb.WriteString(item.text)

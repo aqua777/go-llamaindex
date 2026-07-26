@@ -1,28 +1,38 @@
-FROM golang:1.25 AS golang
+FROM golang:1.26-trixie AS golang
 
-ARG GO_USER_ID=1001
-ARG GO_USER_NAME=dev
+ARG DEV_USER_ID=1001
+ARG DEV_USER_NAME=dev
 
-ENV GO_USER_ID=${GO_USER_ID}
-ENV GO_USER_NAME=${GO_USER_NAME}
+ENV DEV_USER_ID=${DEV_USER_ID}
+ENV DEV_USER_NAME=${DEV_USER_NAME}
 
-ENV GOCACHE=/tmp/.cache/go/build
-ENV GOMODCACHE=/tmp/.cache/go/pkg/mod
 
 COPY --chmod=0755 .docker/scripts/go-* /usr/local/bin/
 
-RUN apt-get update && apt-get install -y net-tools sqlite3 sudo zsh && \
+RUN apt-get update && apt-get install -y net-tools nodejs npm sqlite3 sudo zsh && \
     \
-    groupadd -g "${GO_USER_ID}" "${GO_USER_NAME}" && \
-    useradd -m -u "${GO_USER_ID}" -g "${GO_USER_ID}" "${GO_USER_NAME}" && \
-    echo "${GO_USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
-    echo "User ${GO_USER_NAME} created with ID: ${GO_USER_ID}"
+    groupadd -g "${DEV_USER_ID}" "${DEV_USER_NAME}" && \
+    useradd -m -u "${DEV_USER_ID}" -g "${DEV_USER_ID}" "${DEV_USER_NAME}" && \
+    echo "${DEV_USER_NAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers && \
+    echo "User ${DEV_USER_NAME} created with ID: ${DEV_USER_ID}"
 
-COPY .docker/zshrc /home/${GO_USER_NAME}/.zshrc
+ENV GOCACHE=/home/${DEV_USER_NAME}/.cache/go/build
+ENV GOMODCACHE=/home/${DEV_USER_NAME}/.cache/go/pkg/mod
+ENV GOPATH=/usr/local
+
+COPY .docker/zshrc /home/${DEV_USER_NAME}/.zshrc
 
 CMD ["/bin/zsh"]
 
 # ------------------------------------------------------------------------------
 FROM golang AS devcontainer
 
-RUN go env && bash /usr/local/bin/go-install-vscode-tools
+RUN go env && bash /usr/local/bin/go-install-vscode-tools && \
+    \
+    curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv* /usr/local/bin/ && \
+    \
+    npm install -g cclsp && \
+    npm install -g typescript-language-server && \
+    \
+    chown -R ${DEV_USER_NAME}:${DEV_USER_ID} /home/${DEV_USER_NAME}/.cache

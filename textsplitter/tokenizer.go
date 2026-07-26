@@ -46,7 +46,7 @@ func (t *TikTokenTokenizer) Encode(text string) []string {
 	// Tiktoken-go doesn't expose "decode single token" easily without Decode([]int).
 	// Let's just return stringified integers for now, as it's efficient enough for length check.
 	// Actually, to be safe for future use (e.g. debugging), let's just return string representations of IDs.
-	
+
 	tokenIDs := t.encoding.Encode(text, nil, nil)
 	tokens := make([]string, len(tokenIDs))
 	for i, id := range tokenIDs {

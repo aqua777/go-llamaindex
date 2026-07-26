@@ -149,10 +149,10 @@ func (s *MyVectorStore) DeleteByFilter(ctx context.Context, filters *schema.Meta
     if filters == nil || len(filters.Filters) == 0 {
         return 0, errors.New("filters cannot be nil or empty for bulk delete")
     }
-    
+
     // Convert MetadataFilters to backend-specific filter format
     backendFilter := convertToBackendFilter(filters)
-    
+
     // Execute bulk delete
     return s.client.DeleteByFilter(ctx, backendFilter)
 }

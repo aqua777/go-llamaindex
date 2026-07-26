@@ -124,7 +124,7 @@ type TreeSelectLeafRetriever struct {
 }
 
 // Default query prompt for tree select.
-const DefaultTreeQueryPrompt = `Some choices are given below. It is provided in a numbered list (1 to {num_chunks}), 
+const DefaultTreeQueryPrompt = `Some choices are given below. It is provided in a numbered list (1 to {num_chunks}),
 where each item in the list corresponds to a summary.
 
 ---------------------
